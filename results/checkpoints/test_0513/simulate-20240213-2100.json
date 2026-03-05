@@ -152,7 +152,7 @@
           },
           {
             "idx": 10,
-            "describe": "去奧克山學院的圖書館上課",
+            "describe": "去emo學院的圖書館上課",
             "start": 600,
             "duration": 60,
             "decompose": [
@@ -1077,7 +1077,7 @@
               },
               {
                 "idx": 2,
-                "describe": "到達奧克山學院入口並前往圖書館",
+                "describe": "到達emo學院入口並前往圖書館",
                 "start": 555,
                 "duration": 5
               },
@@ -4185,13 +4185,13 @@
           },
           {
             "idx": 10,
-            "describe": "開始去奧克山學院教書",
+            "describe": "開始去emo學院教書",
             "start": 600,
             "duration": 60,
             "decompose": [
               {
                 "idx": 0,
-                "describe": "出發前往奧克山學院",
+                "describe": "出發前往emo學院",
                 "start": 600,
                 "duration": 5
               },
@@ -6165,7 +6165,7 @@
           "describe": "參加線上課程，學習最新的藥物和治療方法",
           "address": [
             "the Ville",
-            "奧克山學院",
+            "emo學院",
             "走廊"
           ],
           "emoji": "參加線上課程，學習最新的藥物和治療方法"
@@ -6177,7 +6177,7 @@
           "describe": "空無一人",
           "address": [
             "the Ville",
-            "奧克山學院",
+            "emo學院",
             "走廊"
           ],
           "emoji": ""
@@ -6311,7 +6311,7 @@
               },
               {
                 "idx": 7,
-                "describe": "出門前往奧克山學院的路上購買咖啡",
+                "describe": "出門前往emo學院的路上購買咖啡",
                 "start": 595,
                 "duration": 5
               }

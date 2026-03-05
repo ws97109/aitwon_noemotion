@@ -5,7 +5,7 @@ conda activate aitown_tw
 
 運行虚擬小鎮
 cd generative_agents
-python start.py --name five-ai --start "20240213-09:30" --step 10 --stride 10
+python start.py --name test_0513 --start "20250501-09:00" --step 10 --stride 10
 
 參數說明:
 name - 每次启動虚擬小鎮，需要設定唯一的名稱，用於事後回放。

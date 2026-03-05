@@ -9,7 +9,8 @@
       "Bash(python3:*)",
       "Bash(ollama list:*)",
       "Bash(echo:*)",
-      "Bash(unset:*)"
+      "Bash(unset:*)",
+      "Bash(git remote set-url origin https://github.com/ws97109/aitwon_noemotion.git)"
     ],
     "deny": []
   }
