@@ -1,5 +1,6 @@
 """generative_agents.prompt.scratch"""
 
+import json
 import random
 import datetime
 import re
@@ -8,6 +9,7 @@ from string import Template
 from modules import utils
 from modules.memory import Event
 from modules.model import parse_llm_output
+from modules.emotion import EmotionState
 
 
 class Scratch:
@@ -16,17 +18,23 @@ class Scratch:
         self.currently = currently
         self.config = config
         self.template_path = "data/prompts"
+        self.emotion = EmotionState()  # 當前情緒狀態，由 EmotionModel 更新
 
     def build_prompt(self, template, data):
         with open(f"{self.template_path}/{template}.txt", "r", encoding="utf-8") as file:
             file_content = file.read()
 
-        template = Template(file_content)
-        filled_content = template.substitute(data)
+        tmpl = Template(file_content)
+        filled_content = tmpl.safe_substitute(data)
 
         return filled_content
 
     def _base_desc(self):
+        # 只在非平靜狀態時顯示情緒，避免無意義的空行干擾提示詞
+        emotion = getattr(self, "emotion", None) or EmotionState()
+        emotion_line = (
+            f"目前情緒狀態：{emotion.describe()}" if emotion.label != "平靜" else ""
+        )
         return self.build_prompt(
             "base_desc",
             {
@@ -38,6 +46,7 @@ class Scratch:
                 "daily_plan": self.config["daily_plan"],
                 "date": utils.get_timer().daily_format_cn(),
                 "currently": self.currently,
+                "emotion_state": emotion_line,
             }
         )
 
@@ -924,4 +933,96 @@ class Scratch:
             "prompt": prompt,
             "callback": _callback,
             "failsafe": self.currently,
+        }
+
+    # ──────────────────────────────────────────────────────────────
+    # 情緒相關提示詞
+    # ──────────────────────────────────────────────────────────────
+
+    def prompt_emotion_detect(self, text, other_name=None, relation=None, chat_memory=None):
+        """
+        分析行動或對話文字中的情緒狀態。
+        回傳 dict（可直接傳入 EmotionState.from_dict()）。
+        當 EmoLLM 專用後端未啟用時，由主要 LLM 執行此提示詞。
+
+        Args:
+            text:       要分析的文字
+            other_name: 對話對象姓名（對話場景才傳入）
+            relation:   自身對對方的關係印象描述
+            chat_memory: 近期與對方的對話記憶摘要
+        """
+        # 組裝關係上下文（只有對話場景才會有）
+        relation_context = ""
+        if other_name:
+            parts = [f"對話對象：{other_name}"]
+            if relation:
+                parts.append(f"{self.name} 對 {other_name} 的印象：{relation}")
+            if chat_memory:
+                parts.append(f"近期互動記憶：{chat_memory}")
+            relation_context = "\n".join(parts) + "\n"
+
+        prompt = self.build_prompt(
+            "emotion_detect",
+            {
+                "agent":            self.name,
+                "base_desc":        self._base_desc(),
+                "text":             str(text)[:600],
+                "relation_context": relation_context,
+            }
+        )
+
+        def _callback(response):
+            # 優先嘗試解析 JSON
+            try:
+                match = re.search(r'\{[^{}]+\}', response, re.DOTALL)
+                if match:
+                    data = json.loads(match.group())
+                    label     = data.get("label",     EmotionState.DEFAULT)
+                    intensity = max(1, min(10, int(data.get("intensity", 5))))
+                    reason    = str(data.get("reason", ""))
+                    return {"label": label, "intensity": intensity, "reason": reason}
+            except Exception:
+                pass
+            # 備援：關鍵字掃描
+            for label in EmotionState.LABELS:
+                if label in response:
+                    return {"label": label, "intensity": 5, "reason": ""}
+            return None
+
+        return {
+            "prompt":   prompt,
+            "callback": _callback,
+            "failsafe": {"label": EmotionState.DEFAULT, "intensity": 3, "reason": ""},
+        }
+
+    def prompt_emotion_memory_reflect(self, emotion_nodes):
+        """
+        根據情緒記憶節點列表，反思整體情緒傾向。
+        回傳描述字串，存入 thought 記憶中。
+        """
+        history_lines = []
+        for n in emotion_nodes[:8]:
+            time_str   = n.create.strftime("%m/%d %H:%M")
+            label      = n.event.object      # 情緒標籤存於 event.object
+            intensity  = n.poignancy
+            short_desc = n.reason[:20] if hasattr(n, "reason") and n.reason else n.describe[:30]
+            history_lines.append(
+                f"- [{time_str}] {label}（強度 {intensity}/10）：{short_desc}"
+            )
+
+        prompt = self.build_prompt(
+            "emotion_memory_reflect",
+            {
+                "agent":           self.name,
+                "emotion_history": "\n".join(history_lines) or "（暫無情緒記錄）",
+            }
+        )
+
+        def _callback(response):
+            return response.strip()[:100]
+
+        return {
+            "prompt":   prompt,
+            "callback": _callback,
+            "failsafe": f"維持平靜的情緒狀態，以日常節奏生活",
         }

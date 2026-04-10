@@ -8,6 +8,7 @@ import datetime
 from modules import memory, prompt, utils
 from modules.model.llm_model import create_llm_model
 from modules.memory.associate import Concept
+from modules.emotion import EmotionModel, EmotionState
 
 
 class Agent:
@@ -16,6 +17,7 @@ class Agent:
         self.maze = maze
         self.conversation = conversation
         self._llm = None
+        self._emotion_model = None
         self.logger = logger
 
         # agent config
@@ -37,6 +39,9 @@ class Agent:
         # status
         status = {"poignancy": 0}
         self.status = utils.update_dict(status, config.get("status", {}))
+        # emotion state (persisted in status dict)
+        if "emotion" not in self.status:
+            self.status["emotion"] = EmotionState().to_dict()
         self.plan = config.get("plan", {})
 
         # record
@@ -88,6 +93,100 @@ class Agent:
     def reset(self, keys):
         if self.think_config["mode"] == "llm" and not self._llm:
             self._llm = create_llm_model(**self.think_config["llm"], keys=keys)
+        # 初始化專用 EmoLLM 後端（model_path 或 ollama_model 有值時才啟用）
+        emotion_cfg = self.think_config.get("emotion", {})
+        if emotion_cfg.get("enabled", True) and not self._emotion_model:
+            self._emotion_model = EmotionModel(emotion_cfg)
+            if self._emotion_model.is_available():
+                self.logger.info("{} 使用專用 EmoLLM 後端".format(self.name))
+            else:
+                self.logger.info("{} 使用主要 LLM 做情緒偵測".format(self.name))
+                self._emotion_model = None  # 由 _update_emotion 的 completion() 路徑處理
+        # 從 checkpoint 恢復情緒狀態至 scratch
+        self.scratch.emotion = EmotionState.from_dict(self.status.get("emotion"))
+
+    def _update_emotion(self, text, other_agent=None, relation=None):
+        """
+        偵測文字中的情緒並更新代理人的情緒狀態。
+
+        流程：
+          1. 若有專用 EmoLLM 後端 → 直接呼叫（不消耗主 LLM token）
+          2. 否則透過 completion("emotion_detect", ...) 呼叫主 LLM
+          3. 若情緒顯著（強度≥6 或類別改變）→ 存入 Associate 記憶
+
+        Args:
+            text:        行動描述或對話全文
+            other_agent: 對話對象 Agent（對話場景才傳入）
+            relation:    自身對 other_agent 的關係印象描述
+        """
+        if not text or not text.strip():
+            return
+
+        prev       = EmotionState.from_dict(self.status.get("emotion"))
+        prev_label = prev.label   # 融合前的原始標籤，用於顯著性判斷
+
+        # ── 組裝對話上下文 ────────────────────────────────────────
+        # 有對話對象時，加入關係印象與近期互動記憶，讓情緒判斷與對象有關
+        chat_memory = ""
+        if other_agent:
+            recent = self.associate.retrieve_chats(other_agent.name)
+            for c in recent[:2]:
+                delta = utils.get_timer().get_delta(c.create)
+                chat_memory += f"{delta}分鐘前：{c.describe}。"
+
+        # EmoLLM context：給專用後端用的純文字上下文
+        if other_agent:
+            emollm_context = f"正在與 {other_agent.name} 對話。"
+            if relation:
+                emollm_context += f"對{other_agent.name}的印象：{relation}。"
+            if chat_memory:
+                emollm_context += f" 過去互動：{chat_memory}"
+        else:
+            emollm_context = self.scratch.currently
+
+        # 優先使用專用 EmoLLM 後端
+        if self._emotion_model and self._emotion_model.is_available():
+            state = self._emotion_model.detect(
+                text, agent_name=self.name, context=emollm_context
+            )
+        elif self.llm_available():
+            # 透過 scratch 的提示詞系統使用主 LLM（有日誌、重試）
+            result = self.completion(
+                "emotion_detect", text,
+                other_name  = other_agent.name if other_agent else None,
+                relation    = relation,
+                chat_memory = chat_memory or None,
+            )
+            state = EmotionState.from_dict(result) if isinstance(result, dict) else EmotionState()
+        else:
+            return
+
+        # 慣性融合：以舊情緒為基礎，漸進融入新偵測結果
+        prev.blend_update(state.label, state.intensity, state.reason)
+        self.status["emotion"] = prev.to_dict()
+        self.scratch.emotion   = prev
+        self.logger.info(
+            "{} 情緒偵測 → {}（原因：{}）".format(self.name, prev.describe(), prev.reason)
+        )
+
+        # 情緒顯著時存入長期記憶（融合後強度≥6，或偵測到明確的標籤切換）
+        if prev.intensity >= 6 or state.label != prev_label:
+            self._add_emotion_concept(prev)
+
+    def _add_emotion_concept(self, state):
+        """將顯著情緒存入 Associate 記憶（node_type='emotion'，保留 7 天）"""
+        describe = (
+            f"{self.name} 感受到{state.label}（強度：{state.intensity}/10）。"
+            + (state.reason if state.reason else "")
+        )
+        event = memory.Event(
+            self.name, "感受到", state.label,
+            describe=describe,
+            address=self.get_tile().get_address(),
+        )
+        expire = utils.get_timer().get_date() + datetime.timedelta(days=7)
+        self.associate.add_node("emotion", event, state.intensity, expire=expire)
+        self.logger.debug("{} 情緒記憶存入：{}".format(self.name, describe))
 
     def completion(self, func_hint, *args, **kwargs):
         assert hasattr(
@@ -389,6 +488,12 @@ class Agent:
             _add_thought(f"對於 {self.name} 的計畫：{thought}", evidence)
             thought = self.completion("reflect_chat_memory", self.chats)
             _add_thought(f"{self.name} {thought}", evidence)
+        # 情緒記憶模式反思：當累積 3 條以上情緒記憶時，生成整體情緒洞察
+        emotion_nodes = self.associate.retrieve_emotions()
+        if len(emotion_nodes) >= 3:
+            thought = self.completion("emotion_memory_reflect", emotion_nodes)
+            _add_thought(f"{self.name} 的情緒狀態：{thought}")
+
         self.status["poignancy"] = 0
         self.chats = []
 
@@ -458,12 +563,15 @@ class Agent:
 
         event.emoji = f"{de_plan['describe']}"
 
-        return memory.Action(
+        action = memory.Action(
             event,
             obj_event,
             duration=de_plan["duration"],
             start=utils.get_timer().daily_time(de_plan["start"]),
         )
+        # 根據當前行動偵測情緒，影響後續對話生成
+        self._update_emotion(describes[-1])
+        return action
 
     def _reaction(self, agents=None, ignore_words=None):
         focus = None
@@ -595,6 +703,11 @@ class Agent:
             )
         )
         chat_summary = self.completion("summarize_chats", chats)
+        # 對話結束後，根據各自的發言偵測情緒，作為下一輪互動的情緒底色
+        # 傳入對方資訊與關係印象，讓同一句話對不同居民產生差異化情緒反應
+        chat_text = "\n".join(f"{n}: {c}" for n, c in chats)
+        self._update_emotion(chat_text, other_agent=other, relation=relations[0])
+        other._update_emotion(chat_text, other_agent=self, relation=relations[1])
         duration = int(sum([len(c[1]) for c in chats]) / 240)
         self.schedule_chat(
             chats, chat_summary, start, duration, other

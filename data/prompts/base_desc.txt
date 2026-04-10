@@ -6,3 +6,4 @@
 日常計畫：${daily_plan}
 
 今天是 ${date}。${currently}
+${emotion_state}

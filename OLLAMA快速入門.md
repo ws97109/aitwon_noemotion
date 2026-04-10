@@ -18,7 +18,7 @@ ollama serve
 
 # 確認模型已下載
 ollama list
-# 應該看到 qwen3:14b
+# 應該看到 qwen2.5:7b
 ```
 
 ### 步驟 2: 檢查資料文件
@@ -94,7 +94,7 @@ responses = filler.fill_survey_for_all_residents(survey_id)
     ↓
 替換模板變數，生成完整 prompt
     ↓
-調用 Ollama API (qwen3:14b)
+調用 Ollama API (qwen2.5:7b)
     ↓
 處理 LLM 輸出，格式化回答
     ↓
@@ -270,7 +270,7 @@ generator.agents_cache.clear()  # 清除快取
 
 ### 記憶體使用
 
-- qwen3:14b 需要約 **8GB GPU 記憶體**
+- qwen2.5:7b 需要約 **8GB GPU 記憶體**
 - Agent 資料快取約 **1-2MB**
 
 ### Token 限制

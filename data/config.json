@@ -13,8 +13,14 @@
             "mode": "llm",
             "llm": {
                 "base_url": "http://127.0.0.1:11434/v1",
-                "model": "qwen3:14b",
+                "model": "qwen2.5:7b",
                 "embedding_model": "bge-m3:latest"
+            },
+            "emotion": {
+                "enabled": true,
+                "model_path": "/mnt/nfs/maokao_2/Desktop/lee/aitown_noemotion/emollm_models/EmoLLM_V3/chg0901/EmoLLMV3___0",
+                "ollama_model": "",
+                "base_url": "http://127.0.0.1:11434/v1"
             },
             "interval": 1000,
             "poignancy_max": 150

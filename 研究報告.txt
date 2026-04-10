@@ -70,7 +70,7 @@ Generative AI Agent Survey System Research Report
 2.2 核心技術架構
 ----------------
 【AI模型層】
-- 主對話模型：Ollama + qwen3:14b
+- 主對話模型：Ollama + qwen2.5:7b
   * 負責理解問題並生成自然語言回應
   * 支援繁體中文，適合本土化應用
   * 本地部署，保護數據隱私
@@ -449,7 +449,7 @@ Generative AI Agent Survey System Research Report
 A. 系統技術規格
 - 程式語言：Python 3.8+
 - 框架：Flask 2.0+
-- AI模型：Ollama + qwen3:14b + BGE-M3
+- AI模型：Ollama + qwen2.5:7b + BGE-M3
 - 前端：Bootstrap + jQuery + D3.js
 - 數據格式：JSON, CSV, Excel
 - 部署方式：本地服務 + Web界面

@@ -1,0 +1,4182 @@
+{
+  "stride": 10,
+  "time": "20250501-12:50",
+  "maze": {
+    "path": "assets/village/maze.json"
+  },
+  "agent_base": {
+    "percept": {
+      "mode": "box",
+      "vision_r": 8,
+      "att_bandwidth": 8
+    },
+    "schedule": {
+      "max_try": 5,
+      "diversity": 5
+    },
+    "think": {
+      "mode": "llm",
+      "llm": {
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "qwen2.5:7b",
+        "embedding_model": "bge-m3:latest"
+      },
+      "interval": 1000,
+      "poignancy_max": 150
+    },
+    "chat_iter": 4,
+    "associate": {
+      "embedding": {
+        "type": "ollama",
+        "base_url": "http://127.0.0.1:11434",
+        "model": "bge-m3:latest"
+      },
+      "retention": 8
+    }
+  },
+  "agents": {
+    "施宇鴻": {
+      "config_path": "assets/village/agents/施宇鴻/agent.json",
+      "status": {
+        "poignancy": 149
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "起床",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "跑步",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "跑步",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "吃早餐並開始學習化學",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "學習化學",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "翻閱教科書和筆記",
+                "start": 540,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "閱讀化學實驗原理",
+                "start": 550,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "看教學影片以加深理解",
+                "start": 560,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "做練習題以鞏固知識",
+                "start": 570,
+                "duration": 20
+              },
+              {
+                "idx": 4,
+                "describe": "回顧難點並做筆記",
+                "start": 590,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "學習化學",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "閱讀化學教科書",
+                "start": 600,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "簡單整理當天學習重點",
+                "start": 620,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "完成化學習題集中的選擇題",
+                "start": 635,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "研究複雜的化學反應方程式",
+                "start": 645,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "對照答案檢查選擇題作答情況",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "學習化學",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "研讀化學教科書",
+                "start": 660,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "做化學習題",
+                "start": 675,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "查閱相關化學資料",
+                "start": 685,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "確認學習進度並做總結",
+                "start": 695,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "休息及伸展運動",
+                "start": 705,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "學習化學",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "吃午飯並休息",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "確認學習目標及課本內容",
+                "start": 720,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "閱讀化學教材",
+                "start": 730,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "簡要筆記重點概念",
+                "start": 745,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "完成相關練習題",
+                "start": 755,
+                "duration": 15
+              },
+              {
+                "idx": 4,
+                "describe": "休息及伸展運動",
+                "start": 770,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "休息",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "開始進行運動訓練準備",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "運動訓練",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "運動訓練",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "運動訓練",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "結束訓練，回家休息",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "回家休息",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "回家休息",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "吃晚飯",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "在房間裡鍛鍊",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "研究提高學習效率的方法",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_59",
+            "node_40",
+            "node_34",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_0"
+          ],
+          "chat": []
+        }
+      },
+      "chats": [],
+      "currently": "施宇鴻正在為下一場比賽進行訓練，並為考試做準備。他也在尋找提高學習效率的方法。",
+      "action": {
+        "event": {
+          "subject": "施宇鴻",
+          "predicate": "此時",
+          "object": "完成相關練習題",
+          "describe": "完成相關練習題",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "雜貨店貨架"
+          ],
+          "emoji": "完成相關練習題"
+        },
+        "obj_event": {
+          "subject": "雜貨店貨架",
+          "predicate": "此時",
+          "object": "满載商品",
+          "describe": "满載商品",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "雜貨店貨架"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:35:00",
+        "duration": 15
+      },
+      "coord": [
+        91,
+        49
+      ]
+    },
+    "李昇峰": {
+      "config_path": "assets/village/agents/李昇峰/agent.json",
+      "status": {
+        "poignancy": 8
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡觉",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡觉",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "起床",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "洗漱吃早餐",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "休息",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "前往柳樹市場和藥店開放藥店櫃檯",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "准備前往柳樹市場和藥店",
+                "start": 540,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "查看今日的開店清單",
+                "start": 555,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "調整藥品陳列架上的貨物",
+                "start": 565,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "清理櫃檯和工作區域",
+                "start": 575,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "檢查藥品的有效期並處理過期藥品",
+                "start": 585,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "准備迎接第一位顧客",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "等待顧客來店",
+                "start": 600,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "調整藥品陳列架",
+                "start": 620,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "清理櫃檯上的雜物",
+                "start": 635,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "游庭瑄和李昇峰互相表揚對方的努力，決定一起喝杯茶休息。今日生意順利，感謝對方幫助整理櫃檯，讓工作更舒適。",
+                "start": 640,
+                "duration": 0
+              },
+              {
+                "idx": 4,
+                "describe": "檢查藥品有效期",
+                "start": 640,
+                "duration": 15
+              },
+              {
+                "idx": 5,
+                "describe": "為下午工作做準備",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "等待顧客來店",
+                "start": 660,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "調整藥品陳列架上的藥物位置",
+                "start": 680,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "清理櫃檯上的雜物",
+                "start": 695,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "設定今日的營業目標",
+                "start": 705,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "確認藥品庫存是否充足",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "等待顧客來店",
+                "start": 720,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "調整藥品陳列架上的位置",
+                "start": 740,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "清理櫃檯上的雜物",
+                "start": 755,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "游庭瑄和李昇峰互相表揚對方整理櫃檯的工作，彼此鼓勵，共同提升家務和工作效率，讓生活更加舒適順心。",
+                "start": 760,
+                "duration": 0
+              },
+              {
+                "idx": 4,
+                "describe": "重新整理藥品分類標籤",
+                "start": 760,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "檢查是否有需要補貨的藥品",
+                "start": 765,
+                "duration": 15
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "在藥店櫃檯後面工作",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "關閉藥店櫃檯",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "回家準備晚餐",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "晚飯",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "個人時間，如看電視或閱讀書籍",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "上床睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_75",
+            "node_53",
+            "node_34",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_70",
+            "node_69",
+            "node_68",
+            "node_67",
+            "node_66",
+            "node_65",
+            "node_64",
+            "node_63",
+            "node_62",
+            "node_61",
+            "node_60",
+            "node_59",
+            "node_58",
+            "node_57",
+            "node_56",
+            "node_55",
+            "node_54",
+            "node_0"
+          ],
+          "chat": [
+            "node_16"
+          ]
+        }
+      },
+      "chats": [
+        [
+          "游庭瑄",
+          "昇峰，你這裡整理得這麼乾淨，真是辛苦你了。"
+        ],
+        [
+          "李昇峰",
+          "庭瑄，感謝你的讚美，這是我們兩人共同努力的結果。你今天也整理得很仔細，我们一起努力讓工作更順利。"
+        ],
+        [
+          "游庭瑄",
+          "昇峰，看到你把櫃檯整理得這麼乾淨，我也跟着一起努力了。我們的合作真好，讓家裡和工作都更舒適。"
+        ],
+        [
+          "李昇峰",
+          "庭瑄，你的整理技巧真是一流，我也學到了不少。我們一起努力，讓生活和工作都更加順心。"
+        ],
+        [
+          "游庭瑄",
+          "昇峰，你把櫃檯整理得這麼乾淨整潔，我也想著要把家裡打理好一些。我們一起努力，讓生活更加舒適吧。"
+        ]
+      ],
+      "currently": "李昇峰與妻子游庭瑄和兒子魏祺紘住在一起，在柳樹市場和藥店開了一家藥店。他還參加了線上課程，以了解最新的藥物和治療方法。李昇峰也很好奇誰將參加下個月的地方市長選舉，他向每個人詢問誰將參加選舉。",
+      "action": {
+        "event": {
+          "subject": "李昇峰",
+          "predicate": "此時",
+          "object": "檢查是否有需要補貨的藥品",
+          "describe": "檢查是否有需要補貨的藥品",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "藥店貨架"
+          ],
+          "emoji": "檢查是否有需要補貨的藥品"
+        },
+        "obj_event": {
+          "subject": "藥店貨架",
+          "predicate": "此時",
+          "object": "陳列整齊",
+          "describe": "陳列整齊",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "藥店貨架"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:45:00",
+        "duration": 15
+      },
+      "coord": [
+        79,
+        48
+      ]
+    },
+    "游庭瑄": {
+      "config_path": "assets/village/agents/游庭瑄/agent.json",
+      "status": {
+        "poignancy": 0
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "睡覺",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "起床",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "熱身運動",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "協助兒子魏祺紘做功課",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "協助兒子魏祺紘整理書桌",
+                "start": 540,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "調查兒子的功課難點",
+                "start": 545,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "游庭瑄與魏祺紘一同整理書桌，先分類書本並將不用的放入書袋，再整理文具，使學習環境更整潔。",
+                "start": 550,
+                "duration": 1
+              },
+              {
+                "idx": 3,
+                "describe": "和兒子一起閱讀教材",
+                "start": 551,
+                "duration": 4
+              },
+              {
+                "idx": 4,
+                "describe": "練習哲學思考題",
+                "start": 555,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "設定功課目標和計劃",
+                "start": 565,
+                "duration": 20
+              },
+              {
+                "idx": 6,
+                "describe": "和兒子一起休息、喝杯茶",
+                "start": 585,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "上 emo 學院的哲學課程",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "確認兒子魏祺紘的功課難點",
+                "start": 600,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "與兒子魏祺紘一起閱讀教材",
+                "start": 605,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "解釋哲學概念給兒子魏祺紘聽",
+                "start": 615,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "跟著兒子魏祺紘一起做練習題",
+                "start": 625,
+                "duration": 15
+              },
+              {
+                "idx": 4,
+                "describe": "游庭瑄和李昇峰互相表揚對方的努力，決定一起喝杯茶休息。今日生意順利，感謝對方幫助整理櫃檯，讓工作更舒適。",
+                "start": 640,
+                "duration": 0
+              },
+              {
+                "idx": 5,
+                "describe": "確認兒子魏祺紮的功課是否完成",
+                "start": 640,
+                "duration": 10
+              },
+              {
+                "idx": 6,
+                "describe": "計畫下午哲學課程的準備工作",
+                "start": 650,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "午餐時間",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "准備午餐",
+                "start": 660,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "購買食材並 Cooking",
+                "start": 675,
+                "duration": 20
+              },
+              {
+                "idx": 2,
+                "describe": "洗碗和清潔廚房",
+                "start": 695,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "確認研究論文進度",
+                "start": 705,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "整理書桌和文件",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "休息片刻",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "看書或看報紙，放鬆心情",
+                "start": 760,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "設定鬧鐘，提醒自己準備起床",
+                "start": 775,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "睡覺休息",
+                "start": 720,
+                "duration": 25
+              },
+              {
+                "idx": 3,
+                "describe": "調整姿勢，確保舒適",
+                "start": 745,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "伸展身體，預防僵硬",
+                "start": 750,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "看書或看報紙，放鬆心情",
+                "start": 760,
+                "duration": 0
+              },
+              {
+                "idx": 6,
+                "describe": "游庭瑄和李昇峰互相表揚對方整理櫃檯的工作，彼此鼓勵，共同提升家務和工作效率，讓生活更加舒適順心。",
+                "start": 760,
+                "duration": 15
+              },
+              {
+                "idx": 7,
+                "describe": "設定鬧鐘，提醒自己準備起床",
+                "start": 775,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "返回家中，休息片刻",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "閱讀哲學著作",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "創作研究論文",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "創作研究論文",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "創作研究論文",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "創作研究論文",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "吃晚飯",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "經濟學討論會",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "閱讀哲學著作",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "工作室志願者活動",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "上床睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_54",
+            "node_34",
+            "node_33",
+            "node_30",
+            "node_29",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_71",
+            "node_70",
+            "node_69",
+            "node_68",
+            "node_67",
+            "node_66",
+            "node_65",
+            "node_64",
+            "node_63",
+            "node_62",
+            "node_61",
+            "node_60",
+            "node_59",
+            "node_58",
+            "node_57",
+            "node_56",
+            "node_55",
+            "node_0"
+          ],
+          "chat": [
+            "node_53",
+            "node_19",
+            "node_3"
+          ]
+        }
+      },
+      "chats": [],
+      "currently": "游庭瑄與丈夫李昇峰和兒子魏祺紘住在一起，她正在教授哲學課程並撰寫研究論文。她還幫助她的兩個孩子做功課。",
+      "action": {
+        "event": {
+          "subject": "游庭瑄",
+          "predicate": "此時",
+          "object": "看書或看報紙，放鬆心情",
+          "describe": "看書或看報紙，放鬆心情",
+          "address": [
+            "the Ville",
+            "林氏家族的房子",
+            "公共休息室",
+            "公共休息室桌子"
+          ],
+          "emoji": "看書或看報紙，放鬆心情"
+        },
+        "obj_event": {
+          "subject": "公共休息室桌子",
+          "predicate": "此時",
+          "object": "空閒",
+          "describe": "空閒",
+          "address": [
+            "the Ville",
+            "林氏家族的房子",
+            "公共休息室",
+            "公共休息室桌子"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:40:00",
+        "duration": 15
+      },
+      "coord": [
+        88,
+        69
+      ]
+    },
+    "盧品蓉": {
+      "config_path": "assets/village/agents/盧品蓉/agent.json",
+      "status": {
+        "poignancy": 14
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "起床",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "吃早餐",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "吃早餐",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "吃早餐",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "確認今天的課程內容",
+                "start": 540,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "准備學習所需的筆記本和文具",
+                "start": 545,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "查閱相關的參考書籍和資料",
+                "start": 550,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "確認論文研究進度並做筆記",
+                "start": 560,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "閱讀莎士比亞戲劇選段",
+                "start": 570,
+                "duration": 20
+              },
+              {
+                "idx": 5,
+                "describe": "結合閱讀內容整理思考",
+                "start": 590,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "奧克山學院的圖書館上課",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "到達圖書館並安頓好自己",
+                "start": 600,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "確認課堂時間表和所需教材",
+                "start": 605,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "調整座位以獲得最佳學習環境",
+                "start": 610,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "開始上課並跟隨老師的教學進程",
+                "start": 615,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "紀錄課堂上的重要資訊和想法",
+                "start": 625,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "休息一下，喝杯水並稍微伸展身體",
+                "start": 635,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "回顧上一節課的內容以加深理解",
+                "start": 640,
+                "duration": 10
+              },
+              {
+                "idx": 7,
+                "describe": "准備開始新的學習內容",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 8,
+                "describe": "確認今天需要完成的研究任務",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "奧克山學院的圖書館上課",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "寫作前的思考與整理",
+                "start": 660,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "盧品蓉向蔡宗陞求助借閱莎士比亞戲劇相關書籍，蔡宗陞推薦了兩本書並提供附近圖書館及書店資訊，兩人相約未來若有需要再來霍布斯咖啡館尋求協助。",
+                "start": 670,
+                "duration": 2
+              },
+              {
+                "idx": 2,
+                "describe": "閱讀相關書籍和資料",
+                "start": 672,
+                "duration": 3
+              },
+              {
+                "idx": 3,
+                "describe": "編輯和整理筆記",
+                "start": 675,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "設計論文大綱",
+                "start": 680,
+                "duration": 15
+              },
+              {
+                "idx": 5,
+                "describe": "小休片刻，喝杯水休息一下",
+                "start": 695,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "開始撰寫論文初稿",
+                "start": 700,
+                "duration": 15
+              },
+              {
+                "idx": 7,
+                "describe": "檢視與修正論文初稿",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "奧克山學院的圖書館上課",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "閱讀莎士比亞戲劇文集",
+                "start": 720,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "紀錄閱讀心得及相關問題",
+                "start": 740,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "盧品蓉與魏祺紘在餐廳相聚，討論莎士比亞戲劇，尤其聚焦《羅密歐與茱麗葉》中的雙關語和諧音詞，分享彼此的閱讀心得。",
+                "start": 750,
+                "duration": 1
+              },
+              {
+                "idx": 3,
+                "describe": "查閱資料庫中的相關研究論文",
+                "start": 751,
+                "duration": 9
+              },
+              {
+                "idx": 4,
+                "describe": "整理查閱到的資訊",
+                "start": 760,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "設計論文草稿大綱",
+                "start": 765,
+                "duration": 10
+              },
+              {
+                "idx": 6,
+                "describe": "結束當日工作，準備休息",
+                "start": 775,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "奧克山學院的圖書館上課",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "在圖書館學習",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "在圖書館學習",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "在圖書館學習",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "在圖書館學習",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "在圖書館學習",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "吃晚飯",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "在圖書館學習",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "在圖書館學習",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "在圖書館學習",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_66",
+            "node_44",
+            "node_43",
+            "node_42",
+            "node_41",
+            "node_40",
+            "node_39",
+            "node_38",
+            "node_37",
+            "node_36",
+            "node_35",
+            "node_34",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_61",
+            "node_60",
+            "node_59",
+            "node_58",
+            "node_57",
+            "node_56",
+            "node_55",
+            "node_54",
+            "node_53",
+            "node_52",
+            "node_51",
+            "node_50",
+            "node_49",
+            "node_48",
+            "node_47",
+            "node_46",
+            "node_45",
+            "node_0"
+          ],
+          "chat": [
+            "node_63",
+            "node_28"
+          ]
+        }
+      },
+      "chats": [],
+      "currently": "盧品蓉正在為她的畢業論文做研究，主題是莎士比亞戲劇中的語言運用。她也在上課，學習更多關於寫作的知識。",
+      "action": {
+        "event": {
+          "subject": "盧品蓉",
+          "predicate": "此時",
+          "object": "設計論文草稿大綱",
+          "describe": "設計論文草稿大綱",
+          "address": [
+            "the Ville",
+            "大安公園",
+            "公園",
+            "公園花園"
+          ],
+          "emoji": "設計論文草稿大綱"
+        },
+        "obj_event": {
+          "subject": "公園花園",
+          "predicate": "此時",
+          "object": "靜靜等待著",
+          "describe": "靜靜等待著",
+          "address": [
+            "the Ville",
+            "大安公園",
+            "公園",
+            "公園花園"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:45:00",
+        "duration": 10
+      },
+      "coord": [
+        31,
+        50
+      ]
+    },
+    "莊于萱": {
+      "config_path": "assets/village/agents/莊于萱/agent.json",
+      "status": {
+        "poignancy": 57
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡觉",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "睡觉",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "睡觉",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "睡觉",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "睡觉",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "睡覺",
+                "start": 540,
+                "duration": 30
+              },
+              {
+                "idx": 1,
+                "describe": "醒來伸展身軀",
+                "start": 570,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "上廁所",
+                "start": 575,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "享用早餐",
+                "start": 580,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "准備開始新的一天",
+                "start": 590,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "睡觉",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "起床",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "醜睡",
+                "start": 600,
+                "duration": 25
+              },
+              {
+                "idx": 1,
+                "describe": "習慣性翻身",
+                "start": 625,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "清理床單和被褥",
+                "start": 630,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "洗澡準備起床",
+                "start": 640,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "享用早餐",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "准备前往霍布斯咖啡館",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "前往霍布斯咖啡館學習",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "到達霍布斯咖啡館",
+                "start": 660,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "選擇座位並點餐",
+                "start": 665,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "查閱物理學教材和筆記",
+                "start": 670,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "確認今天要學習的課堂內容",
+                "start": 680,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "開始閱讀教科書和相關資料",
+                "start": 685,
+                "duration": 15
+              },
+              {
+                "idx": 5,
+                "describe": "簡短休息並喝杯咖啡",
+                "start": 700,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "解答昨天的課堂問題",
+                "start": 705,
+                "duration": 5
+              },
+              {
+                "idx": 7,
+                "describe": "莊于萱與蔡宗陞互相關心，咖啡機及設備已檢查無誤，莊于萱準備學習，表示 READY 當助理，蔡宗陞感謝並邀請她隨時提出需求。",
+                "start": 710,
+                "duration": 1
+              },
+              {
+                "idx": 8,
+                "describe": "准備開始新的學習內容",
+                "start": 711,
+                "duration": 4
+              },
+              {
+                "idx": 9,
+                "describe": "檢查學習進度並整理筆記",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "在霍布斯咖啡館吃午餐",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "選擇今天要學習的主題",
+                "start": 720,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "確認霍布斯咖啡館是否有空位",
+                "start": 725,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "到達霍布斯咖啡館並點餐",
+                "start": 730,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "確認今天要使用的學習資料是否齊全",
+                "start": 740,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "開始閱讀和整理學習資料",
+                "start": 745,
+                "duration": 20
+              },
+              {
+                "idx": 5,
+                "describe": "確認午餐是否準備好",
+                "start": 765,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "享用午餐",
+                "start": 770,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "在霍布斯咖啡館學習",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "在霍布斯咖啡館學習",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "在霍布斯咖啡館學習",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "在Twitch上直播遊戲",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "在Twitch上直播遊戲",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "在Twitch上直播遊戲",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "在Twitch上直播遊戲",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "在Twitch上直播遊戲",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "傍晚8點結束直播，準備就寝",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "准備就寝",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_21",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_0"
+          ],
+          "chat": [
+            "node_16"
+          ]
+        }
+      },
+      "chats": [
+        [
+          "莊于萱",
+          "蔡大哥，咖啡機和其它設備都檢查好了嗎？我剛才看到你忙個不停，有需要我幫忙的地方嗎？"
+        ],
+        [
+          "蔡宗陞",
+          "莊于萱，你好呀！咖啡機和設備都已經檢查過了，目前一切正常。你剛才坐下來看書了嗎？需要我幫忙找些資料嗎？"
+        ],
+        [
+          "莊于萱",
+          "蔡大哥，謝謝你已經檢查過了，目前看起來一切順利。我剛是稍微休息一下，準備開始學習。如果需要幫手整理書籍或資料，隨時叫我哦！"
+        ],
+        [
+          "蔡宗陞",
+          "好的，莊于萱，你先好好休息一下吧！有需要帮忙的時候再叫我。如果咖啡館裡有什麼地方可以幫忙整理的，隨時告訴我哦！"
+        ],
+        [
+          "莊于萱",
+          "蔡大哥，沒有什麼需要幫忙的地方就好，感謝你的關心！我會盡力做好自己的學習和工作。如果有任何事情可以讓我來做，請隨時告訴我哦！"
+        ]
+      ],
+      "currently": "莊于萱正在攻讀物理學位，並在Twitch上直播遊戲以賺取額外收入。她幾乎每天都會去霍布斯咖啡館學習和吃飯。",
+      "action": {
+        "event": {
+          "subject": "莊于萱",
+          "predicate": "此時",
+          "object": "享用午餐",
+          "describe": "享用午餐",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館顧客座位"
+          ],
+          "emoji": "享用午餐"
+        },
+        "obj_event": {
+          "subject": "咖啡館顧客座位",
+          "predicate": "此時",
+          "object": "被占用中",
+          "describe": "被占用中",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館顧客座位"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:50:00",
+        "duration": 10
+      },
+      "coord": [
+        74,
+        25
+      ]
+    },
+    "蔡宗陞": {
+      "config_path": "assets/village/agents/蔡宗陞/agent.json",
+      "status": {
+        "poignancy": 136
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "起床",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "早餐",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "開放霍布斯咖啡館",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "在櫃檯前工作",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "檢查咖啡館設備是否正常運作",
+                "start": 540,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "清理櫃檯和工作台",
+                "start": 550,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "檢查咖啡館的衛生狀況",
+                "start": 560,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "准備當日所需的食材和材料",
+                "start": 570,
+                "duration": 15
+              },
+              {
+                "idx": 4,
+                "describe": "檢查咖啡館的裝飾是否符合派對氛圍",
+                "start": 585,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "在櫃檯前工作",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "在櫃檯前工作",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "接待顧客並提供服務",
+                "start": 600,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "確認當日訂單與库存是否充足",
+                "start": 620,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "清理櫃檯並整理工作區域",
+                "start": 635,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "檢查咖啡機和其他設備是否正常運作",
+                "start": 645,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "准備下午的派對所需材料",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "在櫃檯前工作",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "接待顧客並提供服務",
+                "start": 660,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "盧品蓉向蔡宗陞求助借閱莎士比亞戲劇相關書籍，蔡宗陞推薦了兩本書並提供附近圖書館及書店資訊，兩人相約未來若有需要再來霍布斯咖啡館尋求協助。",
+                "start": 670,
+                "duration": 2
+              },
+              {
+                "idx": 2,
+                "describe": "確認當日訂單與库存是否充足",
+                "start": 672,
+                "duration": 13
+              },
+              {
+                "idx": 3,
+                "describe": "清理櫃檯並整理工作區域",
+                "start": 685,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "檢查咖啡機和其他設備是否正常運作",
+                "start": 695,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "准備下午的派對所需材料",
+                "start": 705,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "莊于萱與蔡宗陞互相關心，咖啡機及設備已檢查無誤，莊于萱準備學習，表示 READY 當助理，蔡宗陞感謝並邀請她隨時提出需求。",
+                "start": 710,
+                "duration": 1
+              },
+              {
+                "idx": 7,
+                "describe": "確認派對當日的布置與安排",
+                "start": 711,
+                "duration": 4
+              },
+              {
+                "idx": 8,
+                "describe": "調整工作流程或處理其他臨時事項，確保一切準備就緒",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "在櫃檯前工作",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "接待顧客並處理訂單",
+                "start": 720,
+                "duration": 20
+              },
+              {
+                "idx": 1,
+                "describe": "清理櫃檯和工作區域",
+                "start": 740,
+                "duration": 15
+              },
+              {
+                "idx": 2,
+                "describe": "檢查咖啡館的供應品是否充足",
+                "start": 755,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "為下午的派對準備材料",
+                "start": 765,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "休息並喝杯咖啡",
+                "start": 775,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "在櫃檯前工作",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "在櫃檯前工作",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "在櫃檯前工作",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "在櫃檯前工作",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "在櫃檯前工作",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "在櫃檯前工作",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "在櫃檯前工作",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "在櫃檯前工作",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "在櫃檯前工作",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "開始準備週年派對材料",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "開始準備週年派對材料",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_38",
+            "node_35",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_29",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_0"
+          ],
+          "chat": [
+            "node_30",
+            "node_20"
+          ]
+        }
+      },
+      "chats": [
+        [
+          "盧品蓉",
+          "蔡先生，您好！我是奧克山學院的大學生盧品蓉，正在這裡上課和研究莎士比亞戲劇中的語言運用。不知道您這裡是否方便借閱一些相關的書籍？"
+        ],
+        [
+          "蔡宗陞",
+          "盧小姐，您好！歡迎來到霍布斯咖啡館。我們這裡雖然沒有書籍借閱的服務，但可以幫您推薦一些相關的書籍，或者聯繫附近的圖書館和書店。如果您需要的話，我可以提供一些關於莎士比亞戲劇的資料，希望對您的研究有所幫助。"
+        ],
+        [
+          "盧品蓉",
+          "蔡先生，非常感謝您的幫助！我正在寫一篇關於莎士比亞戲劇語言運用的畢業論文，如果可以的話，能否請您推薦一些相關書籍或資料？另外，您知道附近有哪些圖書館或書店嗎？"
+        ],
+        [
+          "蔡宗陞",
+          "盧小姐，當然可以。我推薦您閱讀《莎士比亞戲劇語言研究》和《莎士比亞作品中的修辭手法》，這些書籍應該對您的論文有幫助。至於附近的圖書館和書店，您可以前往奧克山區公共圖書館或步行到街角的-books bookstore，那裡有很多相關資料。如果您需要進一步協助，請隨時告訴我。"
+        ],
+        [
+          "盧品蓉",
+          "蔡先生，真是太感謝您了！《莎士比亞戲劇語言研究》和《莎士比亞作品中的修辭手法》聽起來都很有幫助，我會去附近的書店看看是否有售。另外，奧克山區公共圖書館離這裡不遠，我也打算去一趟。再次感謝您的推薦和協助！"
+        ],
+        [
+          "蔡宗陞",
+          "盧小姐，不客氣，這是應該做的。希望這些資料對您有所幫助。如果您還有其他問題或需要進一步的協助，隨時歡迎來霍布斯咖啡館找我。祝您的研究順利！"
+        ],
+        [
+          "盧品蓉",
+          "蔡先生，非常感謝您的推薦和協助！我會去附近的書店看看是否有售《莎士比亞戲劇語言研究》和《莎士比亞作品中的修辭手法》，也會前往奧克山區公共圖書館。再次感謝您提供的資訊，希望我的研究能夠順利進行。"
+        ],
+        [
+          "蔡宗陞",
+          "盧小姐，祝您研究順利，如果需要進一步協助，隨時歡迎來霍布斯咖啡館找我。"
+        ],
+        [
+          "莊于萱",
+          "蔡大哥，咖啡機和其它設備都檢查好了嗎？我剛才看到你忙個不停，有需要我幫忙的地方嗎？"
+        ],
+        [
+          "蔡宗陞",
+          "莊于萱，你好呀！咖啡機和設備都已經檢查過了，目前一切正常。你剛才坐下來看書了嗎？需要我幫忙找些資料嗎？"
+        ],
+        [
+          "莊于萱",
+          "蔡大哥，謝謝你已經檢查過了，目前看起來一切順利。我剛是稍微休息一下，準備開始學習。如果需要幫手整理書籍或資料，隨時叫我哦！"
+        ],
+        [
+          "蔡宗陞",
+          "好的，莊于萱，你先好好休息一下吧！有需要帮忙的時候再叫我。如果咖啡館裡有什麼地方可以幫忙整理的，隨時告訴我哦！"
+        ],
+        [
+          "莊于萱",
+          "蔡大哥，沒有什麼需要幫忙的地方就好，感謝你的關心！我會盡力做好自己的學習和工作。如果有任何事情可以讓我來做，請隨時告訴我哦！"
+        ]
+      ],
+      "currently": "蔡宗陞計劃於5月05日下午5點在霍布斯咖啡館與她的顧客舉行餐廳週年派對派對。她正在收集聚會材料，並告訴大家在5月05日下午5點至7點在霍布斯咖啡館參加聚會。",
+      "action": {
+        "event": {
+          "subject": "蔡宗陞",
+          "predicate": "此時",
+          "object": "為下午的派對準備材料",
+          "describe": "為下午的派對準備材料",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "鋼琴"
+          ],
+          "emoji": "為下午的派對準備材料"
+        },
+        "obj_event": {
+          "subject": "鋼琴",
+          "predicate": "此時",
+          "object": "静候演奏",
+          "describe": "静候演奏",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "鋼琴"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:45:00",
+        "duration": 10
+      },
+      "coord": [
+        82,
+        26
+      ]
+    },
+    "鄭傑丞": {
+      "config_path": "assets/village/agents/鄭傑丞/agent.json",
+      "status": {
+        "poignancy": 0
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "睡覺",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "起床",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "吃早餐",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "前往奥克山學院的圖書館",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "准備前往圖書館的物品",
+                "start": 540,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "乘坐公車前往奧克山學院",
+                "start": 545,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "到達圖書館並找尋空位",
+                "start": 555,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "登錄研究論文的進度",
+                "start": 560,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "寻找相關資料和參考書籍",
+                "start": 570,
+                "duration": 20
+              },
+              {
+                "idx": 5,
+                "describe": "確認圖書館的開館時間並安排行程",
+                "start": 590,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "前往奥克山學院的圖書館",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "在圖書館寫作",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "寻找相關書籍和資料",
+                "start": 600,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "確認論文大綱和研究問題",
+                "start": 615,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "開始寫作引言部分",
+                "start": 625,
+                "duration": 15
+              },
+              {
+                "idx": 3,
+                "describe": "陳冠佑與鄭傑丞討論酒吧準備及論文進度。酒吧已準備就緒，鄭傑丞今日在圖書館寫作，進展順利。",
+                "start": 640,
+                "duration": 1
+              },
+              {
+                "idx": 4,
+                "describe": "確認引用格式和規範",
+                "start": 641,
+                "duration": 14
+              },
+              {
+                "idx": 5,
+                "describe": "保存當前進度並稍作休息",
+                "start": 655,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "確認引用格式和規範",
+                "start": 641,
+                "duration": 14
+              },
+              {
+                "idx": 7,
+                "describe": "保存當前進度並稍作休息",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "在圖書館寫作",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "寻找相關資料",
+                "start": 660,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "統整搜集到的資訊",
+                "start": 675,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "調整論文結構",
+                "start": 685,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "寫作上午的研究內容",
+                "start": 695,
+                "duration": 15
+              },
+              {
+                "idx": 4,
+                "describe": "休息一下，準備下午的寫作",
+                "start": 710,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "中午在霍布斯咖啡館吃飯",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "訂閱圖書館的無線網路",
+                "start": 720,
+                "duration": 5
+              },
+              {
+                "idx": 1,
+                "describe": "申請使用圖書館的私人研究室",
+                "start": 725,
+                "duration": 5
+              },
+              {
+                "idx": 2,
+                "describe": "訂閱所需的電子書籍和期刊",
+                "start": 730,
+                "duration": 1
+              },
+              {
+                "idx": 3,
+                "describe": "整理當日需要的資料與筆記",
+                "start": 731,
+                "duration": 9
+              },
+              {
+                "idx": 4,
+                "describe": "設定今日的研究目標和優先順序",
+                "start": 740,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "休息片刻，喝杯咖啡提神",
+                "start": 750,
+                "duration": 10
+              },
+              {
+                "idx": 6,
+                "describe": "准備午餐並前往霍布斯咖啡館",
+                "start": 760,
+                "duration": 10
+              },
+              {
+                "idx": 7,
+                "describe": "中午在霍布斯咖啡館吃飯",
+                "start": 775,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "下午1點繼續在圖書館寫作",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "在圖書館寫作",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "在圖書館寫作",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "在圖書館寫作",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "在圖書館寫作",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "5點半在霍布斯咖啡館吃晚飯",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "開始撰寫研究論文",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "撰寫研究論文",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "撰寫研究論文",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "撰寫研究論文",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "撰寫研究論文",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_53",
+            "node_52",
+            "node_51",
+            "node_50",
+            "node_48",
+            "node_47",
+            "node_46",
+            "node_45",
+            "node_44",
+            "node_43",
+            "node_42",
+            "node_41",
+            "node_40",
+            "node_39",
+            "node_38",
+            "node_37",
+            "node_36",
+            "node_35",
+            "node_34",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_70",
+            "node_69",
+            "node_68",
+            "node_67",
+            "node_66",
+            "node_65",
+            "node_64",
+            "node_63",
+            "node_62",
+            "node_61",
+            "node_60",
+            "node_59",
+            "node_58",
+            "node_57",
+            "node_56",
+            "node_55",
+            "node_54",
+            "node_0"
+          ],
+          "chat": [
+            "node_49",
+            "node_29"
+          ]
+        }
+      },
+      "chats": [],
+      "currently": "鄭傑丞正在撰寫一篇關於低收入社區中產階級化影響的研究論文。",
+      "action": {
+        "event": {
+          "subject": "鄭傑丞",
+          "predicate": "此時",
+          "object": "准備午餐並前往霍布斯咖啡館",
+          "describe": "准備午餐並前往霍布斯咖啡館",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "雜貨店櫃檯"
+          ],
+          "emoji": "准備午餐並前往霍布斯咖啡館"
+        },
+        "obj_event": {
+          "subject": "雜貨店櫃檯",
+          "predicate": "此時",
+          "object": "空無人問津",
+          "describe": "空無人問津",
+          "address": [
+            "the Ville",
+            "柳樹市場和藥店",
+            "商店",
+            "雜貨店櫃檯"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:40:00",
+        "duration": 10
+      },
+      "coord": [
+        88,
+        46
+      ]
+    },
+    "陳冠佑": {
+      "config_path": "assets/village/agents/陳冠佑/agent.json",
+      "status": {
+        "poignancy": 0
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "睡覺",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "起床",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "熱身運動",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "午餐準備及享用早餐",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "熱身運動及準備早餐材料",
+                "start": 540,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "創作獨特的雞尾酒配方",
+                "start": 555,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "准備並烹煮早餐",
+                "start": 565,
+                "duration": 15
+              },
+              {
+                "idx": 3,
+                "describe": "確認早餐食材是否充足",
+                "start": 580,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "清潔工作台及調酒器具",
+                "start": 585,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "尝試新創作的雞尾酒配方",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "檢查酒吧的清潔與布置",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "檢查酒吧清潔度",
+                "start": 600,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "整理吧檯及工作區域",
+                "start": 610,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "清潔調酒機器與器具",
+                "start": 620,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "檢查酒吧布置是否符合當晚主題",
+                "start": 630,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "更換或補充吧檯上的裝飾品",
+                "start": 640,
+                "duration": 1
+              },
+              {
+                "idx": 5,
+                "describe": "清理吧檯上的空酒瓶及雜物",
+                "start": 641,
+                "duration": 9
+              },
+              {
+                "idx": 6,
+                "describe": "檢查冰櫃與冷藏櫃的溫度",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 7,
+                "describe": "結束當日準備工作，確認所有設施正常運作",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "清理庫存並備料",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "清理冰櫃和冰箱",
+                "start": 660,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "整理調酒用的器具與材料",
+                "start": 675,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "檢查過期的原料並處理",
+                "start": 685,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "訂購新的調酒材料",
+                "start": 695,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "清理吧檯和工作台",
+                "start": 705,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "陳冠佑與魏祺紘討論調酒知識，陳提供學習建議及資源，魏表示 Interested，將從線上課程開始學習。",
+                "start": 710,
+                "duration": 2
+              },
+              {
+                "idx": 6,
+                "describe": "檢查酒吧的布置與燈光",
+                "start": 712,
+                "duration": 3
+              },
+              {
+                "idx": 7,
+                "describe": "結束當日工作，準備下班",
+                "start": 715,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "設計新雞尾酒配方",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "確認當前庫存物資",
+                "start": 720,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "陳冠佑與鄭傑丞討論了訂閱的學術資源及調酒建議，並 GANG 語研究進展，相約未來分享想法。",
+                "start": 730,
+                "duration": 1
+              },
+              {
+                "idx": 2,
+                "describe": "確認當前庫存物資（補回被佔用的時間）",
+                "start": 731,
+                "duration": 4
+              },
+              {
+                "idx": 3,
+                "describe": "訂購缺少的材料和用品",
+                "start": 735,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "清理調酒區並消毒設備（縮短5分鐘）",
+                "start": 745,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "組織新到貨的材料",
+                "start": 750,
+                "duration": 10
+              },
+              {
+                "idx": 6,
+                "describe": "設計新雞尾酒配方初稿",
+                "start": 760,
+                "duration": 5
+              },
+              {
+                "idx": 7,
+                "describe": "收集設計新雞尾酒所需的食材信息",
+                "start": 765,
+                "duration": 10
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "瀏覽調酒相關資訊及教程",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "協助準備酒吧裝飾",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "開放玫瑰酒吧",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "面對面接待顧客",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "調製特色雞尾酒",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "晚餐時間",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "給顧客推薦飲品及聊天",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "個人時間，處理私人事務",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "開始打掃酒吧",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "完成打掃並檢查設備",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "上床睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_45",
+            "node_44",
+            "node_43",
+            "node_42",
+            "node_40",
+            "node_39",
+            "node_38",
+            "node_37",
+            "node_36",
+            "node_35",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_28",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2",
+            "node_1"
+          ],
+          "thought": [
+            "node_62",
+            "node_61",
+            "node_60",
+            "node_59",
+            "node_58",
+            "node_57",
+            "node_56",
+            "node_55",
+            "node_54",
+            "node_53",
+            "node_52",
+            "node_51",
+            "node_50",
+            "node_49",
+            "node_48",
+            "node_47",
+            "node_46",
+            "node_0"
+          ],
+          "chat": [
+            "node_41",
+            "node_34",
+            "node_15"
+          ]
+        }
+      },
+      "chats": [],
+      "currently": "陳冠佑在鎮上經營著一家很受歡迎的酒吧，這家酒吧已經存在了10年。他還學習了更多關於調酒的知識，並創造了獨特的雞尾酒。",
+      "action": {
+        "event": {
+          "subject": "陳冠佑",
+          "predicate": "此時",
+          "object": "收集設計新雞尾酒所需的食材信息",
+          "describe": "收集設計新雞尾酒所需的食材信息",
+          "address": [
+            "the Ville",
+            "玫瑰酒吧",
+            "酒吧",
+            "冰箱"
+          ],
+          "emoji": "收集設計新雞尾酒所需的食材信息"
+        },
+        "obj_event": {
+          "subject": "冰箱",
+          "predicate": "此時",
+          "object": "门開著中",
+          "describe": "门開著中",
+          "address": [
+            "the Ville",
+            "玫瑰酒吧",
+            "酒吧",
+            "冰箱"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:45:00",
+        "duration": 10
+      },
+      "coord": [
+        56,
+        20
+      ]
+    },
+    "魏祺紘": {
+      "config_path": "assets/village/agents/魏祺紘/agent.json",
+      "status": {
+        "poignancy": 139
+      },
+      "schedule": {
+        "create": "20250501-09:00:00",
+        "daily_schedule": [
+          {
+            "idx": 0,
+            "describe": "睡覺",
+            "start": 0,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 1,
+            "describe": "睡覺",
+            "start": 60,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 2,
+            "describe": "睡覺",
+            "start": 120,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 3,
+            "describe": "睡覺",
+            "start": 180,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 4,
+            "describe": "睡覺",
+            "start": 240,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 5,
+            "describe": "睡覺",
+            "start": 300,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 6,
+            "describe": "睡覺",
+            "start": 360,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 7,
+            "describe": "起床",
+            "start": 420,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 8,
+            "describe": "早餐",
+            "start": 480,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 9,
+            "describe": "早餐",
+            "start": 540,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "吃早餐",
+                "start": 540,
+                "duration": 10
+              },
+              {
+                "idx": 1,
+                "describe": "游庭瑄與魏祺紘一同整理書桌，先分類書本並將不用的放入書袋，再整理文具，使學習環境更整潔。",
+                "start": 550,
+                "duration": 1
+              },
+              {
+                "idx": 2,
+                "describe": "回顧昨天的音樂理論知識",
+                "start": 551,
+                "duration": 14
+              },
+              {
+                "idx": 3,
+                "describe": "清理餐後垃圾",
+                "start": 565,
+                "duration": 5
+              },
+              {
+                "idx": 4,
+                "describe": "准備上課所需的樂譜和工具",
+                "start": 570,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "准備今天的課堂討論主題",
+                "start": 580,
+                "duration": 15
+              },
+              {
+                "idx": 6,
+                "describe": "檢查與確認所有準備是否完善",
+                "start": 595,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 10,
+            "describe": "上課",
+            "start": 600,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "准備上課所需的樂譜和資料",
+                "start": 600,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "回顧音樂理論課程內容",
+                "start": 615,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "研究音樂合成技術",
+                "start": 625,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "設計音樂合成項目的大綱",
+                "start": 635,
+                "duration": 10
+              },
+              {
+                "idx": 4,
+                "describe": "組織音樂素材和音效",
+                "start": 645,
+                "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "調整項目大綱以符合課程要求",
+                "start": 655,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 11,
+            "describe": "上課",
+            "start": 660,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "聆聽音樂理論講座",
+                "start": 660,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "紀錄重要概念",
+                "start": 675,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "參與課堂討論",
+                "start": 685,
+                "duration": 10
+              },
+              {
+                "idx": 3,
+                "describe": "完成課堂練習",
+                "start": 695,
+                "duration": 15
+              },
+              {
+                "idx": 4,
+                "describe": "結束課程並準備下課",
+                "start": 710,
+                "duration": 0
+              },
+              {
+                "idx": 5,
+                "describe": "陳冠佑與魏祺紘討論調酒知識，陳提供學習建議及資源，魏表示 Interested，將從線上課程開始學習。",
+                "start": 710,
+                "duration": 2
+              },
+              {
+                "idx": 6,
+                "describe": "簡短休息",
+                "start": 712,
+                "duration": 1
+              },
+              {
+                "idx": 7,
+                "describe": "回顧音樂理論重點",
+                "start": 713,
+                "duration": 5
+              },
+              {
+                "idx": 8,
+                "describe": "准備下課，整理個人物品",
+                "start": 718,
+                "duration": 2
+              }
+            ]
+          },
+          {
+            "idx": 12,
+            "describe": "午餐",
+            "start": 720,
+            "duration": 60,
+            "decompose": [
+              {
+                "idx": 0,
+                "describe": "前往霍布斯咖啡館",
+                "start": 720,
+                "duration": 15
+              },
+              {
+                "idx": 1,
+                "describe": "訂位並點餐",
+                "start": 735,
+                "duration": 10
+              },
+              {
+                "idx": 2,
+                "describe": "等待餐點",
+                "start": 745,
+                "duration": 5
+              },
+              {
+                "idx": 3,
+                "describe": "卢品蓉与魏祺紘在餐厅相聚，讨论莎士比亚戏剧，尤其聚焦《罗密欧与茱丽叶》中的双关语和諧音词，分享彼此的阅读心得。",
+                "start": 750,
+                "duration": 1
+              },
+              {
+                "idx": 4,
+                "describe": "用餐",
+                "start": 751,
+                "duration": 24
+              },
+              {
+                "idx": 5,
+                "describe": "回到宿舍準備午休",
+                "start": 775,
+                "duration": 5
+              }
+            ]
+          },
+          {
+            "idx": 13,
+            "describe": "午休",
+            "start": 780,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 14,
+            "describe": "上課",
+            "start": 840,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 15,
+            "describe": "上課",
+            "start": 900,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 16,
+            "describe": "休息",
+            "start": 960,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 17,
+            "describe": "創作音樂合成項目",
+            "start": 1020,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 18,
+            "describe": "創作音樂合成項目",
+            "start": 1080,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 19,
+            "describe": "創作音樂合成項目",
+            "start": 1140,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 20,
+            "describe": "創作音樂合成項目",
+            "start": 1200,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 21,
+            "describe": "創作音樂合成項目",
+            "start": 1260,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 22,
+            "describe": "創作音樂合成項目",
+            "start": 1320,
+            "duration": 60,
+            "decompose": {}
+          },
+          {
+            "idx": 23,
+            "describe": "准備上床睡覺",
+            "start": 1380,
+            "duration": 60,
+            "decompose": {}
+          }
+        ]
+      },
+      "associate": {
+        "memory": {
+          "event": [
+            "node_36",
+            "node_35",
+            "node_33",
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_28",
+            "node_26",
+            "node_25",
+            "node_24",
+            "node_23",
+            "node_22",
+            "node_21",
+            "node_20",
+            "node_19",
+            "node_18",
+            "node_17",
+            "node_16",
+            "node_15",
+            "node_14",
+            "node_13",
+            "node_12",
+            "node_11",
+            "node_10",
+            "node_9",
+            "node_8",
+            "node_7",
+            "node_6",
+            "node_5",
+            "node_4",
+            "node_3",
+            "node_2"
+          ],
+          "thought": [
+            "node_0"
+          ],
+          "chat": [
+            "node_34",
+            "node_27",
+            "node_1"
+          ]
+        }
+      },
+      "chats": [
+        [
+          "游庭瑄",
+          "祺紘，早上好！今天哲學課有什麼新的想法嗎？我們可以一起整理書桌，讓學習環境更整潔哦。"
+        ],
+        [
+          "魏祺紘",
+          "早上好爸爸！哲學課今天講了關於美學的部分，蠻有趣的。书桌整理一下確實比較順手，我們開始吧。"
+        ],
+        [
+          "游庭瑄",
+          "好的祺紘，我們先收好書本和筆記，再整理一下文具吧。"
+        ],
+        [
+          "魏祺紘",
+          "好的爸爸，我們先從書本開始整理吧。"
+        ],
+        [
+          "游庭瑄",
+          "好的祺紘，我們先從書本開始整理吧，把用不到的書本放進書袋裡，其他的放在書桌上，這樣才能更方便你找資料哦。"
+        ],
+        [
+          "魏祺紘",
+          "好的爸爸，我來分類一下書本吧，把用不到的先放進書袋裡。"
+        ],
+        [
+          "游庭瑄",
+          "祺紘，你做得很好，把用不到的書本分類出來了。現在我們來整理文具吧，讓桌面更乾淨整潔哦。"
+        ],
+        [
+          "魏祺紘",
+          "好的爸爸，我來整理文具吧，把不用的筆和文件也一起收好。"
+        ],
+        [
+          "陳冠佑",
+          "魏祺紘，你好啊！看你剛完成課堂練習了，今天進度如何？"
+        ],
+        [
+          "魏祺紘",
+          "陳冠佑，你好！課堂練習還不錯，主要是關於音樂合成技術的應用，我覺得挺有趣的。你剛訂購了新的調酒材料啊？"
+        ],
+        [
+          "陳冠佑",
+          "是啊，今天正好需要一些新的調酒材料來試做一些新口味的雞尾酒。你對這個領域感興趣嗎？我們酒吧裡有不少客人喜歡品嚐不同風格的飲料呢。"
+        ],
+        [
+          "魏祺紘",
+          "陳冠佑，那聽起來很有趣呢！我對調酒這方面還不太了解，但聽你一說我也很想知道更多。不知道有沒有什麼好的建議可以推薦給我？"
+        ],
+        [
+          "陳冠佑",
+          "當然可以，魏祺紘。你可以先從學習一些基本的調酒知識開始，像是了解不同基底酒和調味料的特性，這樣才能更好地創作出美味的雞尾酒。另外，多嘗試不同的配方也是很重要的。如果你對這方面感興趣，我可以介紹一些資源給你。"
+        ],
+        [
+          "魏祺紘",
+          "陳冠佑，聽起來真的很有意思！我會先從學習基本的調酒知識開始，了解不同基底酒和調味料的特性。謝謝你的建議，如果有需要介紹資源的話請告訴我。"
+        ],
+        [
+          "陳冠佑",
+          "魏祺紘，不用客氣，這是我們酒吧文化的一部分。你可以先從一些線上課程開始，像是調酒基礎知識、雞尾酒歷史和品嚐技巧等，這些都能幫助你打好基礎。另外，我們酒吧的顧問也有些相關書籍可以借閱，如果你對這方面感興趣的話，我可以安排一下。"
+        ],
+        [
+          "魏祺紘",
+          "陳冠佑，太感謝你了！我會先從線上課程開始學習調酒的基本知識，希望未來有機會也能在酒吧工作，親自嘗試調製各種雞尾酒。"
+        ],
+        [
+          "盧品蓉",
+          "魏祺紘，你訂位了嗎？看樣子已經點餐了吧，我們聊一下吧。"
+        ],
+        [
+          "魏祺紘",
+          "盧品蓉，已經訂位了，我們點了些輕食，你看看這本莎士比亞戲劇文集，看起來很有趣呢。"
+        ],
+        [
+          "盧品蓉",
+          "魏祺紘，你今天選的食物看起來不錯呢，有什麼推薦嗎？我正好在看這本莎士比亞戲劇文集，我們可以聊聊裡面的內容。"
+        ],
+        [
+          "魏祺紘",
+          "盧品蓉，謝謝你的推薦，我最近對戲劇很感興趣，這本文集看起來很有深度，我們可以分享一下看法。你有喜歡的莎士比亞作品嗎？"
+        ],
+        [
+          "盧品蓉",
+          "魏祺紘，我最近在寫關於莎士比亞戲劇語言運用的畢業論文，所以對這方面的內容特別感興趣。你有什麼看法嗎？"
+        ],
+        [
+          "魏祺紘",
+          "盧品蓉，那我們可以分享一下各自的看法。我個人比較喜歡《羅密歐與茱麗葉》，覺得劇中的愛情故事很感人。你呢？有沒有什麼特別的感想或發現？"
+        ],
+        [
+          "盧品蓉",
+          "魏祺紘，我對《羅密歐與茱麗葉》也很有感觸，尤其是劇中角色的對話非常精采，語言富有深意。你有沒有注意到那些對白中的雙關語和諧音詞？"
+        ],
+        [
+          "魏祺紘",
+          "盧品蓉，我注意到確實有不少雙關語和諧音詞，這些對白不僅富有戲劇性，還增添了幽默感。你有什麼特別的發現嗎？"
+        ]
+      ],
+      "currently": "魏祺紘正在為他的大學班級做音樂合成項目。他也在上課，學習更多的音樂理論。",
+      "action": {
+        "event": {
+          "subject": "魏祺紘",
+          "predicate": "此時",
+          "object": "用餐",
+          "describe": "用餐",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館顧客座位"
+          ],
+          "emoji": "用餐"
+        },
+        "obj_event": {
+          "subject": "咖啡館顧客座位",
+          "predicate": "此時",
+          "object": "占據中",
+          "describe": "占據中",
+          "address": [
+            "the Ville",
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館顧客座位"
+          ],
+          "emoji": ""
+        },
+        "start": "20250501-12:31:00",
+        "duration": 24
+      },
+      "coord": [
+        79,
+        25
+      ]
+    }
+  },
+  "api_keys": {
+    "OPENAI_API_KEY": "",
+    "QIANFAN_AK": "",
+    "QIANFAN_SK": "",
+    "SPARK_APPID": "",
+    "SPARK_API_SECRET": "",
+    "SPARK_API_KEY": "",
+    "ZHIPUAI_API_KEY": ""
+  },
+  "step": 24
+}

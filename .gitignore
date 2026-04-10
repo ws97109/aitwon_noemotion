@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虛擬環境
+venv/
+env/
+.venv/
+
+# 模型檔案（過大，無法上傳 GitHub）
+emollm_models/
+emollm_repo/
+
+# 環境變數（若有機密資訊）
+# .env
+
+# 系統檔案
+.DS_Store
+Thumbs.db

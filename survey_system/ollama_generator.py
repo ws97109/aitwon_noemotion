@@ -29,7 +29,7 @@ class OllamaSurveyGenerator:
             agents_dir: Path to agents directory (default: frontend/static/assets/village/agents)
         """
         self.base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-        self.model = os.getenv("OLLAMA_MODEL", "qwen3:14b")
+        self.model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
         self.api_url = f"{self.base_url}/api/generate"
 
         # Set paths
