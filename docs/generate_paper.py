@@ -638,73 +638,89 @@ def fig5_loss():
 # FIG 6 — Zero-Leakage Inference Pipeline
 # ══════════════════════════════════════════════════════════════════════════════
 def fig6_inference():
-    fig, ax = plt.subplots(figsize=(17, 7.5))
-    ax.set_xlim(0, 17); ax.set_ylim(0, 7.5); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(17, 9.5))
+    ax.set_xlim(0, 17); ax.set_ylim(0, 9.5); ax.axis("off")
     fig.set_facecolor(C["lgray"]); ax.set_facecolor(C["lgray"])
 
-    ax.text(8.5, 7.25, "Zero-Leakage Inference Pipeline: TTA + Multi-Seed Ensemble + Prior Correction",
+    ax.text(8.5, 9.15, "Zero-Leakage Inference Pipeline: TTA + Multi-Seed Ensemble + Prior Correction",
             ha="center", fontsize=13, fontweight="bold", color=C["dark"])
 
-    # 3 seed columns (x=2, 8.5, 15)
     scols  = [2.0, 8.5, 15.0]
     snames = ["Seed = 42", "Seed = 123", "Seed = 2024"]
     scolors= [C["blue"], C["teal"], C["orange"]]
 
+    # Y-layout (top → bottom)
+    Y_SWA   = 8.30
+    Y_TTA   = 7.15
+    Y_MEAN  = 5.95
+    Y_DIM   = 5.40
+    Y_ENS   = 4.40
+    Y_PRIOR_TOP, PRIOR_H = 2.35, 1.55   # bg spans 2.35-3.90
+    Y_FINAL = 1.35
+    Y_BAN_Y, BAN_H = 0.10, 0.60          # banner spans 0.10-0.70
+
     for sx, sn, sc in zip(scols, snames, scolors):
-        # SWA model
-        rbox(ax, sx, 6.5, 2.8, 0.72, sc, f"SWA Model\n({sn})", fs=9.5, bold=True)
-        # TTA × 3 passes
+        rbox(ax, sx, Y_SWA, 2.8, 0.72, sc, f"SWA Model\n({sn})", fs=9.5, bold=True)
         for ti, tx_off in enumerate([-0.85, 0.0, 0.85]):
             bx = sx + tx_off
-            rbox(ax, bx, 5.5, 0.68, 0.60, sc, f"TTA\n#{ti+1}", fs=8.5, tc="white")
-            arr(ax, bx if ti==1 else sx+([-0.85,0,0.85][ti]), 6.14,
-                bx, 5.80, color=sc, lw=1.0, hw=0.15)
-        # Mean logits
-        rbox(ax, sx, 4.5, 2.8, 0.68, sc, f"Mean Logits\n(TTA average)", fs=9, bold=True)
+            rbox(ax, bx, Y_TTA, 0.68, 0.60, sc, f"TTA\n#{ti+1}", fs=8.5, tc="white")
+            arr(ax, bx, Y_SWA - 0.42, bx, Y_TTA + 0.33,
+                color=sc, lw=1.0, hw=0.15)
+        rbox(ax, sx, Y_MEAN, 2.8, 0.68, sc, f"Mean Logits\n(TTA average)", fs=9, bold=True)
         for tx_off in [-0.85, 0.0, 0.85]:
-            c_arr(ax, sx+tx_off, 5.20, sx, 4.85,
+            c_arr(ax, sx+tx_off, Y_TTA - 0.33, sx, Y_MEAN + 0.38,
                   color=sc, rad=(tx_off*0.15), lw=1.0, hw=0.15)
-        # dim label
-        ax.text(sx, 4.1, "L₇⁽ˢ⁾ ∈ ℝᴺˣ⁷", ha="center", fontsize=8, color=sc)
+        ax.text(sx, Y_DIM, "L₇⁽ˢ⁾ ∈ ℝᴺˣ⁷", ha="center", fontsize=8, color=sc, style="italic")
 
     # ── Ensemble ──
-    rbox(ax, 8.5, 3.2, 7.0, 0.72, C["dark"],
+    rbox(ax, 8.5, Y_ENS, 7.0, 0.72, C["dark"],
          "3-Seed Ensemble:   L̄₇ = (1/3) · Σₛ L₇⁽ˢ⁾", fs=10, bold=True)
     for sx in scols:
-        c_arr(ax, sx, 4.1, 8.5, 3.57, color=C["dark"], rad=0.0, lw=1.4, hw=0.20)
+        c_arr(ax, sx, Y_MEAN - 0.38, 8.5, Y_ENS + 0.40,
+              color=C["dark"], rad=(0.0 if sx==8.5 else (0.12 if sx<8.5 else -0.12)),
+              lw=1.4, hw=0.20)
 
     # ── Prior Correction ──
-    bg(ax, 0.3, 1.55, 10.5, 1.25, C["xpurp"], C["purple"], lw=1.8)
-    ax.text(5.55, 2.95, "Bayesian Prior Correction  (Zero-Leakage)", ha="center",
-            fontsize=10, fontweight="bold", color=C["purple"], zorder=4)
-    ax.text(5.55, 2.50, r"$\Delta_c = \log P_{val}(c) - \log P_{trainval}(c)$", ha="center",
-            fontsize=10, color=C["dark"], zorder=4)
-    ax.text(5.55, 2.05, r"$\tilde{L}_7(c) = \bar{L}_7(c) + \alpha^* \cdot \Delta_c$"
+    bg(ax, 0.3, Y_PRIOR_TOP, 10.5, PRIOR_H, C["xpurp"], C["purple"], lw=1.8)
+    PCX = 5.55
+    ax.text(PCX, Y_PRIOR_TOP + 1.22, "Bayesian Prior Correction  (Zero-Leakage)",
+            ha="center", fontsize=10, fontweight="bold", color=C["purple"], zorder=4)
+    ax.text(PCX, Y_PRIOR_TOP + 0.78,
+            r"$\Delta_c = \log P_{val}(c) - \log P_{trainval}(c)$",
+            ha="center", fontsize=10, color=C["dark"], zorder=4)
+    ax.text(PCX, Y_PRIOR_TOP + 0.32,
+            r"$\tilde{L}_7(c) = \bar{L}_7(c) + \alpha^* \cdot \Delta_c$"
             rf"      $\alpha^* = {H59['fixed_alpha']:.1f}$  (val-justified, zero-leak)",
             ha="center", fontsize=10, color=C["dark"], zorder=4)
 
-    arr(ax, 8.5, 2.84, 6.5, 2.80, color=C["purple"], lw=1.5)
+    arr(ax, 8.5, Y_ENS - 0.40, 8.5, Y_PRIOR_TOP + PRIOR_H,
+        color=C["purple"], lw=1.5, hw=0.22)
 
     # ── Val-justified α search ──
-    bg(ax, 11.2, 1.55, 5.3, 1.25, "#EDE9FE", C["violet"], lw=1.8)
-    ax.text(13.85, 2.95, "Val-Justified α Search", ha="center",
-            fontsize=10, fontweight="bold", color=C["violet"], zorder=4)
-    ax.text(13.85, 2.50, r"$\alpha^* = \arg\max_\alpha \;\mathrm{Acc7}_{val}(\tilde{L}_{7,val})$",
+    bg(ax, 11.2, Y_PRIOR_TOP, 5.3, PRIOR_H, "#EDE9FE", C["violet"], lw=1.8)
+    VCX = 13.85
+    ax.text(VCX, Y_PRIOR_TOP + 1.22, "Val-Justified α Search",
+            ha="center", fontsize=10, fontweight="bold", color=C["violet"], zorder=4)
+    ax.text(VCX, Y_PRIOR_TOP + 0.78,
+            r"$\alpha^* = \arg\max_\alpha \;\mathrm{Acc7}_{val}(\tilde{L}_{7,val})$",
             ha="center", fontsize=9.5, color=C["dark"], zorder=4)
-    ax.text(13.85, 2.05, r"Using v55 val logits  (no test contact)",
+    ax.text(VCX, Y_PRIOR_TOP + 0.32, r"Using v55 val logits  (no test contact)",
             ha="center", fontsize=9, color=C["gray"], zorder=4)
-    c_arr(ax, 11.2, 2.2, 10.8, 2.2, color=C["violet"], rad=0.0, lw=1.3)
+    arr(ax, 11.2, Y_PRIOR_TOP + PRIOR_H/2,
+        10.8, Y_PRIOR_TOP + PRIOR_H/2, color=C["violet"], lw=1.3, hw=0.18)
 
-    # ── Final prediction — raised to leave gap above result banner ──
-    rbox(ax, 8.5, 1.15, 8.0, 0.72, C["green"],
+    # ── Final prediction ──
+    rbox(ax, 8.5, Y_FINAL, 8.0, 0.72, C["green"],
          r"ŷ = argmax ( L̃₇ )     →     Final Prediction", fs=11, bold=True)
-    arr(ax, 8.5, 1.55, 8.5, 1.51, color=C["green"], lw=2.0, hw=0.28)
+    arr(ax, 8.5, Y_PRIOR_TOP, 8.5, Y_FINAL + 0.40,
+        color=C["green"], lw=2.0, hw=0.26)
 
-    # ── Result banner — lowered with gap ──
-    ax.add_patch(FancyBboxPatch((0.5, 0.10), 16.0, 0.58, boxstyle="round,pad=0.06",
+    # ── Result banner ──
+    ax.add_patch(FancyBboxPatch((0.5, Y_BAN_Y), 16.0, BAN_H,
+        boxstyle="round,pad=0.06",
         facecolor=C["xgreen"], edgecolor=C["green"], lw=2, zorder=4))
     _fm = H59["final_metrics"]
-    ax.text(8.5, 0.39,
+    ax.text(8.5, Y_BAN_Y + BAN_H/2,
             f"Test Result (single evaluation, zero leakage):   "
             f"Acc-7 = {_fm['Acc7']:.2f}%   Acc-2 = {_fm['Acc2']:.2f}%   F1 = {_fm['F1']:.2f}%   MAE = {_fm['MAE']:.4f}   Corr = {_fm['Corr']:.4f}",
             ha="center", va="center", fontsize=9.5, fontweight="bold",
