@@ -169,6 +169,26 @@ class Agent:
             "{} 情緒偵測 → {}（原因：{}）".format(self.name, prev.describe(), prev.reason)
         )
 
+        # ── 情緒傳染：對方情緒對自己有微弱影響 ─────────────────
+        # 對話時，對方的顯著情緒（強度≥5）會以 20% 強度傳染給自己，
+        # 模擬人類對話中的情緒感染現象。
+        if other_agent is not None:
+            other_emo = other_agent.scratch.emotion
+            if other_emo.label != "平靜" and other_emo.intensity >= 5:
+                contagion_intensity = max(1, min(2, round(other_emo.intensity * 0.2)))
+                prev.blend_update(
+                    other_emo.label,
+                    contagion_intensity,
+                    f"受{other_agent.name}感染",
+                )
+                self.status["emotion"] = prev.to_dict()
+                self.scratch.emotion   = prev
+                self.logger.info(
+                    "{} 情緒傳染：受 {} 的{}（強度{}）微弱影響".format(
+                        self.name, other_agent.name, other_emo.label, other_emo.intensity
+                    )
+                )
+
         # 情緒顯著時存入長期記憶（融合後強度≥6，或偵測到明確的標籤切換）
         if prev.intensity >= 6 or state.label != prev_label:
             self._add_emotion_concept(prev)
@@ -296,6 +316,14 @@ class Agent:
                     f"{self.name} 在 {utils.get_timer().daily_format_cn()} 的計畫。",
                     f"在 {self.name} 的生活中，重要的近期事件。",
                 ]
+                # 若當前情緒顯著（強度≥6），將其加入記憶檢索焦點，
+                # 讓 LLM 在生成計畫時參考近期情緒相關記憶
+                current_emotion = EmotionState.from_dict(self.status.get("emotion"))
+                if current_emotion.intensity >= 6 and current_emotion.label != "平靜":
+                    focus.append(
+                        f"{self.name} 目前感到{current_emotion.describe()}，"
+                        f"這可能影響今日活動的選擇與心態。"
+                    )
                 retrieved = self.associate.retrieve_focus(focus)
                 self.logger.info(
                     "{} retrieved {} concepts".format(self.name, len(retrieved))
@@ -570,7 +598,12 @@ class Agent:
             start=utils.get_timer().daily_time(de_plan["start"]),
         )
         # 根據當前行動偵測情緒，影響後續對話生成
-        self._update_emotion(describes[-1])
+        # 將主計畫（describes[0]）與細分計畫（describes[-1]）合併傳入，
+        # 提供更豐富的脈絡讓 LLM 判斷情緒
+        emotion_text = describes[-1]
+        if describes[0] and describes[0] != describes[-1]:
+            emotion_text = f"{describes[0]}：{describes[-1]}"
+        self._update_emotion(emotion_text)
         return action
 
     def _reaction(self, agents=None, ignore_words=None):

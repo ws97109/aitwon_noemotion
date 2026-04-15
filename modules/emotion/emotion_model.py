@@ -1,14 +1,17 @@
 """generative_agents.emotion.emotion_model
 
-EmoLLM 情緒偵測模組
+情緒偵測模組
 ====================
-支援兩種專用後端（當兩者皆未設定時，agent.py 會自動用主要 LLM 搭配
+支援三種專用後端（當三者皆未設定時，agent.py 會自動用主要 LLM 搭配
 prompt_emotion_detect 提示詞作為備援）：
 
-  1. 本地 HuggingFace 模型（EmoLLM InternLM2.5-7B 等）
+  1. SACF 模型（scaf_final.py 訓練的多模態情感模型，純文字模式）
+       config: {"sacf_model_path": "/path/to/sacf_weights.pt"}
+
+  2. 本地 HuggingFace 模型（EmoLLM InternLM2.5-7B 等）
        config: {"model_path": "/path/to/emollm"}
 
-  2. Ollama 本地服務（若已 pull 支援情緒的模型）
+  3. Ollama 本地服務（若已 pull 支援情緒的模型）
        config: {"ollama_model": "emollm:latest", "base_url": "..."}
 
 情緒標籤（對應 EmoLLM CPsyCounD 資料集類別，繁體中文）：
@@ -100,6 +103,10 @@ class EmotionState:
                 self.reason    = self.reason   # 保留原因不變
                 self._prev_label = None
 
+        # 平靜強度上限（無論哪個分支，平靜 intensity 不得超過 5）
+        if self.label == "平靜" and self.intensity > 5:
+            self.intensity = 5
+
     # ── 描述（注入提示詞用）───────────────────────────────────
 
     def describe(self):
@@ -142,6 +149,8 @@ _EMOTION_SYSTEM_PROMPT = (
     "你的任務是分析用戶提供的文字中所蘊含的情緒狀態，"
     "並以嚴格的 JSON 格式輸出分析結果，不得加入任何額外說明。\n"
     "可選情緒類別：快樂、悲傷、憤怒、恐懼、厭惡、驚訝、平靜、焦慮、興奮、疲憊\n"
+    "重要限制：「平靜」的 intensity 最高為 5；若活動令人感到充實或愉悅，請改選「快樂」或「興奮」。"
+    "reason 欄位必須填寫 15 字以內的說明，不得為空字串。\n"
     "輸出格式：{\"label\": \"<情緒標籤>\", \"intensity\": <1-10>, \"reason\": \"<15字內原因>\"}"
 )
 
@@ -154,32 +163,74 @@ class EmotionModel:
     """
     專用情緒偵測後端。
 
-    當 model_path 或 ollama_model 有效時 is_available() 回傳 True；
-    否則回傳 False，讓 agent.py 退回主要 LLM 路徑。
+    優先順序：sacf_model_path > model_path > ollama_model
+    以上皆未設定時 is_available() 回傳 False，
+    讓 agent.py 退回主要 LLM 路徑。
     """
 
     def __init__(self, config):
-        self._config       = config or {}
-        self._local_handle = None
-        self._ollama_url   = None
-        self._ollama_model = None
-        self._mode         = None   # "local" | "ollama" | None
+        self._config        = config or {}
+        self._local_handle  = None
+        self._ollama_url    = None
+        self._ollama_model  = None
+        self._sacf_backend  = None
+        self._mode          = None   # "sacf" | "local" | "ollama" | None
 
         self._setup(self._config)
 
     # ── 初始化 ────────────────────────────────────────────────
 
     def _setup(self, config):
+        sacf_path    = config.get("sacf_model_path", "").strip()
         model_path   = config.get("model_path", "").strip()
         ollama_model = config.get("ollama_model", "").strip()
 
-        if model_path:
+        # sacf_model_path 未設定時，自動掃描 emotion_system/models/ 取最新 best checkpoint
+        if not sacf_path:
+            sacf_path = self._discover_sacf_checkpoint()
+
+        if sacf_path:
+            self._mode = "sacf"
+            self._load_sacf(sacf_path, config.get("sacf_lang_model", "microsoft/deberta-v3-large"))
+        elif model_path:
             self._mode = "local"
             self._load_local(model_path)
         elif ollama_model:
             self._mode        = "ollama"
             self._ollama_url  = config.get("base_url", "http://127.0.0.1:11434/v1").rstrip("/")
             self._ollama_model = ollama_model
+
+    @staticmethod
+    def _discover_sacf_checkpoint():
+        """
+        自動掃描 emotion_system/models/ 找最新的 sacf_*_best.pt 檔案。
+        找到則回傳路徑字串，否則回傳空字串。
+        """
+        import glob
+        from pathlib import Path
+
+        # 從本模組路徑推算專案根目錄
+        project_root = Path(__file__).parent.parent.parent
+        pattern = str(project_root / "emotion_system" / "models" / "sacf_*_best.pt")
+        candidates = sorted(glob.glob(pattern))
+        if candidates:
+            # 取最新（按字典序最大 = 版本號最高）
+            chosen = candidates[-1]
+            print(f"[EmotionModel] 自動發現 SACF checkpoint：{chosen}")
+            return chosen
+        return ""
+
+    def _load_sacf(self, model_path: str, lang_model: str):
+        try:
+            from modules.emotion.sacf_emotion import SACFEmotionBackend
+            self._sacf_backend = SACFEmotionBackend(model_path, lang_model)
+            if not self._sacf_backend.is_available():
+                self._mode         = None
+                self._sacf_backend = None
+        except Exception as e:
+            print(f"[EmotionModel] SACF 後端初始化失敗，退回主要 LLM 模式：{e}")
+            self._mode         = None
+            self._sacf_backend = None
 
     def _load_local(self, model_path):
         try:
@@ -233,13 +284,19 @@ class EmotionModel:
             input_ids = tokenizer(text, return_tensors="pt").input_ids.to(device)
 
         with torch.no_grad():
-            output_ids = model.generate(
-                input_ids,
+            gen_kwargs = dict(
                 max_new_tokens=80,
                 temperature=0.3,
                 do_sample=True,
                 pad_token_id=tokenizer.eos_token_id,
             )
+            # transformers >= 4.44 預設使用 DynamicCache，
+            # 部分舊版 InternLM 模型不相容，強制停用 KV cache 以確保相容
+            try:
+                output_ids = model.generate(input_ids, **gen_kwargs)
+            except (AttributeError, TypeError):
+                gen_kwargs["use_cache"] = False
+                output_ids = model.generate(input_ids, **gen_kwargs)
         new_tokens = output_ids[0][input_ids.shape[-1]:]
         return tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
 
@@ -268,6 +325,20 @@ class EmotionModel:
 
     # ── 解析 ──────────────────────────────────────────────────
 
+    # 各情緒標籤的預設原因（當模型未輸出原因時使用）
+    _DEFAULT_REASONS = {
+        "快樂": "正向活動帶來滿足感",
+        "悲傷": "感受到失落或低落",
+        "憤怒": "遇到令人不滿的情況",
+        "恐懼": "感受到威脅或不安",
+        "厭惡": "遇到令人反感的事",
+        "驚訝": "遭遇出乎意料的事",
+        "平靜": "例行活動，情緒穩定",
+        "焦慮": "對未來感到不確定",
+        "興奮": "對事物充滿期待",
+        "疲憊": "消耗精力，感到疲倦",
+    }
+
     @staticmethod
     def _parse(response):
         if not response:
@@ -275,19 +346,26 @@ class EmotionModel:
         try:
             match = re.search(r'\{[^{}]+\}', response, re.DOTALL)
             if match:
-                data = json.loads(match.group())
-                return EmotionState(
-                    label     = data.get("label",     EmotionState.DEFAULT),
-                    intensity = data.get("intensity", 5),
-                    reason    = data.get("reason",    ""),
-                )
+                data  = json.loads(match.group())
+                label = data.get("label",     EmotionState.DEFAULT)
+                intens = int(data.get("intensity", 5))
+                reason = str(data.get("reason", "")).strip()
+                # 平靜的強度不應超過 5（極度平靜在日常生活中幾乎不存在；
+                # 若模型給出高強度平靜，通常是誤判，應重新解讀為低強度正面情緒）
+                if label == "平靜" and intens > 5:
+                    intens = 5
+                # reason 不得為空：用預設說明補足
+                if not reason:
+                    reason = EmotionModel._DEFAULT_REASONS.get(label, "例行活動")
+                return EmotionState(label=label, intensity=intens, reason=reason)
         except Exception:
             pass
         # 備援：關鍵字掃描
         for label in EmotionState.LABELS:
             if label in response:
-                return EmotionState(label, 5, "")
-        return EmotionState()
+                default_reason = EmotionModel._DEFAULT_REASONS.get(label, "例行活動")
+                return EmotionState(label, 5, default_reason)
+        return EmotionState(reason="無法解析情緒")
 
     # ── 公開介面 ──────────────────────────────────────────────
 
@@ -303,6 +381,16 @@ class EmotionModel:
         if not text or not text.strip():
             return EmotionState()
 
+        # ── SACF 模式：直接推論，不需 JSON 解析 ─────────────────
+        if self._mode == "sacf":
+            try:
+                label, intensity, reason = self._sacf_backend.predict(text)
+                return EmotionState(label=label, intensity=intensity, reason=reason)
+            except Exception as e:
+                print(f"[EmotionModel] SACF 情緒偵測失敗：{e}")
+                return EmotionState(reason=self._DEFAULT_REASONS.get(EmotionState.DEFAULT, "例行活動"))
+
+        # ── Local / Ollama 模式：需建立提示詞並解析 JSON ─────────
         agent_str   = f"角色：{agent_name}\n" if agent_name else ""
         context_str = f"背景：{context}\n"    if context    else ""
         user_prompt = (
@@ -310,21 +398,27 @@ class EmotionModel:
             f"請分析以下文字的情緒狀態：\n「{text[:800]}」"
         )
 
+        raw = ""
         try:
             if self._mode == "local":
                 raw = self._call_local(user_prompt)
             elif self._mode == "ollama":
                 raw = self._call_ollama(user_prompt)
             else:
-                return EmotionState()
+                return EmotionState(reason=self._DEFAULT_REASONS.get(EmotionState.DEFAULT, "例行活動"))
         except Exception as e:
             print(f"[EmotionModel] 情緒偵測呼叫失敗：{e}")
-            return EmotionState()
 
-        return self._parse(raw)
+        result = self._parse(raw)
+        # 確保 reason 不為空：用預設說明補足（含呼叫失敗的備援路徑）
+        if not result.reason:
+            result.reason = self._DEFAULT_REASONS.get(result.label, "例行活動")
+        return result
 
     def is_available(self):
-        """只有在專用後端（本地/Ollama）正確設定時才回傳 True"""
+        """只有在專用後端（SACF/本地/Ollama）正確設定時才回傳 True"""
+        if self._mode == "sacf":
+            return self._sacf_backend is not None and self._sacf_backend.is_available()
         if self._mode == "local":
             return self._local_handle is not None
         if self._mode == "ollama":

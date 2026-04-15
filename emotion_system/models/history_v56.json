@@ -1,0 +1,36 @@
+{
+  "version": "v56",
+  "note": "TrainVal (train+val merged) — zero leakage on test",
+  "seeds": [
+    42,
+    123,
+    2024
+  ],
+  "seed_results": [
+    {
+      "seed": 42,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    },
+    {
+      "seed": 123,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    },
+    {
+      "seed": 2024,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    }
+  ],
+  "fixed_alpha": 1.0,
+  "raw_test_acc7": 51.46,
+  "final_acc7": 52.92,
+  "final_metrics": {
+    "Acc7": 51.46,
+    "Acc2": 87.32,
+    "F1": 87.32,
+    "MAE": 0.5711,
+    "Corr": 0.8746
+  }
+}

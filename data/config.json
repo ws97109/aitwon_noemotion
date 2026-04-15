@@ -18,7 +18,9 @@
             },
             "emotion": {
                 "enabled": true,
-                "model_path": "/mnt/nfs/maokao_2/Desktop/lee/aitown_noemotion/emollm_models/EmoLLM_V3/chg0901/EmoLLMV3___0",
+                "sacf_model_path": "",
+                "sacf_lang_model": "microsoft/deberta-v3-large",
+                "model_path": "",
                 "ollama_model": "",
                 "base_url": "http://127.0.0.1:11434/v1"
             },

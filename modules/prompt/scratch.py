@@ -960,6 +960,11 @@ class Scratch:
             if chat_memory:
                 parts.append(f"近期互動記憶：{chat_memory}")
             relation_context = "\n".join(parts) + "\n"
+        else:
+            # 非對話場景：加入 currently 作為行動背景脈絡
+            # 讓 LLM 了解角色今日的心態與計畫，而非只看短短的行動描述
+            if self.currently:
+                relation_context = f"今日狀態與計畫：{self.currently[:200]}\n"
 
         prompt = self.build_prompt(
             "emotion_detect",

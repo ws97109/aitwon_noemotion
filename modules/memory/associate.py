@@ -202,15 +202,18 @@ class Associate:
         return self.to_concept(self._index.find_node(node_id))
 
     def _retrieve_nodes(self, node_type, text=None):
+        node_ids = self.memory.get(node_type, [])
+        if not node_ids:
+            return []
         if text:
             filters = MetadataFilters(
                 filters=[ExactMatchFilter(key="node_type", value=node_type)]
             )
             nodes = self._index.retrieve(
-                text, filters=filters, node_ids=self.memory[node_type]
+                text, filters=filters, node_ids=node_ids
             )
         else:
-            nodes = [self._index.find_node(n) for n in self.memory[node_type]]
+            nodes = [self._index.find_node(n) for n in node_ids]
         return [self.to_concept(n) for n in nodes[: self.retention]]
 
     def retrieve_events(self, text=None):
