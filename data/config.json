@@ -12,8 +12,8 @@
         "think": {
             "mode": "llm",
             "llm": {
-                "base_url": "http://127.0.0.1:11434/v1",
-                "model": "qwen2.5:7b",
+                "base_url": "http://127.0.0.1:11436/v1",
+                "model": "qwen2.5:32b",
                 "embedding_model": "bge-m3:latest"
             },
             "emotion": {
@@ -31,7 +31,7 @@
         "associate": {
             "embedding": {
                 "type": "ollama",
-                "base_url": "http://127.0.0.1:11434",
+                "base_url": "http://127.0.0.1:11436",
                 "model": "bge-m3:latest"
             },
             "retention": 8

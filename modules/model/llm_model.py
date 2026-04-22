@@ -366,19 +366,19 @@ class LocalCUDALLMModel(LLMModel):
         import torch
         from transformers import AutoTokenizer, AutoModelForCausalLM
 
-        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        self._device = "cuda:0" if torch.cuda.is_available() else "cpu"
         if self._device == "cpu":
             print("[LocalCUDALLMModel] 警告：未偵測到 CUDA，改用 CPU 執行")
 
         model_path = config.get("model_path", self._model)
-        dtype = torch.float16 if self._device == "cuda" else torch.float32
+        dtype = torch.float16 if self._device == "cuda:0" else torch.float32
 
         print(f"[LocalCUDALLMModel] 載入模型 {model_path}，裝置: {self._device}")
         tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         model_obj = AutoModelForCausalLM.from_pretrained(
             model_path,
             torch_dtype=dtype,
-            device_map="auto" if self._device == "cuda" else None,
+            device_map={"": 0} if self._device == "cuda:0" else None,
             trust_remote_code=True,
         )
         if self._device == "cpu":
@@ -393,7 +393,7 @@ class LocalCUDALLMModel(LLMModel):
             emb_model = AutoModel.from_pretrained(
                 embedding_path,
                 torch_dtype=dtype,
-                device_map="auto" if self._device == "cuda" else None,
+                device_map={"": 0} if self._device == "cuda:0" else None,
                 trust_remote_code=True,
             )
             if self._device == "cpu":

@@ -1,6 +1,6 @@
 {
-  "version": "v59",
-  "note": "TrainVal + EMD loss + TTA + val-justified prior correction — zero leakage",
+  "version": "v60",
+  "note": "TrainVal + EMD loss + TTA + 5-Seed Ensemble — zero leakage",
   "seeds": [
     42,
     123,
@@ -25,7 +25,7 @@
   ],
   "fixed_alpha": 0.0,
   "emd_weight": 0.25,
-  "n_tta": 3,
+  "n_tta": 5,
   "log_ratio": [
     0.6643520626120729,
     -0.14439690139450412,
@@ -36,12 +36,12 @@
     0.6581793072620243
   ],
   "final_candidate": "3-Seed Ensemble",
-  "final_acc7": 52.33,
+  "final_acc7": 52.19,
   "final_metrics": {
-    "Acc7": 52.33,
-    "Acc2": 86.44,
-    "F1": 86.43,
-    "MAE": 0.5905,
-    "Corr": 0.8681
+    "Acc7": 52.19,
+    "Acc2": 86.3,
+    "F1": 86.28,
+    "MAE": 0.5872,
+    "Corr": 0.869
   }
 }

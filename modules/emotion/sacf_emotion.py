@@ -1,8 +1,11 @@
 """modules.emotion.sacf_emotion
 ============================
-SACF 情緒偵測後端
+SACF Ensemble 情緒偵測後端
 
 以 emotion_system/training/scaf_final.py 的 SACFModel 作為推論引擎。
+自動掃描同版本的所有 seed 模型，載入為 Ensemble 進行推論
+（regression 輸出取平均），確保部署效能 = 訓練報告的 Ensemble 指標。
+
 SACFModel 是多模態架構（文字 + 音訊 + 視覺），在純文字場景下
 以零向量補全音訊／視覺通道，讓 DeBERTa 語言主幹主導情緒判斷。
 
@@ -19,12 +22,14 @@ SACFModel 是多模態架構（文字 + 音訊 + 視覺），在純文字場景�
     "emotion": {
       "enabled": true,
       "sacf_model_path": "/path/to/sacf_weights.pt",
-      "sacf_lang_model": "microsoft/deberta-v3-large"   // 可選，預設同上
+      "sacf_lang_model": "microsoft/deberta-v3-large"
     }
   }
 """
 
 import sys
+import re as _re
+import glob as _glob
 from pathlib import Path
 
 import torch
@@ -87,11 +92,11 @@ def _reg_to_emotion(reg: float):
 
 class SACFEmotionBackend:
     """
-    SACF 推論後端，供 EmotionModel 在 "sacf" 模式下呼叫。
+    SACF Ensemble 推論後端，供 EmotionModel 在 "sacf" 模式下呼叫。
 
-    支援兩種 checkpoint 格式：
-      - 新格式（scaf_final.py v59+）：dict 含 model_config + model_state_dict
-      - 舊格式：直接為 state_dict（向下相容）
+    自動掃描同版本的所有 seed checkpoint，載入多模型 Ensemble。
+    推論時對所有 seed 模型的 regression 輸出取平均，
+    確保部署效能與訓練報告的 Ensemble 指標一致。
 
     Public API（與 local/ollama 後端保持一致）：
         is_available() -> bool
@@ -100,50 +105,53 @@ class SACFEmotionBackend:
 
     def __init__(self, model_path: str, lang_model: str = "microsoft/deberta-v3-large"):
         self._available  = False
-        self._model      = None
+        self._models     = []       # 所有 seed 模型
         self._tokenizer  = None
-        # 優先使用 cuda:0（RTX PRO 6000，記憶體最大）；否則 cpu
         self._device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        # audio_dim / vision_dim 與 seq_len 在載入後填入，供 predict() 使用
         self._audio_dim  = 5
         self._vision_dim = 20
 
-        self._load(model_path, lang_model)
+        self._load_ensemble(model_path, lang_model)
 
-    # ── 載入 ─────────────────────────────────────────────────────
+    # ── Ensemble 掃描與載入 ──────────────────────────────────────
 
-    def _load(self, model_path: str, lang_model_arg: str):
+    @staticmethod
+    def _discover_seed_models(model_path: str):
+        """從給定的 checkpoint 路徑推斷版本號，掃描同版本所有 seed 模型。"""
+        p = Path(model_path)
+        match = _re.search(r'sacf_(v\d+)_', p.name)
+        if match:
+            version = match.group(1)
+            pattern = str(p.parent / f"sacf_{version}_seed*.pt")
+            seeds = sorted(_glob.glob(pattern))
+            if seeds:
+                return seeds
+        # 備援：僅使用給定路徑
+        return [model_path]
+
+    def _load_ensemble(self, model_path: str, lang_model_arg: str):
         try:
             from scaf_final import SACFModel
             from transformers import DebertaV2Tokenizer
 
-            print(f"[SACFEmotionBackend] 讀取 checkpoint：{model_path}")
-            # weights_only=False：checkpoint 為含 metadata 的 dict，需完整 unpickle
-            checkpoint = torch.load(model_path, map_location=self._device, weights_only=False)
+            seed_paths = self._discover_seed_models(model_path)
+            n_seeds = len(seed_paths)
+            print(f"[SACFEmotionBackend] 發現 {n_seeds} 個 seed 模型 → Ensemble 推論")
 
-            # ── 解析 checkpoint ──────────────────────────────────
-            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-                # 新格式：含 model_config meta
-                model_cfg   = checkpoint.get("model_config", {})
-                state_dict  = checkpoint["model_state_dict"]
-                seed        = checkpoint.get("seed", "?")
-                version     = checkpoint.get("version", "?")
-                val_acc7    = checkpoint.get("val_acc7", None)
-                # lang_model 以 checkpoint 內紀錄為主，config 中的設定為備援
-                lang_model  = model_cfg.get("lang_model", lang_model_arg)
+            # 從第一個 checkpoint 取得模型架構設定
+            first_ckpt = torch.load(seed_paths[0], map_location=self._device, weights_only=False)
+            if isinstance(first_ckpt, dict) and "model_config" in first_ckpt:
+                model_cfg    = first_ckpt.get("model_config", {})
+                lang_model   = model_cfg.get("lang_model", lang_model_arg)
                 self._audio_dim  = model_cfg.get("audio_dim",  5)
                 self._vision_dim = model_cfg.get("vision_dim", 20)
-                audio_dim   = self._audio_dim
-                vision_dim  = self._vision_dim
+                audio_dim    = self._audio_dim
+                vision_dim   = self._vision_dim
                 modal_hidden = model_cfg.get("modal_hidden", 128)
                 fusion_dim   = model_cfg.get("fusion_dim",   512)
                 top_k        = model_cfg.get("top_k",         5)
                 num_classes  = model_cfg.get("num_classes",   7)
-                info_str = (f"version={version}, seed={seed}"
-                            + (f", val_acc7={val_acc7:.2f}%" if val_acc7 else ""))
             else:
-                # 舊格式：整個 checkpoint 即為 state_dict
-                state_dict   = checkpoint
                 lang_model   = lang_model_arg
                 audio_dim    = self._audio_dim
                 vision_dim   = self._vision_dim
@@ -151,31 +159,38 @@ class SACFEmotionBackend:
                 fusion_dim   = 512
                 top_k        = 5
                 num_classes  = 7
-                info_str     = "legacy format"
 
             print(f"[SACFEmotionBackend] 載入 tokenizer：{lang_model}")
             self._tokenizer = DebertaV2Tokenizer.from_pretrained(lang_model)
 
-            print(f"[SACFEmotionBackend] 建立 SACFModel（{info_str}），裝置：{self._device}")
-            # dropout=0.0：推論時完全關閉 dropout
-            model = SACFModel(
-                lang_model   = lang_model,
-                audio_dim    = audio_dim,
-                vision_dim   = vision_dim,
-                modal_hidden = modal_hidden,
-                fusion_dim   = fusion_dim,
-                top_k        = top_k,
-                num_classes  = num_classes,
-                dropout      = 0.0,
-            )
-            model.load_state_dict(state_dict)
-            model.to(self._device)
-            model.eval()
+            for path in seed_paths:
+                ckpt = torch.load(path, map_location=self._device, weights_only=False)
+                if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+                    state_dict = ckpt["model_state_dict"]
+                    seed_id    = ckpt.get("seed", "?")
+                else:
+                    state_dict = ckpt
+                    seed_id    = "?"
 
-            self._model     = model
-            self._available = True
-            print("[SACFEmotionBackend] 載入完成 ✓"
-                  "（純文字模式：音訊/視覺以零向量補全）")
+                model = SACFModel(
+                    lang_model   = lang_model,
+                    audio_dim    = audio_dim,
+                    vision_dim   = vision_dim,
+                    modal_hidden = modal_hidden,
+                    fusion_dim   = fusion_dim,
+                    top_k        = top_k,
+                    num_classes  = num_classes,
+                    dropout      = 0.0,
+                )
+                model.load_state_dict(state_dict)
+                model.to(self._device)
+                model.eval()
+                self._models.append(model)
+                print(f"  Seed {seed_id}: {Path(path).name}")
+
+            self._available = len(self._models) > 0
+            print(f"[SACFEmotionBackend] Ensemble 載入完成 ✓"
+                  f"（{len(self._models)} 模型，純文字模式）")
 
         except FileNotFoundError:
             print(
@@ -186,21 +201,19 @@ class SACFEmotionBackend:
         except Exception as e:
             print(f"[SACFEmotionBackend] 載入失敗，退回主要 LLM 模式：{e}")
 
-    # ── 推論 ─────────────────────────────────────────────────────
+    # ── Ensemble 推論 ────────────────────────────────────────────
 
     @torch.no_grad()
     def predict(self, text: str):
         """
-        對純文字進行情感預測。
+        Ensemble 推論：對純文字進行情感預測。
 
-        音訊通道 (5-dim) 與視覺通道 (20-dim) 以零序列補全，
-        模型內部的 F.normalize 會將全零向量保持為全零（nan_to_num 處理），
-        情緒判斷完全由 DeBERTa 語言主幹主導。
+        每個 seed 模型各自前向傳播（音訊/視覺以零向量補全），
+        取 regression 輸出的平均值後映射至情緒標籤。
 
         Returns:
             (label, intensity, reason)
         """
-        # Tokenize（沿用 scaf_final.py 的 TASK_PROMPT 前綴）
         enc = self._tokenizer(
             _TASK_PROMPT + text[:800],
             add_special_tokens=True,
@@ -209,21 +222,21 @@ class SACFEmotionBackend:
             truncation=True,
             return_tensors="pt",
         )
-        ids  = enc["input_ids"].to(self._device)       # [1, 80]
-        mask = enc["attention_mask"].to(self._device)  # [1, 80]
+        ids  = enc["input_ids"].to(self._device)
+        mask = enc["attention_mask"].to(self._device)
 
-        # 零向量補全：batch=1, seq_len=1（避免 pack_padded_sequence 的空序列問題）
-        # audio_dim / vision_dim 從 checkpoint 的 model_config 取得，確保與訓練一致
         audio  = torch.zeros(1, 1, self._audio_dim,  device=self._device)
         amask  = torch.ones(1,  1,                   device=self._device)
         vision = torch.zeros(1, 1, self._vision_dim, device=self._device)
         vmask  = torch.ones(1,  1,                   device=self._device)
 
-        # 前向傳播
-        _cls7, _cls2, reg = self._model(ids, mask, audio, amask, vision, vmask)
-        reg_score = float(reg.item())  # 範圍約 -3.0 ~ +3.0
+        reg_sum = 0.0
+        for model in self._models:
+            _cls7, _cls2, reg = model(ids, mask, audio, amask, vision, vmask)
+            reg_sum += reg.item()
+        avg_reg = reg_sum / len(self._models)
 
-        label, intensity, reason = _reg_to_emotion(reg_score)
+        label, intensity, reason = _reg_to_emotion(avg_reg)
         return label, intensity, reason
 
     # ── 狀態查詢 ─────────────────────────────────────────────────

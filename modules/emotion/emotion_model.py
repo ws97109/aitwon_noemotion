@@ -237,15 +237,15 @@ class EmotionModel:
             import torch
             from transformers import AutoTokenizer, AutoModelForCausalLM
 
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            dtype  = torch.float16 if device == "cuda" else torch.float32
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            dtype  = torch.float16 if device == "cuda:0" else torch.float32
             print(f"[EmotionModel] 載入 EmoLLM：{model_path}，裝置：{device}")
 
             tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             model = AutoModelForCausalLM.from_pretrained(
                 model_path,
                 torch_dtype=dtype,
-                device_map="auto" if device == "cuda" else None,
+                device_map={"": 0} if device == "cuda:0" else None,
                 trust_remote_code=True,
             )
             if device == "cpu":

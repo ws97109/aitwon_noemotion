@@ -93,12 +93,13 @@ class Agent:
     def reset(self, keys):
         if self.think_config["mode"] == "llm" and not self._llm:
             self._llm = create_llm_model(**self.think_config["llm"], keys=keys)
-        # 初始化專用 EmoLLM 後端（model_path 或 ollama_model 有值時才啟用）
+        # 初始化專用情緒偵測後端（sacf / local / ollama 擇一）
         emotion_cfg = self.think_config.get("emotion", {})
         if emotion_cfg.get("enabled", True) and not self._emotion_model:
             self._emotion_model = EmotionModel(emotion_cfg)
             if self._emotion_model.is_available():
-                self.logger.info("{} 使用專用 EmoLLM 後端".format(self.name))
+                self.logger.info("{} 使用專用情緒後端（{}）".format(
+                    self.name, self._emotion_model._mode))
             else:
                 self.logger.info("{} 使用主要 LLM 做情緒偵測".format(self.name))
                 self._emotion_model = None  # 由 _update_emotion 的 completion() 路徑處理

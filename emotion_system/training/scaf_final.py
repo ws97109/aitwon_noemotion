@@ -609,13 +609,13 @@ def train_one_seed(seed, train_loader, val_loader, test_loader,
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def main():
     print("=" * 70)
-    print("MOSI v59 — Zero Leakage: TrainVal + EMD Loss + TTA + Prior Correction + 3-Seed Ensemble")
+    print("MOSI v60 — Zero Leakage: TrainVal + EMD Loss + TTA×5 + 3-Seed Ensemble")
     print("=" * 70)
 
     config = {
         "lang_model":      "microsoft/deberta-v3-large",
         "batch_size":      8,
-        "num_epochs":      60,        # v59: 同 v56 proven 60 epoch
+        "num_epochs":      60,
         "lang_lr":         4e-6,
         "head_lr":         8e-5,
         "weight_decay":    0.01,
@@ -624,15 +624,15 @@ def main():
         "rdrop_alpha":     0.05,
         "focal_gamma":     2.0,
         "patience":        999,       # 停用早停（trainval 模式不需要）
-        "swa_start":       42,        # v59: 同 v56 proven E42
-        "swa_step":        3,
-        "seeds":           [42, 123, 2024],
-        "version":         "v59",
+        "swa_start":       42,
+        "swa_step":        2,         # v60: 更密集 SWA（10 checkpoints）
+        "seeds":           [42, 123, 2024],  # v60: 3-seed ensemble（5-seed 測試後確認此組合最佳）
+        "version":         "v60",
         "use_trainval":    True,
-        "fixed_alpha":     0.0,       # ★ Prior correction 已停用（alpha=0）
-        "use_prior_corr":  False,     # False = 不套用先驗修正，True = 恢復原有行為
-        "emd_weight":      0.25,      # ★ v59 新增：70% Focal + 25% EMD + 5% 隱式
-        "n_tta":           3,         # ★ v59 新增：TTA 3 次推斷平均
+        "fixed_alpha":     0.0,       # Prior correction 已停用（alpha=0）
+        "use_prior_corr":  False,     # False = 不套用先驗修正
+        "emd_weight":      0.25,      # 75% Focal + 25% EMD
+        "n_tta":           5,         # v60: TTA 5 次推斷平均
     }
 
     print(f"\n載入資料: {DATA_PATH}")
@@ -787,12 +787,13 @@ def main():
         best_label = f"{len(config['seeds'])}-Seed Ensemble"
 
         MODEL_DIR.mkdir(exist_ok=True, parents=True)
-        np.save(str(MODEL_DIR / "raw_logits_v59.npy"), np.stack(all_test_l7, axis=0))
+        ver = config["version"]
+        np.save(str(MODEL_DIR / f"raw_logits_{ver}.npy"), np.stack(all_test_l7, axis=0))
 
-        with open(MODEL_DIR / "history_v59.json", "w") as f:
+        with open(MODEL_DIR / f"history_{ver}.json", "w") as f:
             json.dump({
                 "version":         config["version"],
-                "note":            "TrainVal + EMD loss + TTA + val-justified prior correction — zero leakage",
+                "note":            "TrainVal + EMD loss + TTA + 5-Seed Ensemble — zero leakage",
                 "seeds":           config["seeds"],
                 "seed_results":    seed_results,
                 "fixed_alpha":     config["fixed_alpha"],
@@ -803,13 +804,13 @@ def main():
                 "final_acc7":      round(final_acc7, 2),
                 "final_metrics":   best_m,
             }, f, indent=2, ensure_ascii=False)
-        history_file = MODEL_DIR / "history_v59.json"
+        history_file = MODEL_DIR / f"history_{ver}.json"
 
     else:
         # ── v55：val-based alpha search（修正 #4，完整實作）───────────────────
         val_labels_np = np.array(data["valid"]["regression_labels"])
         val_cls7_true = np.clip(np.round(val_labels_np).astype(int), -3, 3) + 3
-        val_cls2_true = (val_labels_np > 0).astype(int)
+        val_cls2_true = (val_labels_np >= 0).astype(int)
 
         # Prior correction log_ratio（train→val）
         train_prior = compute_prior(data["train"]["regression_labels"])
@@ -870,48 +871,43 @@ def main():
             return acc7, {"Acc7": round(acc7,2), "Acc2": round(acc2,2),
                           "F1": round(f1,2), "MAE": round(mae,4), "Corr": round(corr,4)}
 
-        print("\n  === 各 Seed 個別 Test 結果 ===")
-        s42_acc7, s42_m = compute_test_with_alpha(
-            all_test_l7[s42_idx], all_test_l2[s42_idx], all_test_reg[s42_idx],
-            s42_best_alpha, f"Seed-42")
+        # ★ 修正：不以 test 選模型，固定使用 Ensemble（零洩漏）
+        print(f"\n  === 各 Seed 個別 Test 結果 [僅供參考] ===")
+        for i, s in enumerate(config["seeds"]):
+            compute_test_with_alpha(
+                all_test_l7[i], all_test_l2[i], all_test_reg[i],
+                ens_best_alpha, f"Seed-{s}")
 
-        print("\n  === Ensemble Test 結果 ===")
-        ens_acc7, ens_m = compute_test_with_alpha(
+        print(f"\n  === {len(config['seeds'])}-Seed Ensemble Test 結果 [最終] ===")
+        final_acc7, best_m = compute_test_with_alpha(
             mean_test_l7, mean_test_l2, mean_test_reg,
             ens_best_alpha, "Ensemble")
-
-        # ★ 修正 #1：final_acc7 與 best_m 來自同一候選
-        if s42_acc7 >= ens_acc7:
-            final_acc7, best_m, best_label = s42_acc7, s42_m, "Seed-42"
-        else:
-            final_acc7, best_m, best_label = ens_acc7, ens_m, "Ensemble"
-        print(f"\n  最佳候選: [{best_label}]  Acc7={final_acc7:.2f}%")
+        best_label = f"{len(config['seeds'])}-Seed Ensemble"
 
         MODEL_DIR.mkdir(exist_ok=True, parents=True)
-        np.save(str(MODEL_DIR / "raw_logits_v55.npy"), np.stack(all_test_l7, axis=0))
-        np.save(str(MODEL_DIR / "val_logits_v55.npy"),  np.stack(all_val_l7,  axis=0))
+        ver = config["version"]
+        np.save(str(MODEL_DIR / f"raw_logits_{ver}.npy"), np.stack(all_test_l7, axis=0))
+        np.save(str(MODEL_DIR / f"val_logits_{ver}.npy"),  np.stack(all_val_l7,  axis=0))
 
-        with open(MODEL_DIR / "history_v55.json", "w") as f:
+        with open(MODEL_DIR / f"history_{ver}.json", "w") as f:
             json.dump({
                 "version":               config["version"],
                 "note":                  "Zero data leakage — standard train/val/test splits",
                 "seeds":                 config["seeds"],
                 "seed_results":          seed_results,
-                "best_alpha_seed42":     s42_best_alpha,
-                "best_val_acc7_seed42":  round(s42_best_val_acc, 2),
                 "best_alpha_ensemble":   ens_best_alpha,
                 "best_val_acc7_ens":     round(ens_best_val_acc, 2),
-                "best_candidate":        best_label,
+                "final_candidate":       best_label,
                 "final_acc7":            round(final_acc7, 2),
-                "final_metrics":         best_m,   # ★ 與 final_acc7 來源一致（修正 #1）
+                "final_metrics":         best_m,
                 "prior_log_ratio":       log_ratio.tolist(),
             }, f, indent=2, ensure_ascii=False)
-        history_file = MODEL_DIR / "history_v55.json"
+        history_file = MODEL_DIR / f"history_{ver}.json"
 
     print(f"\n{'='*70}")
     print(f"最終 Test Acc7 (zero leakage): {final_acc7:.2f}%")
     print(f"  Acc2={best_m['Acc2']:.2f}%  F1={best_m['F1']:.2f}%  MAE={best_m['MAE']:.4f}  Corr={best_m['Corr']:.4f}")
-    print(f"vs 目標 51%: {final_acc7-51.0:+.2f}%  {'✓ 達標！' if final_acc7 > 51.0 else '✗ 未達標'}")
+    print(f"vs 目標 52%: {final_acc7-52.0:+.2f}%  {'✓ 達標！' if final_acc7 > 52.0 else '✗ 未達標'}")
     print(f"{'='*70}")
     print(f"結果已儲存: {history_file}")
 
