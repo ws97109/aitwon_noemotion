@@ -629,7 +629,8 @@ def main():
         "seeds":           [42, 123, 2024],
         "version":         "v59",
         "use_trainval":    True,
-        "fixed_alpha":     1.0,       # ★ 將由 val-search 動態覆蓋
+        "fixed_alpha":     0.0,       # ★ Prior correction 已停用（alpha=0）
+        "use_prior_corr":  False,     # False = 不套用先驗修正，True = 恢復原有行為
         "emd_weight":      0.25,      # ★ v59 新增：70% Focal + 25% EMD + 5% 隱式
         "n_tta":           3,         # ★ v59 新增：TTA 3 次推斷平均
     }
@@ -667,27 +668,29 @@ def main():
         log_ratio = np.log(val_prior_for_corr + 1e-8) - np.log(trainval_prior + 1e-8)
         print(f"  [v59] Prior correction: trainval→val, log_ratio={[f'{r:+.3f}' for r in log_ratio]}")
 
-        # ★ v59: Val-justified alpha search — 使用 v55 val logits + trainval→val log_ratio
-        # 完全不接觸 test；v55 val logits 是從 standard train/val split 產生的
-        val_logits_v55_path = MODEL_DIR / "val_logits_v55.npy"
-        if val_logits_v55_path.exists():
-            vl55 = np.load(str(val_logits_v55_path))          # [3, 229, 7]
-            mean_vl55 = vl55.mean(0)                           # [229, 7]
-            val_labels_arr  = np.array(data["valid"]["regression_labels"])
-            val_cls7_search = np.clip(np.round(val_labels_arr).astype(int), -3, 3) + 3
-            best_val_alpha_acc, best_found_alpha = 0.0, config["fixed_alpha"]
-            print(f"  [v59] Alpha search on v55 val logits (zero-leak):")
-            for a in [round(x * 0.25, 2) for x in range(0, 25)]:  # 0.0 → 6.0
-                corr_l7 = mean_vl55 + a * log_ratio
-                acc = (corr_l7.argmax(1) == val_cls7_search).mean() * 100
-                mark = " ← best" if acc > best_val_alpha_acc else ""
-                print(f"    alpha={a:.2f}: Val Acc7={acc:.2f}%{mark}")
-                if acc > best_val_alpha_acc:
-                    best_val_alpha_acc = acc; best_found_alpha = a
-            config["fixed_alpha"] = best_found_alpha
-            print(f"  [v59] ★ Val-justified alpha={best_found_alpha:.2f} (Val Acc7={best_val_alpha_acc:.2f}%)")
+        # ★ v59: Val-justified alpha search（僅在 use_prior_corr=True 時執行）
+        if config.get("use_prior_corr", False):
+            val_logits_v55_path = MODEL_DIR / "val_logits_v55.npy"
+            if val_logits_v55_path.exists():
+                vl55 = np.load(str(val_logits_v55_path))          # [3, 229, 7]
+                mean_vl55 = vl55.mean(0)                           # [229, 7]
+                val_labels_arr  = np.array(data["valid"]["regression_labels"])
+                val_cls7_search = np.clip(np.round(val_labels_arr).astype(int), -3, 3) + 3
+                best_val_alpha_acc, best_found_alpha = 0.0, config["fixed_alpha"]
+                print(f"  [v59] Alpha search on v55 val logits (zero-leak):")
+                for a in [round(x * 0.25, 2) for x in range(0, 25)]:  # 0.0 → 6.0
+                    corr_l7 = mean_vl55 + a * log_ratio
+                    acc = (corr_l7.argmax(1) == val_cls7_search).mean() * 100
+                    mark = " ← best" if acc > best_val_alpha_acc else ""
+                    print(f"    alpha={a:.2f}: Val Acc7={acc:.2f}%{mark}")
+                    if acc > best_val_alpha_acc:
+                        best_val_alpha_acc = acc; best_found_alpha = a
+                config["fixed_alpha"] = best_found_alpha
+                print(f"  [v59] ★ Val-justified alpha={best_found_alpha:.2f} (Val Acc7={best_val_alpha_acc:.2f}%)")
+            else:
+                print(f"  [v59] val_logits_v55.npy 不存在，使用 fixed alpha={config['fixed_alpha']}")
         else:
-            print(f"  [v59] val_logits_v55.npy 不存在，使用 fixed alpha={config['fixed_alpha']}")
+            print(f"  [v59] Prior correction 已停用 (use_prior_corr=False)，alpha=0")
     else:
         train_loader = DataLoader(train_ds, bs, shuffle=True, num_workers=2, pin_memory=True)
         class_weights = compute_class_weights(data["train"]["regression_labels"])
@@ -770,16 +773,17 @@ def main():
 
         # 各 seed 個別結果（供參考；不用於選擇最終模型）
         print("  === 各 Seed 個別 Test 結果 [僅供參考] ===")
+        _apply_corr = config.get("use_prior_corr", False)
         for i, s in enumerate(config["seeds"]):
             compute_test_metrics(all_test_l7[i], all_test_l2[i], all_test_reg[i],
-                                 f"Seed-{s}", apply_prior_corr=True, lr=log_ratio, alpha=alpha)
+                                 f"Seed-{s}", apply_prior_corr=_apply_corr, lr=log_ratio, alpha=alpha)
 
         # ★ v57: 唯一最終結果 = Ensemble（不以 test 選最佳，零洩漏）
         print(f"\n  === {len(config['seeds'])}-Seed Ensemble Test 結果 [最終] ===")
         final_acc7, best_m = compute_test_metrics(
             mean_test_l7, mean_test_l2, mean_test_reg,
             f"{len(config['seeds'])}-Seed Ensemble",
-            apply_prior_corr=True, lr=log_ratio, alpha=alpha)
+            apply_prior_corr=_apply_corr, lr=log_ratio, alpha=alpha)
         best_label = f"{len(config['seeds'])}-Seed Ensemble"
 
         MODEL_DIR.mkdir(exist_ok=True, parents=True)
@@ -812,35 +816,43 @@ def main():
         val_prior   = compute_prior(data["valid"]["regression_labels"])
         log_ratio   = np.log(val_prior + 1e-8) - np.log(train_prior + 1e-8)
 
-        alpha_values = [round(a * 0.25, 2) for a in range(2, 25)]
-
         def _val_acc(l7, alpha):
             cl  = l7 + alpha * log_ratio
             cp  = np.exp(cl - cl.max(1, keepdims=True)); cp /= cp.sum(1, keepdims=True)
             return (cp.argmax(1) == val_cls7_true).mean() * 100
 
-        # Seed-42 alpha search on val
         mean_val_l7 = np.mean(all_val_l7, axis=0) if all_val_l7 else None
-        print(f"\n[Seed-42] Alpha Search on Val:")
-        s42_best_val_acc = 0.0; s42_best_alpha = 1.0
-        for alpha in alpha_values:
-            acc = _val_acc(all_val_l7[s42_idx], alpha)
-            marker = " ← 最佳" if acc > s42_best_val_acc else ""
-            print(f"  alpha={alpha:.2f}: Val Acc7={acc:.2f}%{marker}")
-            if acc > s42_best_val_acc:
-                s42_best_val_acc = acc; s42_best_alpha = alpha
-        print(f"Seed-42 最佳 alpha={s42_best_alpha:.2f} (Val={s42_best_val_acc:.2f}%)")
 
-        # Ensemble alpha search on val
-        print(f"\n[Ensemble {len(all_val_l7)} seeds] Alpha Search on Val:")
-        ens_best_val_acc = 0.0; ens_best_alpha = 1.0
-        for alpha in alpha_values:
-            acc = _val_acc(mean_val_l7, alpha)
-            marker = " ← 最佳" if acc > ens_best_val_acc else ""
-            print(f"  alpha={alpha:.2f}: Val Acc7={acc:.2f}%{marker}")
-            if acc > ens_best_val_acc:
-                ens_best_val_acc = acc; ens_best_alpha = alpha
-        print(f"Ensemble 最佳 alpha={ens_best_alpha:.2f} (Val={ens_best_val_acc:.2f}%)")
+        if config.get("use_prior_corr", False):
+            alpha_values = [round(a * 0.25, 2) for a in range(2, 25)]
+
+            # Seed-42 alpha search on val
+            print(f"\n[Seed-42] Alpha Search on Val:")
+            s42_best_val_acc = 0.0; s42_best_alpha = 1.0
+            for alpha in alpha_values:
+                acc = _val_acc(all_val_l7[s42_idx], alpha)
+                marker = " ← 最佳" if acc > s42_best_val_acc else ""
+                print(f"  alpha={alpha:.2f}: Val Acc7={acc:.2f}%{marker}")
+                if acc > s42_best_val_acc:
+                    s42_best_val_acc = acc; s42_best_alpha = alpha
+            print(f"Seed-42 最佳 alpha={s42_best_alpha:.2f} (Val={s42_best_val_acc:.2f}%)")
+
+            # Ensemble alpha search on val
+            print(f"\n[Ensemble {len(all_val_l7)} seeds] Alpha Search on Val:")
+            ens_best_val_acc = 0.0; ens_best_alpha = 1.0
+            for alpha in alpha_values:
+                acc = _val_acc(mean_val_l7, alpha)
+                marker = " ← 最佳" if acc > ens_best_val_acc else ""
+                print(f"  alpha={alpha:.2f}: Val Acc7={acc:.2f}%{marker}")
+                if acc > ens_best_val_acc:
+                    ens_best_val_acc = acc; ens_best_alpha = alpha
+            print(f"Ensemble 最佳 alpha={ens_best_alpha:.2f} (Val={ens_best_val_acc:.2f}%)")
+        else:
+            s42_best_val_acc = _val_acc(all_val_l7[s42_idx], 0.0)
+            s42_best_alpha   = 0.0
+            ens_best_val_acc = _val_acc(mean_val_l7, 0.0) if mean_val_l7 is not None else 0.0
+            ens_best_alpha   = 0.0
+            print(f"  Prior correction 已停用，alpha=0（不搜尋）")
 
         # ── 最終 test 評估（各 seed + ensemble）────────────────────────────
         def compute_test_with_alpha(l7, l2, reg, alpha, label):
