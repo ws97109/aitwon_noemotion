@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="-apple-system, 'Segoe UI', 'Microsoft JhengHei', sans-serif">
+  <!-- 背景 -->
+  <rect width="1200" height="760" fill="#fafbfc"/>
+
+  <!-- 標題 -->
+  <text x="600" y="36" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1a2e">
+    模型比較：效能 vs 參數量
+  </text>
+  <text x="600" y="60" text-anchor="middle" font-size="13" fill="#555">
+    SemEval-2018 (Table 4) + MMAFFBen (Table 5) 純文字評估
+  </text>
+
+  <!-- 欄位標頭 -->
+  <g font-size="12" font-weight="600" fill="#333">
+    <text x="40"   y="100">Model</text>
+    <text x="295"  y="100" text-anchor="middle">Params</text>
+    <text x="510"  y="100" text-anchor="middle">Table 4 Overall (SemEval)</text>
+    <text x="855"  y="100" text-anchor="middle">Table 5 Avg ma-F1 (MMAFFBen)</text>
+    <text x="1130" y="100" text-anchor="middle">分/1B</text>
+  </g>
+  <line x1="20" y1="110" x2="1180" y2="110" stroke="#ccc" stroke-width="1"/>
+
+  <!-- 比例尺：T4/T5 max=80, bar 寬度 max=300px -->
+  <!-- 起點 x: T4=370, T5=720; 1 分 = 3.75 px -->
+
+  <!-- ============ Row 1: GPT-4o-mini ============ -->
+  <g transform="translate(0, 130)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">🥇 GPT-4o-mini</text>
+    <text x="40"  y="46" font-size="10" fill="#888">商用閉源 LLM</text>
+    <!-- Param badge ~8B -->
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fee2e2"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#dc2626">~ 8.0 B</text>
+    <!-- T4 bar (72.37) -->
+    <rect x="370" y="15" width="271" height="22" fill="#3b82f6" opacity="0.85"/>
+    <text x="650" y="30" font-size="12" font-weight="600" fill="#333">72.37</text>
+    <!-- T5 bar (50.02) -->
+    <rect x="720" y="15" width="188" height="22" fill="#10b981" opacity="0.85"/>
+    <text x="915" y="30" font-size="12" font-weight="600" fill="#333">50.02</text>
+    <!-- 分/1B -->
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">9.0</text>
+  </g>
+
+  <!-- ============ Row 2: EmoLlama-chat-7b ============ -->
+  <g transform="translate(0, 185)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">🥈 EmoLlama-chat-7b</text>
+    <text x="40"  y="46" font-size="10" fill="#888">情緒專用 LLM</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fed7aa"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#ea580c">7.0 B</text>
+    <!-- T4 (67.45) -->
+    <rect x="370" y="15" width="253" height="22" fill="#3b82f6" opacity="0.85"/>
+    <text x="632" y="30" font-size="12" font-weight="600" fill="#333">67.45</text>
+    <!-- T5 (39.00) -->
+    <rect x="720" y="15" width="146" height="22" fill="#10b981" opacity="0.85"/>
+    <text x="875" y="30" font-size="12" font-weight="600" fill="#333">39.00</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">9.6</text>
+  </g>
+
+  <!-- ============ Row 3: SACF-Text (OURS) — 醒目 ============ -->
+  <g transform="translate(0, 240)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="40"  y="30" font-size="14" font-weight="700" fill="#92400e">🥉 SACF-Text (我們的)</text>
+    <text x="40"  y="46" font-size="10" fill="#92400e">DeBERTa-v3-large + SACF</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#dcfce7"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#16a34a">0.435 B</text>
+    <!-- T4 (66.99) -->
+    <rect x="370" y="15" width="251" height="22" fill="#1d4ed8"/>
+    <text x="630" y="30" font-size="12" font-weight="700" fill="#333">66.99</text>
+    <!-- T5 (55.50) -->
+    <rect x="720" y="15" width="208" height="22" fill="#047857"/>
+    <text x="935" y="30" font-size="12" font-weight="700" fill="#333">55.50</text>
+    <!-- 分/1B：154.0 — 醒目大字 -->
+    <text x="1130" y="33" text-anchor="middle" font-size="15" font-weight="700" fill="#dc2626">154 ⭐</text>
+  </g>
+
+  <!-- ============ Row 4: MMAFFLM-7b ============ -->
+  <g transform="translate(0, 295)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">4. MMAFFLM-7b</text>
+    <text x="40"  y="46" font-size="10" fill="#888">論文專用 VLM (Qwen2.5-VL-7B base)</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fed7aa"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#ea580c">7.0 B</text>
+    <!-- T4 (66.29) -->
+    <rect x="370" y="15" width="249" height="22" fill="#3b82f6" opacity="0.85"/>
+    <text x="628" y="30" font-size="12" font-weight="600" fill="#333">66.29</text>
+    <!-- T5 (58.96) — 最高 -->
+    <rect x="720" y="15" width="221" height="22" fill="#10b981" opacity="0.85"/>
+    <text x="950" y="30" font-size="12" font-weight="600" fill="#333">58.96</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">8.4</text>
+  </g>
+
+  <!-- ============ Row 5: MMAFFLM-3b ============ -->
+  <g transform="translate(0, 350)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">5. MMAFFLM-3b</text>
+    <text x="40"  y="46" font-size="10" fill="#888">論文專用 VLM (Qwen2.5-VL-3B base)</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fef3c7"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#ca8a04">3.0 B</text>
+    <!-- T4 (65.41) -->
+    <rect x="370" y="15" width="245" height="22" fill="#3b82f6" opacity="0.85"/>
+    <text x="624" y="30" font-size="12" font-weight="600" fill="#333">65.41</text>
+    <!-- T5 (58.22) -->
+    <rect x="720" y="15" width="218" height="22" fill="#10b981" opacity="0.85"/>
+    <text x="947" y="30" font-size="12" font-weight="600" fill="#333">58.22</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">19.4</text>
+  </g>
+
+  <!-- ============ Row 6: Mistral-7B ============ -->
+  <g transform="translate(0, 405)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">6. Mistral-7B-instruct</text>
+    <text x="40"  y="46" font-size="10" fill="#888">通用 LLM</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fed7aa"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#ea580c">7.0 B</text>
+    <!-- T4 (52.46) -->
+    <rect x="370" y="15" width="197" height="22" fill="#93c5fd"/>
+    <text x="576" y="30" font-size="12" fill="#333">52.46</text>
+    <!-- T5 (38.68) -->
+    <rect x="720" y="15" width="145" height="22" fill="#6ee7b7"/>
+    <text x="874" y="30" font-size="12" fill="#333">38.68</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">7.5</text>
+  </g>
+
+  <!-- ============ Row 7: Llama3.2-3B ============ -->
+  <g transform="translate(0, 460)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">7. Llama3.2-3B-instruct</text>
+    <text x="40"  y="46" font-size="10" fill="#888">通用 LLM</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#fef3c7"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#ca8a04">3.0 B</text>
+    <!-- T4 (45.71) -->
+    <rect x="370" y="15" width="171" height="22" fill="#93c5fd"/>
+    <text x="550" y="30" font-size="12" fill="#333">45.71</text>
+    <!-- T5 (37.80) -->
+    <rect x="720" y="15" width="142" height="22" fill="#6ee7b7"/>
+    <text x="871" y="30" font-size="12" fill="#333">37.80</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">15.2</text>
+  </g>
+
+  <!-- ============ Row 8: Llama3.2-1B ============ -->
+  <g transform="translate(0, 515)">
+    <rect x="20" y="0" width="1160" height="50" fill="#fff" stroke="#e5e5e5"/>
+    <text x="40"  y="30" font-size="14" font-weight="600" fill="#333">8. Llama3.2-1B-instruct</text>
+    <text x="40"  y="46" font-size="10" fill="#888">通用小型 LLM</text>
+    <rect x="240" y="15" width="110" height="22" rx="11" fill="#dcfce7"/>
+    <text x="295" y="30" text-anchor="middle" font-size="12" font-weight="600" fill="#16a34a">1.0 B</text>
+    <!-- T4 (21.39) -->
+    <rect x="370" y="15" width="80" height="22" fill="#93c5fd"/>
+    <text x="460" y="30" font-size="12" fill="#333">21.39</text>
+    <!-- T5 (30.18) -->
+    <rect x="720" y="15" width="113" height="22" fill="#6ee7b7"/>
+    <text x="843" y="30" font-size="12" fill="#333">30.18</text>
+    <text x="1130" y="30" text-anchor="middle" font-size="12" fill="#666">21.4</text>
+  </g>
+
+  <!-- 圖例 -->
+  <g transform="translate(20, 595)" font-size="11" fill="#555">
+    <rect x="0"   y="0" width="1160" height="60" fill="#f3f4f6" stroke="#d1d5db"/>
+    <text x="20"  y="20" font-weight="700" fill="#333">圖例</text>
+
+    <rect x="80"  y="10" width="14" height="14" fill="#1d4ed8"/>
+    <text x="100" y="22">Table 4 Overall (SemEval-2018，pcc/ma-F1 平均，max=80)</text>
+
+    <rect x="450" y="10" width="14" height="14" fill="#047857"/>
+    <text x="470" y="22">Table 5 Avg (MMAFFBen 純文字，ma-F1，max=80)</text>
+
+    <rect x="80"  y="36" width="14" height="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="100" y="48">我們的模型（黃色高亮）</text>
+
+    <text x="280" y="48" font-weight="600" fill="#dc2626">分/1B = Overall ÷ 參數量(B)</text>
+    <text x="500" y="48" fill="#666">→ 越高代表參數效率越高</text>
+
+    <text x="800" y="22" font-weight="600" fill="#16a34a">⭐ 我們以 1/16 大小達到第 3 名，</text>
+    <text x="800" y="48" font-weight="600" fill="#16a34a">參數效率比第 2 名高 7 倍以上</text>
+  </g>
+
+  <!-- 底部說明 -->
+  <text x="600" y="745" text-anchor="middle" font-size="10" fill="#888">
+    Table 4 Overall = (EI ave + SP val + SI val + EC ma-F1) / 4，跨 en/ar/es 三語平均
+  </text>
+</svg>
