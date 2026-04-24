@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虛擬環境
+venv/
+env/
+.venv/
+
+# 模型檔案（過大，無法上傳 GitHub）
+emollm_models/
+emollm_repo/
+
+# 環境變數
+.env
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+
+# 大型數據檔案（超過 GitHub 100MB 限制）
+*.pkl
+*.pt
+*.bin
+*.h5
+*.hdf5
+
+# 模擬結果與 checkpoint（過大）
+results/checkpoints/0311/
+results/checkpoints/Clauderun/
+results/checkpoints/test_0513/
+results/checkpoints/test2/
+results/checkpoints/emollm--resume/

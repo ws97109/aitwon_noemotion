@@ -1,0 +1,8 @@
+{
+  "train_size": 1284,
+  "valid_size": 229,
+  "test_size": 686,
+  "text_dim": 300,
+  "visual_dim": 20,
+  "audio_dim": 5
+}

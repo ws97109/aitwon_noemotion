@@ -188,11 +188,18 @@ class OllamaLLMModel(LLMModel):
         response = self.ollama_embeddings(text)
         return response["data"][0]["embedding"]
 
+    @staticmethod
+    def _strip_think(text):
+        """移除 Qwen3 等模型的 <think>...</think> 推理區塊"""
+        result = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+        return result.strip()
+
     def _completion(self, prompt, temperature=0.00001):
         messages = [{"role": "user", "content": prompt}]
         response = self.ollama_chat(messages=messages, temperature=temperature, stream=False)
         if response and len(response["choices"]) > 0:
-            return response["choices"][0]["message"]["content"]
+            content = response["choices"][0]["message"]["content"]
+            return self._strip_think(content)
         return ""
 
     @classmethod
@@ -349,6 +356,114 @@ class SparkAILLMModel(LLMModel):
     @classmethod
     def model_style(cls):
         return ModelStyle.SPARK_AI
+
+
+@utils.register_model
+class LocalCUDALLMModel(LLMModel):
+    """使用 HuggingFace Transformers + CUDA 的本地模型"""
+
+    def setup(self, keys, config):
+        import torch
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+
+        self._device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        if self._device == "cpu":
+            print("[LocalCUDALLMModel] 警告：未偵測到 CUDA，改用 CPU 執行")
+
+        model_path = config.get("model_path", self._model)
+        dtype = torch.float16 if self._device == "cuda:0" else torch.float32
+
+        print(f"[LocalCUDALLMModel] 載入模型 {model_path}，裝置: {self._device}")
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+        model_obj = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=dtype,
+            device_map={"": 0} if self._device == "cuda:0" else None,
+            trust_remote_code=True,
+        )
+        if self._device == "cpu":
+            model_obj = model_obj.to(self._device)
+        model_obj.eval()
+
+        # embedding 模型（選用，可與主模型不同）
+        embedding_path = config.get("embedding_model_path", model_path)
+        if embedding_path != model_path:
+            from transformers import AutoModel
+            emb_tokenizer = AutoTokenizer.from_pretrained(embedding_path, trust_remote_code=True)
+            emb_model = AutoModel.from_pretrained(
+                embedding_path,
+                torch_dtype=dtype,
+                device_map={"": 0} if self._device == "cuda:0" else None,
+                trust_remote_code=True,
+            )
+            if self._device == "cpu":
+                emb_model = emb_model.to(self._device)
+            emb_model.eval()
+        else:
+            emb_tokenizer = tokenizer
+            emb_model = None  # 使用主模型做 embedding
+
+        return {
+            "tokenizer": tokenizer,
+            "model": model_obj,
+            "emb_tokenizer": emb_tokenizer,
+            "emb_model": emb_model,
+        }
+
+    def _embedding(self, text):
+        import torch
+
+        tokenizer = self._handle["emb_tokenizer"]
+        model = self._handle["emb_model"] or self._handle["model"]
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        inputs = {k: v.to(self._device) for k, v in inputs.items()}
+        with torch.no_grad():
+            outputs = model(**inputs, output_hidden_states=True)
+        # 取最後一層 hidden state 的 mean pooling 作為 embedding
+        hidden = outputs.hidden_states[-1]
+        embedding = hidden.mean(dim=1).squeeze().cpu().tolist()
+        return embedding
+
+    def _completion(self, prompt, temperature=0.7, max_new_tokens=512):
+        import torch
+
+        tokenizer = self._handle["tokenizer"]
+        model = self._handle["model"]
+        messages = [{"role": "user", "content": prompt}]
+
+        # 優先使用 chat template
+        if hasattr(tokenizer, "apply_chat_template"):
+            input_ids = tokenizer.apply_chat_template(
+                messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+            ).to(self._device)
+        else:
+            text = f"User: {prompt}\nAssistant:"
+            input_ids = tokenizer(text, return_tensors="pt").input_ids.to(self._device)
+
+        with torch.no_grad():
+            output_ids = model.generate(
+                input_ids,
+                max_new_tokens=max_new_tokens,
+                temperature=max(temperature, 1e-5),
+                do_sample=temperature > 0.01,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+
+        new_tokens = output_ids[0][input_ids.shape[-1]:]
+        return tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+
+    @classmethod
+    def support_model(cls, model):
+        return True
+
+    @classmethod
+    def creatable(cls, keys, config):
+        # 需要設定 model_path 或 use_cuda=true
+        return config and config.get("use_cuda", False)
+
+    @classmethod
+    def model_style(cls):
+        return "cuda_local"
 
 
 def create_llm_model(base_url, model, embedding_model, keys, config=None):

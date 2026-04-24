@@ -42,7 +42,7 @@
 │     └─ 5. 調用 Ollama API 生成回答
 │
 └─ Ollama LLM (本地服務)
-   └─ Model: qwen3:14b
+   └─ Model: qwen2.5:7b
 ```
 
 ---
@@ -340,7 +340,7 @@ python test_ollama_survey.py
 ```bash
 # Ollama 服務設定
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=qwen3:14b
+OLLAMA_MODEL=qwen2.5:7b
 
 # 其他設定
 DEBUG=True

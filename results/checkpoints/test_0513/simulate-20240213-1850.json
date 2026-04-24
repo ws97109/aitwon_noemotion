@@ -18,7 +18,7 @@
       "mode": "llm",
       "llm": {
         "base_url": "http://127.0.0.1:11434/v1",
-        "model": "qwen3:14b",
+        "model": "qwen2.5:7b",
         "embedding_model": "bge-m3:latest"
       },
       "interval": 1000,

@@ -17,3 +17,11 @@ chromadb>=0.3.0
 # 其他工具
 python-dateutil>=2.8.0
 uuid>=1.30
+
+# CUDA 訓練 (需搭配對應 CUDA 版本的 PyTorch)
+# 安裝指令: pip install torch --index-url https://download.pytorch.org/whl/cu121
+torch>=2.1.0
+transformers>=4.40.0
+peft>=0.10.0
+accelerate>=0.28.0
+datasets>=2.18.0

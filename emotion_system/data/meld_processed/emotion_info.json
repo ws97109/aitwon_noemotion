@@ -1,0 +1,29 @@
+{
+  "emotions": [
+    "anger",
+    "disgust",
+    "fear",
+    "joy",
+    "neutral",
+    "sadness",
+    "surprise"
+  ],
+  "zh_mapping": {
+    "anger": "憤怒",
+    "disgust": "厭惡",
+    "fear": "恐懼",
+    "joy": "喜悅",
+    "neutral": "中性",
+    "sadness": "悲傷",
+    "surprise": "驚訝"
+  },
+  "emoji_mapping": {
+    "anger": "😠",
+    "disgust": "🤢",
+    "fear": "😨",
+    "joy": "😊",
+    "neutral": "😐",
+    "sadness": "😢",
+    "surprise": "😲"
+  }
+}

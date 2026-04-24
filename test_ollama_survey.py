@@ -115,7 +115,7 @@ def main():
     print("測試完成！")
     print()
     print("說明:")
-    print("1. ✅ 系統使用 Ollama LLM (qwen3:14b) 生成所有問卷回答")
+    print("1. ✅ 系統使用 Ollama LLM (qwen2.5:7b) 生成所有問卷回答")
     print("2. ✅ LLM 會根據以下資料生成回答:")
     print("   - agent.json: 居民背景、家庭、經濟狀況")
     print("   - simulation.md: 近期活動歷史")

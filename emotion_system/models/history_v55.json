@@ -1,0 +1,45 @@
+{
+  "version": "v55",
+  "note": "Zero data leakage — standard train/val/test splits",
+  "seeds": [
+    42,
+    123,
+    2024
+  ],
+  "seed_results": [
+    {
+      "seed": 42,
+      "best_val_acc7": 51.53
+    },
+    {
+      "seed": 123,
+      "best_val_acc7": 53.71
+    },
+    {
+      "seed": 2024,
+      "best_val_acc7": 48.47
+    }
+  ],
+  "best_alpha_seed42": 2.0,
+  "best_val_acc7_seed42": 51.53,
+  "best_alpha_ensemble": 2.5,
+  "best_val_acc7_ens": 52.84,
+  "raw_test_acc7": 47.81,
+  "final_acc7": 47.96,
+  "final_metrics": {
+    "Acc7": 47.96,
+    "Acc2": 86.3,
+    "F1": 86.26,
+    "MAE": 0.5981,
+    "Corr": 0.8646
+  },
+  "prior_log_ratio": [
+    0.8485444373418836,
+    -0.16809395055595044,
+    -0.23520061898738698,
+    0.1024050276018118,
+    -0.037374888502017534,
+    -0.11016669963870473,
+    0.8398109047689251
+  ]
+}

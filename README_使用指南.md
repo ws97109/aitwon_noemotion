@@ -40,7 +40,7 @@ pip install openpyxl
 # 請到 https://ollama.com 下載安裝
 
 # 下載所需模型
-ollama pull qwen3:14b      # 主要對話模型
+ollama pull qwen2.5:7b      # 主要對話模型
 ollama pull bge-m3:latest    # 嵌入模型
 
 # 啟動 Ollama 服務 (通常會自動啟動)
@@ -323,7 +323,7 @@ survey_[問卷ID]_[匯出時間].csv
 ```bash
 # Ollama 本地服務設定 (無需API密鑰)
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=qwen3:14b
+OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_EMBEDDING_MODEL=bge-m3:latest
 
 # 系統設定
@@ -341,7 +341,7 @@ SURVEY_DATA_PATH=survey_system/data
     "think": {
       "llm": {
         "base_url": "http://127.0.0.1:11434/v1",
-        "model": "qwen3:14b",
+        "model": "qwen2.5:7b",
     "temperature": 0.7
   }
 }

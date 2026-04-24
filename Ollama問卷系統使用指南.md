@@ -157,7 +157,7 @@ filler = AIResidentSurveyFiller(
 ```bash
 # Ollama 本地服務設定
 OLLAMA_BASE_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=qwen3:14b
+OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_EMBEDDING_MODEL=bge-m3:latest
 ```
 
@@ -208,7 +208,7 @@ except Exception as e:
 | 錯誤 | 原因 | 解決方案 |
 |------|------|----------|
 | Connection refused | Ollama 服務未運行 | 執行 `ollama serve` |
-| Model not found | 模型未下載 | 執行 `ollama pull qwen3:14b` |
+| Model not found | 模型未下載 | 執行 `ollama pull qwen2.5:7b` |
 | Timeout | 生成時間過長 | 調整 timeout 參數或使用更小的模型 |
 | Invalid format | LLM 輸出格式錯誤 | 系統會自動處理並 fallback |
 
@@ -236,7 +236,7 @@ except Exception as e:
 - 建議: 使用批量處理或背景任務
 
 ### 記憶體使用
-- qwen3:14b 模型約需 8GB GPU 記憶體
+- qwen2.5:7b 模型約需 8GB GPU 記憶體
 - 建議: 在有足夠資源的機器上運行
 
 ### API 調用頻率
@@ -248,7 +248,7 @@ except Exception as e:
 1. **首次使用前確保 Ollama 正常運行**
    ```bash
    ollama serve
-   ollama pull qwen3:14b
+   ollama pull qwen2.5:7b
    ```
 
 2. **使用適當的 simulation.md 路徑**

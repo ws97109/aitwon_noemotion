@@ -12,9 +12,17 @@
         "think": {
             "mode": "llm",
             "llm": {
-                "base_url": "http://127.0.0.1:11434/v1",
-                "model": "qwen3:14b",
+                "base_url": "http://127.0.0.1:11436/v1",
+                "model": "qwen2.5:32b",
                 "embedding_model": "bge-m3:latest"
+            },
+            "emotion": {
+                "enabled": true,
+                "sacf_model_path": "",
+                "sacf_lang_model": "microsoft/deberta-v3-large",
+                "model_path": "",
+                "ollama_model": "",
+                "base_url": "http://127.0.0.1:11434/v1"
             },
             "interval": 1000,
             "poignancy_max": 150
@@ -23,7 +31,7 @@
         "associate": {
             "embedding": {
                 "type": "ollama",
-                "base_url": "http://127.0.0.1:11434",
+                "base_url": "http://127.0.0.1:11436",
                 "model": "bge-m3:latest"
             },
             "retention": 8

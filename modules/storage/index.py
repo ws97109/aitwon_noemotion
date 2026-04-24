@@ -1,6 +1,7 @@
 """generative_agents.storage.index"""
 
 import os
+import math
 import time
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.indices.vector_store.retrievers import VectorIndexRetriever
@@ -9,7 +10,67 @@ from llama_index import core as index_core
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core import Settings
+from llama_index.core.embeddings import BaseEmbedding
 from modules import utils
+
+
+def _sanitize_embedding(embedding):
+    """將向量中的 NaN/Inf 替換為 0，避免 JSON 序列化失敗"""
+    return [0.0 if (v is None or not math.isfinite(v)) else v for v in embedding]
+
+
+class _SafeEmbedding(BaseEmbedding):
+    """包裝 embedding 模型，自動過濾 NaN/Inf，並在 Ollama 500 錯誤時回傳零向量"""
+
+    # bge-m3 的標準維度；第一次成功後會自動更新
+    _DEFAULT_DIM = 1024
+
+    def __init__(self, embed_model):
+        super().__init__(
+            model_name=getattr(embed_model, "model_name", "safe_embedding"),
+            embed_batch_size=getattr(embed_model, "embed_batch_size", 10),
+        )
+        object.__setattr__(self, "_inner_model", embed_model)
+        object.__setattr__(self, "_dim", None)  # 快取向量維度
+
+    def _fallback(self):
+        dim = self._dim or self._DEFAULT_DIM
+        return [0.0] * dim
+
+    def _safe(self, vec):
+        result = _sanitize_embedding(vec)
+        if self._dim is None:
+            object.__setattr__(self, "_dim", len(result))
+        return result
+
+    def _call(self, fn, *args, max_retry=3):
+        """執行 fn，失敗時重試，最終回傳零向量而非拋出例外"""
+        for attempt in range(max_retry):
+            try:
+                return self._safe(fn(*args))
+            except Exception as e:
+                print(f"[SafeEmbedding] 向量化失敗 (嘗試 {attempt+1}/{max_retry}): {e}")
+                time.sleep(2)
+        print("[SafeEmbedding] 已達重試上限，使用零向量替代")
+        return self._fallback()
+
+    def _get_query_embedding(self, query):
+        return self._call(self._inner_model.get_query_embedding, query)
+
+    def _get_text_embedding(self, text):
+        return self._call(self._inner_model.get_text_embedding, text)
+
+    def _get_text_embeddings(self, texts):
+        results = []
+        for text in texts:
+            results.append(self._call(self._inner_model.get_text_embedding, text))
+        return results
+
+    async def _aget_query_embedding(self, query):
+        return self._get_query_embedding(query)
+
+    async def _aget_text_embedding(self, text):
+        return self._get_text_embedding(text)
 
 
 class LlamaIndex:
@@ -28,7 +89,7 @@ class LlamaIndex:
                 "embedding type {} is not supported".format(embedding["type"])
             )
 
-        Settings.embed_model = embed_model
+        Settings.embed_model = _SafeEmbedding(embed_model)
         Settings.node_parser = SentenceSplitter(chunk_size=512, chunk_overlap=64)
         Settings.num_output = 1024
         Settings.context_window = 4096
@@ -50,25 +111,28 @@ class LlamaIndex:
         exclude_embedding_keys=None,
         id=None,
     ):
-        while True:
+        metadata = metadata or {}
+        exclude_llm_keys = exclude_llm_keys or list(metadata.keys())
+        exclude_embedding_keys = exclude_embedding_keys or list(metadata.keys())
+        id = id or "node_" + str(self._config["max_nodes"])
+        self._config["max_nodes"] += 1
+        node = TextNode(
+            text=text,
+            id_=id,
+            metadata=metadata,
+            excluded_llm_metadata_keys=exclude_llm_keys,
+            excluded_embed_metadata_keys=exclude_embedding_keys,
+        )
+        for attempt in range(3):
             try:
-                metadata = metadata or {}
-                exclude_llm_keys = exclude_llm_keys or list(metadata.keys())
-                exclude_embedding_keys = exclude_embedding_keys or list(metadata.keys())
-                id = id or "node_" + str(self._config["max_nodes"])
-                self._config["max_nodes"] += 1
-                node = TextNode(
-                    text=text,
-                    id_=id,
-                    metadata=metadata,
-                    excluded_llm_metadata_keys=exclude_llm_keys,
-                    excluded_embed_metadata_keys=exclude_embedding_keys,
-                )
                 self._index.insert_nodes([node])
                 return node
             except Exception as e:
                 print(f"LlamaIndex.add_node() caused an error: {e}")
-                time.sleep(5)
+                time.sleep(2)
+        # 3 次失敗後仍回傳 node（不含向量），避免卡死
+        print(f"LlamaIndex.add_node() skipped embedding for: {text[:50]}")
+        return node
 
     def has_node(self, node_id):
         return node_id in self._index.docstore.docs

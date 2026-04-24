@@ -150,8 +150,8 @@ class Associate:
 
     def abstract(self):
         des = {"nodes": self._index.nodes_num}
-        for t in ["event", "chat", "thought"]:
-            des[t] = [self.find_concept(c).describe for c in self.memory[t]]
+        for t in ["event", "chat", "thought", "emotion"]:
+            des[t] = [self.find_concept(c).describe for c in self.memory.get(t, [])]
         return des
 
     def __str__(self):
@@ -187,7 +187,8 @@ class Associate:
             "access": create.strftime("%Y%m%d-%H:%M:%S"),
         }
         node = self._index.add_node(event.get_describe(), metadata)
-        memory = self.memory[node_type]
+        # 動態支援任意 node_type（包含 "emotion"）
+        memory = self.memory.setdefault(node_type, [])
         memory.insert(0, node.id_)
         if len(memory) >= self.max_memory > 0:
             self._index.remove_nodes(memory[self.max_memory:])
@@ -201,15 +202,18 @@ class Associate:
         return self.to_concept(self._index.find_node(node_id))
 
     def _retrieve_nodes(self, node_type, text=None):
+        node_ids = self.memory.get(node_type, [])
+        if not node_ids:
+            return []
         if text:
             filters = MetadataFilters(
                 filters=[ExactMatchFilter(key="node_type", value=node_type)]
             )
             nodes = self._index.retrieve(
-                text, filters=filters, node_ids=self.memory[node_type]
+                text, filters=filters, node_ids=node_ids
             )
         else:
-            nodes = [self._index.find_node(n) for n in self.memory[node_type]]
+            nodes = [self._index.find_node(n) for n in node_ids]
         return [self.to_concept(n) for n in nodes[: self.retention]]
 
     def retrieve_events(self, text=None):
@@ -222,13 +226,22 @@ class Associate:
         text = ("對話 " + name) if name else None
         return self._retrieve_nodes("chat", text)
 
+    def retrieve_emotions(self, text=None):
+        """取得情緒記憶節點（最新在前，限 retention 條）"""
+        return self._retrieve_nodes("emotion", text)
+
     def retrieve_focus(self, focus, retrieve_max=30, reduce_all=True):
         def _create_retriever(*args, **kwargs):
             self._retrieve_config["retrieve_max"] = retrieve_max
             return AssociateRetriever(self._retrieve_config, *args, **kwargs)
 
         retrieved = {}
-        node_ids = self.memory["event"] + self.memory["thought"]
+        # 情緒記憶一併納入語義檢索範圍
+        node_ids = (
+            self.memory["event"]
+            + self.memory["thought"]
+            + self.memory.get("emotion", [])
+        )
         for text in focus:
             nodes = self._index.retrieve(
                 text,
