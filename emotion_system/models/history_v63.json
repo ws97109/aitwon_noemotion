@@ -1,0 +1,47 @@
+{
+  "version": "v63",
+  "note": "TrainVal + EMD loss + TTA + 5-Seed Ensemble — zero leakage",
+  "seeds": [
+    101,
+    202,
+    303
+  ],
+  "seed_results": [
+    {
+      "seed": 101,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    },
+    {
+      "seed": 202,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    },
+    {
+      "seed": 303,
+      "trainval_mode": true,
+      "best_val_acc7": 0.0
+    }
+  ],
+  "fixed_alpha": 3.0,
+  "emd_weight": 0.25,
+  "n_tta": 5,
+  "log_ratio": [
+    0.6643520626120729,
+    -0.14439690139450412,
+    -0.20296443552018428,
+    0.0862158653339764,
+    -0.031806950579686966,
+    -0.0942521144830295,
+    0.6581793072620243
+  ],
+  "final_candidate": "3-Seed Ensemble",
+  "final_acc7": 50.73,
+  "final_metrics": {
+    "Acc7": 50.73,
+    "Acc2": 87.03,
+    "F1": 87.01,
+    "MAE": 0.5837,
+    "Corr": 0.8726
+  }
+}

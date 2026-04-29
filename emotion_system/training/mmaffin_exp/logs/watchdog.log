@@ -1,0 +1,150 @@
+[2026-04-23 21:32:20] watchdog started, PID=1253107
+[2026-04-23 21:32:20] polling every 300s, max_restarts=10
+[2026-04-23 21:32:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:32:20]   -> alive; no action.
+[2026-04-23 21:37:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:37:20]   -> alive; no action.
+[2026-04-23 21:42:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:42:20]   -> alive; no action.
+[2026-04-23 21:47:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:47:20]   -> alive; no action.
+[2026-04-23 21:52:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:52:20]   -> alive; no action.
+[2026-04-23 21:57:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 21:57:20]   -> alive; no action.
+[2026-04-23 22:02:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:02:20]   -> alive; no action.
+[2026-04-23 22:07:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:07:20]   -> alive; no action.
+[2026-04-23 22:12:20] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:12:20]   -> alive; no action.
+[2026-04-23 22:17:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:17:21]   -> alive; no action.
+[2026-04-23 22:22:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:22:21]   -> alive; no action.
+[2026-04-23 22:27:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:27:21]   -> alive; no action.
+[2026-04-23 22:32:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:32:21]   -> alive; no action.
+[2026-04-23 22:37:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:37:21]   -> alive; no action.
+[2026-04-23 22:42:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:42:21]   -> alive; no action.
+[2026-04-23 22:47:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:47:21]   -> alive; no action.
+[2026-04-23 22:52:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:52:21]   -> alive; no action.
+[2026-04-23 22:57:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 22:57:21]   -> alive; no action.
+[2026-04-23 23:02:21] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:02:21]   -> alive; no action.
+[2026-04-23 23:07:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:07:22]   -> alive; no action.
+[2026-04-23 23:12:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:12:22]   -> alive; no action.
+[2026-04-23 23:17:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:17:22]   -> alive; no action.
+[2026-04-23 23:22:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:22:22]   -> alive; no action.
+[2026-04-23 23:27:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:27:22]   -> alive; no action.
+[2026-04-23 23:32:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:32:22]   -> alive; no action.
+[2026-04-23 23:37:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:37:22]   -> alive; no action.
+[2026-04-23 23:42:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:42:22]   -> alive; no action.
+[2026-04-23 23:47:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:47:22]   -> alive; no action.
+[2026-04-23 23:52:22] poll: pid=1221028 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:52:22]   -> alive; no action.
+[2026-04-23 23:57:23] poll: pid=1221028 alive=False missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-23 23:57:23] Launching orchestrator restart#1: /usr/bin/python3 -u /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf (copy)/emotion_system/training/mmaffin_exp/run_comparison.py --gpu 0 --skip_pretrain
+[2026-04-23 23:57:23] Started orchestrator PID=2141471, PGID=2141471
+[2026-04-24 00:02:23] poll: pid=2141471 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:02:23]   -> alive; no action.
+[2026-04-24 00:07:23] poll: pid=2141471 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:07:23]   -> alive; no action.
+[2026-04-24 00:12:23] poll: pid=2141471 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:12:23]   -> alive; no action.
+[2026-04-24 00:17:23] poll: pid=2227420 alive=False missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:17:23] Launching orchestrator restart#2: /usr/bin/python3 -u /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf (copy)/emotion_system/training/mmaffin_exp/run_comparison.py --gpu 0 --skip_pretrain
+[2026-04-24 00:17:23] Started orchestrator PID=2241062, PGID=2241062
+[2026-04-24 00:22:23] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:22:23]   -> alive; no action.
+[2026-04-24 00:27:23] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:27:23]   -> alive; no action.
+[2026-04-24 00:32:23] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:32:23]   -> alive; no action.
+[2026-04-24 00:37:23] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:37:23]   -> alive; no action.
+[2026-04-24 00:42:23] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:42:23]   -> alive; no action.
+[2026-04-24 00:47:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:47:24]   -> alive; no action.
+[2026-04-24 00:52:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:52:24]   -> alive; no action.
+[2026-04-24 00:57:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 00:57:24]   -> alive; no action.
+[2026-04-24 01:02:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:02:24]   -> alive; no action.
+[2026-04-24 01:07:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:07:24]   -> alive; no action.
+[2026-04-24 01:12:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:12:24]   -> alive; no action.
+[2026-04-24 01:17:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:17:24]   -> alive; no action.
+[2026-04-24 01:22:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:22:24]   -> alive; no action.
+[2026-04-24 01:27:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:27:24]   -> alive; no action.
+[2026-04-24 01:32:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:32:24]   -> alive; no action.
+[2026-04-24 01:37:24] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:37:24]   -> alive; no action.
+[2026-04-24 01:42:25] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:42:25]   -> alive; no action.
+[2026-04-24 01:47:25] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:47:25]   -> alive; no action.
+[2026-04-24 01:52:25] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:52:25]   -> alive; no action.
+[2026-04-24 01:57:25] poll: pid=2241062 alive=True missing={'baseline': True, 'pretrained': True, 'figs': True}
+[2026-04-24 01:57:25]   -> alive; no action.
+[2026-04-24 02:02:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:02:25]   -> alive; no action.
+[2026-04-24 02:07:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:07:25]   -> alive; no action.
+[2026-04-24 02:12:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:12:25]   -> alive; no action.
+[2026-04-24 02:17:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:17:25]   -> alive; no action.
+[2026-04-24 02:22:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:22:25]   -> alive; no action.
+[2026-04-24 02:27:25] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:27:25]   -> alive; no action.
+[2026-04-24 02:32:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:32:26]   -> alive; no action.
+[2026-04-24 02:37:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:37:26]   -> alive; no action.
+[2026-04-24 02:42:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:42:26]   -> alive; no action.
+[2026-04-24 02:47:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:47:26]   -> alive; no action.
+[2026-04-24 02:52:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:52:26]   -> alive; no action.
+[2026-04-24 02:57:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 02:57:26]   -> alive; no action.
+[2026-04-24 03:02:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:02:26]   -> alive; no action.
+[2026-04-24 03:07:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:07:26]   -> alive; no action.
+[2026-04-24 03:12:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:12:26]   -> alive; no action.
+[2026-04-24 03:17:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:17:26]   -> alive; no action.
+[2026-04-24 03:22:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:22:26]   -> alive; no action.
+[2026-04-24 03:27:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': True, 'figs': True}
+[2026-04-24 03:27:26]   -> alive; no action.
+[2026-04-24 03:32:26] poll: pid=2241062 alive=True missing={'baseline': False, 'pretrained': False, 'figs': True}
+[2026-04-24 03:32:26]   -> alive; no action.

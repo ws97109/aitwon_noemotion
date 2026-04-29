@@ -1,0 +1,15 @@
+version,protocol,innovation,n_seeds,Acc-7 (%),Acc-2 (%),F1 (%),MAE,Corr,Within-1 (%)
+SCAF-v55,Train-only,基線：標準 train/val/test 劃分,3,47.81,—,—,—,—,91.3
+SCAF-v56,TrainVal,改用 train+val 合併訓練（+18% 資料量）,3,51.46,—,—,—,—,92.1
+SCAF-v57,TrainVal,"5 種子集成（42, 123, 2024, 7, 314）",5,51.17,—,—,—,—,92.1
+SCAF-v58,TrainVal,同 v56 + 三種子集成穩定化,3,51.46,—,—,—,—,92.7
+SCAF-v59,TrainVal,+ Ordinal EMD Loss + TTA×3,3,52.33,—,—,—,—,92.6
+SCAF-v60,TrainVal,+ TTA×5（每樣本 5 次 MC Dropout）,3,52.19,—,—,—,—,92.0
+SCAF-v60_baseline,TrainVal,v60 嚴格基線（純粹 EMD + TTA×5）,3,52.19,86.30,86.28,0.5872,0.8690,92.0
+SCAF-v60_mmaffin,TrainVal,+ MMAffBen 多語情感預訓練骨幹初始化,3,50.73,86.30,86.21,0.5797,0.8686,91.8
+SCAF-v61,TrainVal,+ Manifold Mixup α=0.4（流形混合）,3,51.46,87.46,87.46,0.5817,0.8724,92.6
+SCAF-v62,TrainVal,+ CORN 序數迴歸頭（6 個二元分類器）,3,48.40,86.59,86.57,0.5847,0.8739,91.7
+SCAF-v63,TrainVal,"v60 架構 + 全新種子 [101,202,303]",3,50.44,—,—,—,—,91.7
+SCAF-v64,TrainVal,替換骨幹為 RoBERTa-large（消融研究）,3,27.99,—,—,—,—,69.8
+SCAF-v65,TrainVal,"強化正則化（dropout=0.20, rdrop=0.10）",3,49.13,—,—,—,—,92.0
+★ SCAF Final Ensemble,TrainVal × 4,多版本集成（v59 + v60_baseline + v60_mmaffin + v63）,12,53.21,86.15,86.10,0.5719,0.8747,92.0
