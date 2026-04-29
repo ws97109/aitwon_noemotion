@@ -1,31 +1,44 @@
 """
-SCAF Final — 多版本集成訓練主腳本
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCAF Final — 多分支單一模型（Multi-Branch Single Model）
+═══════════════════════════════════════════════════════════════════
 
-本腳本依序訓練 4 個訓練協議 × 3 個種子 = 12 個獨立的 SWA 模型，
-最終以 raw argmax 取得多版本集成的測試集 Acc-7（無條件、零洩漏）。
+本模型在「架構層面」就是一個單一模型，內部以 4 個並行分支提供多樣性，
+端對端訓練、單一 forward pass、單一 sacf_final.pt 輸出。
 
-協議定義：
-  P1 (v59 風格):           TrainVal + EMD + TTA×3,  種子 [42, 123, 2024]
-  P2 (v60_baseline 風格):  TrainVal + EMD + TTA×5,  種子 [42, 123, 2024]
-  P3 (v60_mmaffin 風格):   TrainVal + EMD + TTA×5 + MMAffBen 預訓練骨幹, 種子 [42, 123, 2024]
-  P4 (v63 風格):           TrainVal + EMD + TTA×5,  種子 [101, 202, 303]
+【架構】
+  輸入（文字 / 音訊 / 視覺）
+        │
+        ▼
+  ┌────────────────────────────────────────┐
+  │ DeBERTa-v3-large (24 層, 1024d)  [共享] │
+  │ BiLSTM 音訊編碼器 (5 → 128)       [共享] │
+  │ BiLSTM 視覺編碼器 (20 → 128)      [共享] │
+  └────────────────────────────────────────┘
+        │
+        ├──→ Branch 1: PEA₁ + SACF₁ + Proj₁ + Heads₁
+        ├──→ Branch 2: PEA₂ + SACF₂ + Proj₂ + Heads₂
+        ├──→ Branch 3: PEA₃ + SACF₃ + Proj₃ + Heads₃
+        └──→ Branch 4: PEA₄ + SACF₄ + Proj₄ + Heads₄
+                          │
+                  ┌───────┴────────┐
+                  │  分支內部平均   │
+                  │  (mean logits)  │
+                  └────────────────┘
+                          │
+                  cls7 / cls2 / reg
 
-權重儲存：
-  emotion_system/models/sacf_final_p{1..4}_seed{seed}.pt   (12 個檔案)
-  emotion_system/models/raw_logits_final_p{1..4}.npy        (4 個 [3, 686, 7] 陣列)
-  emotion_system/models/sacf_final_summary.json            (12 個模型 + 集成的指標)
+【關鍵設計】
+  ‧ 共享骨幹：DeBERTa（400M）只有一份，總參數量約 420M
+  ‧ 4 個分支不同隨機初始化 → 不同收斂方向
+  ‧ 每個分支獨立計算 cls7/cls2/reg 損失 → 強迫每個分支獨立勝任任務
+  ‧ 同時，跨分支「mean logits」作為主要預測 → 集成增益
+  ‧ 訓練完直接得到「一個模型」，無需後處理融合
 
-具備斷點續訓：執行時會偵測已存在的權重，跳過已訓練完成的協議+種子組合。
-
-執行：
-  CUDA_VISIBLE_DEVICES=0 python emotion_system/training/scaf_final.py
-
-預期執行時間：~6 小時（每個 SWA 模型約 30 分鐘）
-預期測試集 Acc-7：~53%（無條件、零洩漏）
+【產出】
+  emotion_system/models/sacf_final.pt   ← 單一檔案、單一 state_dict
 """
 
-import pickle, random, os, math, json
+import os, math, json, pickle, random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -36,31 +49,17 @@ from pathlib import Path
 from tqdm import tqdm
 from scipy.stats import pearsonr
 from sklearn.metrics import f1_score
-from transformers import (
-    AutoModel, AutoTokenizer, DebertaV2Tokenizer,
-    get_cosine_schedule_with_warmup,
-)
+from transformers import AutoModel, DebertaV2Tokenizer, get_cosine_schedule_with_warmup
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_PATH = PROJECT_ROOT / "emotion_system/data/mosi/unaligned_50.pkl"
 MODEL_DIR = PROJECT_ROOT / "emotion_system/models"
-MMAFFIN_BACKBONE = MODEL_DIR / "mmaffin_pretrain_backbone.pt"
-
 TASK_PROMPT = "Predict the sentiment intensity (-3 to 3, negative to positive) of the following text: "
 
-
-# ─────────────────────────────────────────────────────────────
-# Protocols
-# ─────────────────────────────────────────────────────────────
-PROTOCOLS = [
-    {"id": "p1", "name": "v59 style", "n_tta": 3, "use_mmaffin": False, "seeds": [42, 123, 2024]},
-    {"id": "p2", "name": "v60_baseline style", "n_tta": 5, "use_mmaffin": False, "seeds": [42, 123, 2024]},
-    {"id": "p3", "name": "v60_mmaffin style", "n_tta": 5, "use_mmaffin": True,  "seeds": [42, 123, 2024]},
-    {"id": "p4", "name": "v63 style", "n_tta": 5, "use_mmaffin": False, "seeds": [101, 202, 303]},
-]
+NUM_BRANCHES = 4   # 內部分支數量；對應原 4 個訓練協議的概念
 
 
-def set_seed(seed: int):
+def set_seed(seed):
     random.seed(seed); np.random.seed(seed)
     torch.manual_seed(seed); torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
@@ -73,44 +72,38 @@ def set_seed(seed: int):
 # ─────────────────────────────────────────────────────────────
 class MOSIDataset(Dataset):
     def __init__(self, split_data, tokenizer, max_text_len=80):
-        self.tokenizer = tokenizer
-        self.max_text_len = max_text_len
+        self.tokenizer = tokenizer; self.max_text_len = max_text_len
         self.raw_text = split_data["raw_text"]
-        self.audio  = torch.FloatTensor(split_data["audio"])
+        self.audio = torch.FloatTensor(split_data["audio"])
         self.vision = torch.FloatTensor(split_data["vision"])
-        self.audio_lengths  = split_data["audio_lengths"]
+        self.audio_lengths = split_data["audio_lengths"]
         self.vision_lengths = split_data["vision_lengths"]
         labels = split_data["regression_labels"]
-        self.reg_labels  = torch.FloatTensor(labels)
+        self.reg_labels = torch.FloatTensor(labels)
         rounded = np.clip(np.round(labels).astype(int), -3, 3)
         self.cls7_labels = torch.LongTensor(rounded + 3)
         self.cls2_labels = torch.LongTensor((labels >= 0).astype(int))
 
     def __len__(self): return len(self.raw_text)
-
     def __getitem__(self, idx):
-        enc = self.tokenizer(
-            TASK_PROMPT + str(self.raw_text[idx]),
-            add_special_tokens=True, max_length=self.max_text_len,
-            padding="max_length", truncation=True, return_tensors="pt",
-        )
+        enc = self.tokenizer(TASK_PROMPT + str(self.raw_text[idx]),
+                             add_special_tokens=True, max_length=self.max_text_len,
+                             padding="max_length", truncation=True, return_tensors="pt")
         aud_len = min(int(self.audio_lengths[idx]), self.audio.shape[1])
         vis_len = min(int(self.vision_lengths[idx]), self.vision.shape[1])
         aud_mask = torch.zeros(self.audio.shape[1]); aud_mask[:aud_len] = 1.0
         vis_mask = torch.zeros(self.vision.shape[1]); vis_mask[:vis_len] = 1.0
-        return {
-            "input_ids": enc["input_ids"].squeeze(0),
-            "attention_mask": enc["attention_mask"].squeeze(0),
-            "audio": self.audio[idx], "audio_mask": aud_mask,
-            "vision": self.vision[idx], "vision_mask": vis_mask,
-            "cls7_label": self.cls7_labels[idx],
-            "cls2_label": self.cls2_labels[idx],
-            "reg_label":  self.reg_labels[idx],
-        }
+        return {"input_ids": enc["input_ids"].squeeze(0),
+                "attention_mask": enc["attention_mask"].squeeze(0),
+                "audio": self.audio[idx], "audio_mask": aud_mask,
+                "vision": self.vision[idx], "vision_mask": vis_mask,
+                "cls7_label": self.cls7_labels[idx],
+                "cls2_label": self.cls2_labels[idx],
+                "reg_label": self.reg_labels[idx]}
 
 
 # ─────────────────────────────────────────────────────────────
-# SACF model components
+# Module components
 # ─────────────────────────────────────────────────────────────
 class PolarityEnhancedAttention(nn.Module):
     def __init__(self, hidden_dim, dropout=0.1):
@@ -129,23 +122,23 @@ class SentimentAwareCrossModalAttention(nn.Module):
     def __init__(self, lang_dim, modal_dim, top_k=5, dropout=0.1):
         super().__init__()
         self.top_k = top_k
-        self.audio_map  = nn.Linear(modal_dim, lang_dim)
+        self.audio_map = nn.Linear(modal_dim, lang_dim)
         self.vision_map = nn.Linear(modal_dim, lang_dim)
         self.token_attn = nn.Linear(lang_dim, 1)
-        self.ffn  = nn.Sequential(
+        self.ffn = nn.Sequential(
             nn.Linear(lang_dim, lang_dim//2), nn.ReLU(),
             nn.Dropout(dropout), nn.Linear(lang_dim//2, lang_dim))
-        self.gate    = nn.Linear(lang_dim*2, 1)
+        self.gate = nn.Linear(lang_dim*2, 1)
         self.dropout = nn.Dropout(dropout)
-        self.norm    = nn.LayerNorm(lang_dim)
+        self.norm = nn.LayerNorm(lang_dim)
     def forward(self, xl_hidden, xl_cls, gates, xa, xv):
         B, L, H = xl_hidden.shape
         topk_idx = gates.topk(min(self.top_k, L), dim=1).indices
-        topk_h   = xl_hidden.gather(1, topk_idx.unsqueeze(-1).expand(-1,-1,H))
+        topk_h = xl_hidden.gather(1, topk_idx.unsqueeze(-1).expand(-1, -1, H))
         w = F.softmax(self.token_attn(topk_h), dim=1)
         sa_q = (topk_h*w).sum(1)
-        kv   = torch.stack([self.audio_map(xa), self.vision_map(xv)], dim=1)
-        attn = F.softmax(torch.bmm(sa_q.unsqueeze(1), kv.transpose(1,2))/(H**0.5), dim=-1)
+        kv = torch.stack([self.audio_map(xa), self.vision_map(xv)], dim=1)
+        attn = F.softmax(torch.bmm(sa_q.unsqueeze(1), kv.transpose(1, 2))/(H**0.5), dim=-1)
         x_hat = torch.bmm(attn, kv).squeeze(1)
         x = self.ffn(xl_cls + x_hat)
         gw = torch.sigmoid(self.gate(torch.cat([xl_cls, x], dim=-1)))
@@ -166,36 +159,108 @@ class ModalityEncoder(nn.Module):
         return self.proj(torch.cat([h[-2], h[-1]], dim=-1))
 
 
-class SACFModel(nn.Module):
+# ═══════════════════════════════════════════════════════════════
+# 多分支單一模型 (Multi-Branch Single Model)
+# ═══════════════════════════════════════════════════════════════
+class SACFFinalModel(nn.Module):
+    """
+    SACF 最終模型 — 多分支單一模型架構。
+    從外部看：一個 nn.Module、一個 forward、一個 state_dict。
+    從內部看：共享骨幹 + 共享模態編碼器 + N 個並行融合/預測分支。
+    """
     def __init__(self, lang_model="microsoft/deberta-v3-large",
                  audio_dim=5, vision_dim=20, modal_hidden=128,
-                 fusion_dim=512, top_k=5, num_classes=7, dropout=0.15):
+                 fusion_dim=512, top_k=5, num_classes=7, dropout=0.15,
+                 num_branches=NUM_BRANCHES):
         super().__init__()
+        self.num_branches = num_branches
+
+        # ── 共享 ──
         self.lang_backbone = AutoModel.from_pretrained(lang_model)
         lang_dim = self.lang_backbone.config.hidden_size
-        self.polarity_attn = PolarityEnhancedAttention(lang_dim, dropout)
         self.audio_encoder = ModalityEncoder(audio_dim, modal_hidden, 2, dropout)
         self.vision_encoder = ModalityEncoder(vision_dim, modal_hidden, 2, dropout)
-        self.sacf_attn = SentimentAwareCrossModalAttention(lang_dim, modal_hidden, top_k, dropout)
-        self.shared = nn.Sequential(
-            nn.Linear(lang_dim, fusion_dim), nn.LayerNorm(fusion_dim),
-            nn.GELU(), nn.Dropout(dropout))
-        self.cls7_head = nn.Linear(fusion_dim, num_classes)
-        self.cls2_head = nn.Linear(fusion_dim, 2)
-        self.reg_head = nn.Sequential(
-            nn.Linear(fusion_dim, fusion_dim//2), nn.GELU(),
-            nn.Linear(fusion_dim//2, 1), nn.Tanh())
 
-    def forward(self, input_ids, attention_mask, audio, audio_mask, vision, vision_mask):
+        # ── 每分支獨立 ──
+        # 每個分支用稍微不同的 dropout 率（產生更多差異）
+        per_branch_dropouts = [dropout, dropout * 1.3, dropout * 0.7, dropout * 1.5][:num_branches]
+        self.pea = nn.ModuleList([
+            PolarityEnhancedAttention(lang_dim, per_branch_dropouts[i])
+            for i in range(num_branches)
+        ])
+        self.sacf = nn.ModuleList([
+            SentimentAwareCrossModalAttention(lang_dim, modal_hidden, top_k, per_branch_dropouts[i])
+            for i in range(num_branches)
+        ])
+        self.shared_proj = nn.ModuleList([
+            nn.Sequential(nn.Linear(lang_dim, fusion_dim), nn.LayerNorm(fusion_dim),
+                          nn.GELU(), nn.Dropout(per_branch_dropouts[i]))
+            for i in range(num_branches)
+        ])
+        self.cls7_heads = nn.ModuleList([nn.Linear(fusion_dim, num_classes) for _ in range(num_branches)])
+        self.cls2_heads = nn.ModuleList([nn.Linear(fusion_dim, 2) for _ in range(num_branches)])
+        self.reg_heads = nn.ModuleList([
+            nn.Sequential(nn.Linear(fusion_dim, fusion_dim//2), nn.GELU(),
+                          nn.Linear(fusion_dim//2, 1), nn.Tanh())
+            for _ in range(num_branches)
+        ])
+
+        # 不同分支的初始化偏置（小幅擾動）以加速分支差異化
+        for i, head in enumerate(self.cls7_heads):
+            with torch.no_grad():
+                head.weight.add_(torch.randn_like(head.weight) * 0.001 * (i + 1))
+
+    def forward(self, input_ids, attention_mask, audio, audio_mask, vision, vision_mask,
+                return_per_branch=False):
+        # 共享編碼
         audio = F.normalize(torch.nan_to_num(audio, nan=0.0, posinf=1.0, neginf=-1.0), p=2, dim=-1)
         vision = F.normalize(torch.nan_to_num(vision, nan=0.0, posinf=1.0, neginf=-1.0), p=2, dim=-1)
         hidden = self.lang_backbone(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
-        xl_cls, gates = self.polarity_attn(hidden, attention_mask)
         xa = self.audio_encoder(audio, audio_mask)
         xv = self.vision_encoder(vision, vision_mask)
-        fused = self.sacf_attn(hidden, xl_cls, gates, xa, xv)
-        feat = self.shared(fused)
-        return self.cls7_head(feat), self.cls2_head(feat), self.reg_head(feat).squeeze(-1) * 3.0
+
+        # 4 分支並行
+        l7_list, l2_list, reg_list = [], [], []
+        for i in range(self.num_branches):
+            xl_cls, gates = self.pea[i](hidden, attention_mask)
+            fused = self.sacf[i](hidden, xl_cls, gates, xa, xv)
+            feat = self.shared_proj[i](fused)
+            l7_list.append(self.cls7_heads[i](feat))
+            l2_list.append(self.cls2_heads[i](feat))
+            reg_list.append(self.reg_heads[i](feat).squeeze(-1) * 3.0)
+
+        # 內部 ensemble：mean logits
+        l7_mean = torch.stack(l7_list).mean(0)
+        l2_mean = torch.stack(l2_list).mean(0)
+        reg_mean = torch.stack(reg_list).mean(0)
+
+        if return_per_branch:
+            return l7_mean, l2_mean, reg_mean, l7_list, l2_list, reg_list
+        return l7_mean, l2_mean, reg_mean
+
+
+# ─────────────────────────────────────────────────────────────
+# Losses & EMA
+# ─────────────────────────────────────────────────────────────
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=2.0, weight=None, label_smoothing=0.0):
+        super().__init__()
+        self.gamma = gamma; self.weight = weight; self.label_smoothing = label_smoothing
+    def forward(self, logits, labels):
+        ce = F.cross_entropy(logits, labels, weight=self.weight,
+                              label_smoothing=self.label_smoothing, reduction='none')
+        with torch.no_grad():
+            log_pt = F.log_softmax(logits, dim=-1).gather(1, labels.unsqueeze(1)).squeeze(1)
+            focal = (1.0 - log_pt.exp()) ** self.gamma
+        return (focal * ce).mean()
+
+
+class OrdinalEMDLoss(nn.Module):
+    def forward(self, logits, labels):
+        probs = F.softmax(logits, dim=-1)
+        cdf_pred = probs.cumsum(dim=-1)[:, :-1]
+        cdf_true = F.one_hot(labels, 7).float().cumsum(dim=-1)[:, :-1]
+        return (cdf_pred - cdf_true).abs().mean()
 
 
 class EMA:
@@ -221,27 +286,6 @@ class EMA:
                 self.shadow[n] = p.data.clone()
 
 
-class FocalLoss(nn.Module):
-    def __init__(self, gamma=2.0, weight=None, label_smoothing=0.0):
-        super().__init__()
-        self.gamma = gamma; self.weight = weight; self.label_smoothing = label_smoothing
-    def forward(self, logits, labels):
-        ce = F.cross_entropy(logits, labels, weight=self.weight,
-                             label_smoothing=self.label_smoothing, reduction='none')
-        with torch.no_grad():
-            log_pt = F.log_softmax(logits, dim=-1).gather(1, labels.unsqueeze(1)).squeeze(1)
-            focal_w = (1.0 - log_pt.exp()) ** self.gamma
-        return (focal_w * ce).mean()
-
-
-class OrdinalEMDLoss(nn.Module):
-    def forward(self, logits, labels):
-        probs = F.softmax(logits, dim=-1)
-        cdf_pred = probs.cumsum(dim=-1)[:, :-1]
-        cdf_true = F.one_hot(labels, 7).float().cumsum(dim=-1)[:, :-1]
-        return (cdf_pred - cdf_true).abs().mean()
-
-
 def compute_class_weights(labels, n=7):
     cl = np.clip(np.round(labels).astype(int), -3, 3) + 3
     ct = np.where((c := np.bincount(cl, minlength=n).astype(float)) == 0, 1.0, c)
@@ -249,32 +293,65 @@ def compute_class_weights(labels, n=7):
 
 
 # ─────────────────────────────────────────────────────────────
-# Training functions
+# Training: per-branch loss + diversity regularization
 # ─────────────────────────────────────────────────────────────
-def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
-                optimizer, scheduler, device, scaler, ema,
-                rdrop_alpha=0.05, emd_crit=None, emd_weight=0.25):
+def diversity_loss(l7_list):
+    """
+    輕度多樣性正則化：penalize 分支之間預測完全相同（避免分支退化為相同函數）。
+    用「分支間 logits 相關性」的負值，越接近 0 越好。
+    """
+    n = len(l7_list)
+    if n < 2: return torch.tensor(0.0, device=l7_list[0].device)
+    # Cosine sim between branches (low sim = high diversity)
+    flats = [F.normalize(l.flatten(1), dim=1) for l in l7_list]
+    sim_sum = 0.0; count = 0
+    for i in range(n):
+        for j in range(i+1, n):
+            sim_sum += (flats[i] * flats[j]).sum(1).mean()
+            count += 1
+    return sim_sum / max(count, 1)
+
+
+def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit, optimizer, scheduler, device, scaler, ema,
+                rdrop_alpha=0.05, emd_crit=None, emd_weight=0.25, diversity_weight=0.01):
     model.train(); total_loss = 0.0; nan_count = 0
     for batch in tqdm(loader, desc="Train", leave=False):
-        ids   = batch["input_ids"].to(device)
-        mask  = batch["attention_mask"].to(device)
-        aud   = batch["audio"].to(device); amask = batch["audio_mask"].to(device)
-        vis   = batch["vision"].to(device); vmask = batch["vision_mask"].to(device)
-        cl7   = batch["cls7_label"].to(device)
-        cl2   = batch["cls2_label"].to(device)
-        rl    = batch["reg_label"].to(device)
+        ids = batch["input_ids"].to(device); mask = batch["attention_mask"].to(device)
+        aud = batch["audio"].to(device); amask = batch["audio_mask"].to(device)
+        vis = batch["vision"].to(device); vmask = batch["vision_mask"].to(device)
+        cl7 = batch["cls7_label"].to(device); cl2 = batch["cls2_label"].to(device)
+        rl = batch["reg_label"].to(device)
 
         optimizer.zero_grad()
         with torch.amp.autocast('cuda', enabled=(scaler is not None)):
-            l7, l2, reg = model(ids, mask, aud, amask, vis, vmask)
-            cls7_loss = cls7_crit(l7, cl7)
+            l7_mean, l2_mean, reg_mean, l7_list, l2_list, reg_list = model(
+                ids, mask, aud, amask, vis, vmask, return_per_branch=True)
+
+            # 每分支獨立任務損失（強迫每個分支獨立勝任）
+            per_branch_loss = 0.0
+            for l7, l2, reg in zip(l7_list, l2_list, reg_list):
+                bcls7 = cls7_crit(l7, cl7)
+                if emd_crit is not None and emd_weight > 0:
+                    bcls7 = (1 - emd_weight) * bcls7 + emd_weight * emd_crit(l7, cl7)
+                per_branch_loss = per_branch_loss + bcls7 + 0.3 * cls2_crit(l2, cl2) + 0.4 * reg_crit(reg, rl)
+            per_branch_loss = per_branch_loss / model.num_branches
+
+            # 分支平均輸出的損失（主目標）
+            mean_cls7 = cls7_crit(l7_mean, cl7)
             if emd_crit is not None and emd_weight > 0:
-                cls7_loss = (1.0 - emd_weight)*cls7_loss + emd_weight*emd_crit(l7, cl7)
-            loss = cls7_loss + 0.3*cls2_crit(l2, cl2) + 0.4*reg_crit(reg, rl)
+                mean_cls7 = (1 - emd_weight) * mean_cls7 + emd_weight * emd_crit(l7_mean, cl7)
+            mean_loss = mean_cls7 + 0.3 * cls2_crit(l2_mean, cl2) + 0.4 * reg_crit(reg_mean, rl)
+
+            # 多樣性正則化
+            div_loss = diversity_loss(l7_list)
+
+            loss = 0.5 * mean_loss + 0.5 * per_branch_loss + diversity_weight * div_loss
+
+            # R-Drop
             if rdrop_alpha > 0:
-                l7b, _, _ = model(ids, mask, aud, amask, vis, vmask)
-                kl = (F.kl_div(F.log_softmax(l7,-1), F.softmax(l7b,-1).detach(), reduction='batchmean') +
-                      F.kl_div(F.log_softmax(l7b,-1), F.softmax(l7,-1).detach(), reduction='batchmean'))/2
+                l7_mean_b, _, _ = model(ids, mask, aud, amask, vis, vmask)
+                kl = (F.kl_div(F.log_softmax(l7_mean,-1), F.softmax(l7_mean_b,-1).detach(), reduction='batchmean') +
+                      F.kl_div(F.log_softmax(l7_mean_b,-1), F.softmax(l7_mean,-1).detach(), reduction='batchmean'))/2
                 loss = loss + rdrop_alpha * kl
 
         if torch.isnan(loss) or torch.isinf(loss):
@@ -298,99 +375,120 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
 
 
 def get_test_outputs_tta(model, loader, device, n_tta=5):
-    """Run n_tta MC-Dropout passes on test set; return mean logits."""
+    """TTA inference for the ENTIRE multi-branch model."""
     if n_tta <= 1:
         model.eval()
-        all_l7, all_l2, all_reg = [], [], []
+        l7s, l2s, regs = [], [], []
         with torch.no_grad():
             for b in loader:
                 ids = b["input_ids"].to(device); mask = b["attention_mask"].to(device)
                 aud = b["audio"].to(device); amask = b["audio_mask"].to(device)
                 vis = b["vision"].to(device); vmask = b["vision_mask"].to(device)
                 l7, l2, reg = model(ids, mask, aud, amask, vis, vmask)
-                all_l7.append(l7.cpu().float().numpy())
-                all_l2.append(l2.cpu().float().numpy())
-                all_reg.append(reg.cpu().float().numpy())
-        return (np.concatenate(all_l7), np.concatenate(all_l2), np.concatenate(all_reg))
-    # TTA mode
-    runs_l7, runs_l2, runs_reg = [], [], []
+                l7s.append(l7.cpu().float().numpy()); l2s.append(l2.cpu().float().numpy()); regs.append(reg.cpu().float().numpy())
+        return np.concatenate(l7s), np.concatenate(l2s), np.concatenate(regs)
+    runs7, runs2, runsr = [], [], []
     model.train()
     for _ in range(n_tta):
-        rl7, rl2, rreg = [], [], []
+        l7s, l2s, regs = [], [], []
         for b in loader:
             ids = b["input_ids"].to(device); mask = b["attention_mask"].to(device)
             aud = b["audio"].to(device); amask = b["audio_mask"].to(device)
             vis = b["vision"].to(device); vmask = b["vision_mask"].to(device)
             with torch.no_grad():
                 l7, l2, reg = model(ids, mask, aud, amask, vis, vmask)
-            rl7.append(l7.cpu().float().numpy())
-            rl2.append(l2.cpu().float().numpy())
-            rreg.append(reg.cpu().float().numpy())
-        runs_l7.append(np.concatenate(rl7))
-        runs_l2.append(np.concatenate(rl2))
-        runs_reg.append(np.concatenate(rreg))
+            l7s.append(l7.cpu().float().numpy()); l2s.append(l2.cpu().float().numpy()); regs.append(reg.cpu().float().numpy())
+        runs7.append(np.concatenate(l7s)); runs2.append(np.concatenate(l2s)); runsr.append(np.concatenate(regs))
     model.eval()
-    return (np.mean(runs_l7, axis=0), np.mean(runs_l2, axis=0), np.mean(runs_reg, axis=0))
+    return np.mean(runs7, axis=0), np.mean(runs2, axis=0), np.mean(runsr, axis=0)
 
 
-def train_one_protocol_seed(protocol, seed, train_loader, test_loader,
-                             class_weights, device, common_cfg):
-    """Train one (protocol, seed) → save weight + return TTA logits."""
-    set_seed(seed)
-    print(f"\n{'─'*60}")
-    print(f"  協議 {protocol['id'].upper()} ({protocol['name']}) | seed={seed} | TTA×{protocol['n_tta']}"
-          f"{' | + MMAffBen 預訓練' if protocol['use_mmaffin'] else ''}")
-    print(f"{'─'*60}")
+# ─────────────────────────────────────────────────────────────
+# Main
+# ─────────────────────────────────────────────────────────────
+def main():
+    print("=" * 70)
+    print("SCAF Final — 多分支單一模型訓練")
+    print(f"  分支數：{NUM_BRANCHES}  |  共享：DeBERTa + BiLSTM  |  每分支：PEA + SACF + heads")
+    print("=" * 70)
 
-    model = SACFModel(dropout=common_cfg["dropout"]).to(device)
+    config = {
+        "lang_model": "microsoft/deberta-v3-large",
+        "batch_size": 8, "num_epochs": 60,
+        "lang_lr": 4e-6, "head_lr": 8e-5,
+        "weight_decay": 0.01, "dropout": 0.15,
+        "label_smoothing": 0.05, "rdrop_alpha": 0.05,
+        "focal_gamma": 2.0,
+        "swa_start": 42, "swa_step": 2,
+        "emd_weight": 0.25, "diversity_weight": 0.01,
+        "n_tta": 5, "seed": 42,
+    }
 
-    # Load MMAffBen pretrained backbone if applicable
-    if protocol["use_mmaffin"] and MMAFFIN_BACKBONE.exists():
-        try:
-            ck = torch.load(str(MMAFFIN_BACKBONE), map_location='cpu', weights_only=False)
-            sd = ck.get("model_state_dict", ck)
-            backbone_sd = {k.replace("lang_backbone.", ""): v for k, v in sd.items()
-                           if k.startswith("lang_backbone.")}
-            if backbone_sd:
-                model.lang_backbone.load_state_dict(backbone_sd, strict=False)
-                print(f"  ✓ 已載入 MMAffBen 預訓練骨幹")
-        except Exception as e:
-            print(f"  [warn] MMAffBen 載入失敗：{e}（使用 HF 預訓練）")
+    set_seed(config["seed"])
 
-    # Freeze bottom 6 layers
+    print(f"\n載入資料：{DATA_PATH}")
+    with open(DATA_PATH, "rb") as f: data = pickle.load(f)
+    tokenizer = DebertaV2Tokenizer.from_pretrained(config["lang_model"])
+    train_ds = MOSIDataset(data["train"], tokenizer)
+    val_ds = MOSIDataset(data["valid"], tokenizer)
+    test_ds = MOSIDataset(data["test"], tokenizer)
+    print(f"  Train={len(train_ds)} Valid={len(val_ds)} Test={len(test_ds)}")
+
+    bs = config["batch_size"]
+    trainval_ds = ConcatDataset([train_ds, val_ds])
+    train_loader = DataLoader(trainval_ds, bs, shuffle=True, num_workers=2, pin_memory=True)
+    test_loader = DataLoader(test_ds, bs, shuffle=False, num_workers=2, pin_memory=True)
+
+    all_train_labels = np.concatenate([data["train"]["regression_labels"],
+                                        data["valid"]["regression_labels"]])
+    class_weights = compute_class_weights(all_train_labels)
+
+    test_labels_np = np.array(data["test"]["regression_labels"])
+    test_cls7_true = np.clip(np.round(test_labels_np).astype(int), -3, 3) + 3
+    test_cls2_true = (test_labels_np >= 0).astype(int)
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    print(f"  設備：{device}")
+
+    # 建立模型
+    model = SACFFinalModel(dropout=config["dropout"], num_branches=NUM_BRANCHES).to(device)
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"  總參數量：{n_params/1e6:.1f}M（其中 4 分支 PEA+SACF+heads 約 {(n_params - 400e6)/1e6:.1f}M）")
+
+    # 凍結 DeBERTa 下層 6 層
     for i in range(6):
         for p in model.lang_backbone.encoder.layer[i].parameters():
             p.requires_grad = False
 
     backbone_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" in n]
-    head_p     = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" not in n]
+    head_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" not in n]
     optimizer = optim.AdamW([
-        {"params": backbone_p, "lr": common_cfg["lang_lr"]},
-        {"params": head_p,     "lr": common_cfg["head_lr"]},
-    ], weight_decay=common_cfg["weight_decay"])
+        {"params": backbone_p, "lr": config["lang_lr"]},
+        {"params": head_p, "lr": config["head_lr"]},
+    ], weight_decay=config["weight_decay"])
 
-    total_steps = len(train_loader) * common_cfg["num_epochs"]
+    total_steps = len(train_loader) * config["num_epochs"]
     warmup_steps = int(total_steps * 0.06)
     scheduler = get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps)
     scaler = torch.amp.GradScaler('cuda') if "cuda" in device else None
     ema = EMA(model, 0.9995)
 
     cw = class_weights.to(device)
-    cls7_crit = FocalLoss(common_cfg["focal_gamma"], cw, common_cfg["label_smoothing"])
+    cls7_crit = FocalLoss(config["focal_gamma"], cw, config["label_smoothing"])
     cls2_crit = nn.CrossEntropyLoss(label_smoothing=0.05)
-    reg_crit  = nn.SmoothL1Loss()
+    reg_crit = nn.SmoothL1Loss()
+    emd_crit = OrdinalEMDLoss()
 
     swa_states = []
-    for epoch in range(common_cfg["num_epochs"]):
-        # Unfreeze bottom 6 layers at 1/3
-        if epoch == common_cfg["num_epochs"] // 3 and not getattr(model, '_unfroze', False):
+    for epoch in range(config["num_epochs"]):
+        if epoch == config["num_epochs"] // 3 and not getattr(model, '_unfroze', False):
             new_p = []
             for i in range(6):
                 for p in model.lang_backbone.encoder.layer[i].parameters():
                     p.requires_grad = True; new_p.append(p)
             optimizer.add_param_group({
-                "params": new_p, "lr": common_cfg["lang_lr"]/2,
-                "weight_decay": common_cfg["weight_decay"]
+                "params": new_p, "lr": config["lang_lr"]/2,
+                "weight_decay": config["weight_decay"]
             })
             current_step = epoch * len(train_loader)
             new_idx = len(optimizer.param_groups) - 1
@@ -398,8 +496,8 @@ def train_one_protocol_seed(protocol, seed, train_loader, test_loader,
             def _cosine_lambda(step, base=current_step, w=warmup_steps, t=total_steps):
                 a = base + step
                 if a < w: return float(a) / float(max(1, w))
-                p = float(a - w) / float(max(1, t - w))
-                return max(0.0, 0.5 * (1.0 + math.cos(math.pi * p)))
+                pp = float(a - w) / float(max(1, t - w))
+                return max(0.0, 0.5 * (1.0 + math.cos(math.pi * pp)))
 
             from torch.optim.lr_scheduler import LambdaLR
             new_sched = LambdaLR(optimizer, lr_lambda=[lambda s: 1.0]*new_idx + [_cosine_lambda])
@@ -409,22 +507,21 @@ def train_one_protocol_seed(protocol, seed, train_loader, test_loader,
 
         loss = train_epoch(model, train_loader, cls7_crit, cls2_crit, reg_crit,
                            optimizer, scheduler, device, scaler, ema,
-                           rdrop_alpha=common_cfg["rdrop_alpha"],
-                           emd_crit=OrdinalEMDLoss() if common_cfg["emd_weight"] > 0 else None,
-                           emd_weight=common_cfg["emd_weight"])
+                           rdrop_alpha=config["rdrop_alpha"],
+                           emd_crit=emd_crit, emd_weight=config["emd_weight"],
+                           diversity_weight=config["diversity_weight"])
+
         ep1 = epoch + 1
-        # SWA snapshot
-        if ep1 >= common_cfg["swa_start"] and (ep1 - common_cfg["swa_start"]) % common_cfg["swa_step"] == 0:
+        if ep1 >= config["swa_start"] and (ep1 - config["swa_start"]) % config["swa_step"] == 0:
             ema.apply_shadow()
             swa_states.append({k: v.cpu().clone() for k, v in model.state_dict().items()})
             ema.restore()
-            print(f"  E{ep1:02d} | Loss={loss:.4f} | [SWA #{len(swa_states)} saved]")
-        else:
-            if ep1 % 5 == 0:
-                print(f"  E{ep1:02d} | Loss={loss:.4f}")
+            print(f"  E{ep1:02d} | Loss={loss:.4f} [SWA #{len(swa_states)}]")
+        elif ep1 % 5 == 0 or ep1 <= 5:
+            print(f"  E{ep1:02d} | Loss={loss:.4f}")
 
-    # Average SWA states
-    print(f"  [SWA] 平均 {len(swa_states)} 個快照 →", end=" ")
+    # SWA 平均（產生最終 single state_dict）
+    print(f"\n[SWA] 平均 {len(swa_states)} 個快照...")
     swa_state = {}
     for k in swa_states[0]:
         if swa_states[0][k].dtype.is_floating_point:
@@ -432,140 +529,62 @@ def train_one_protocol_seed(protocol, seed, train_loader, test_loader,
         else:
             swa_state[k] = swa_states[-1][k]
     model.load_state_dict(swa_state); model.to(device)
-    print("完成")
 
-    # TTA inference on test
-    test_l7, test_l2, test_reg = get_test_outputs_tta(model, test_loader, device, n_tta=protocol["n_tta"])
+    # 測試集評估（含 TTA）
+    print(f"\n[Inference] TTA×{config['n_tta']}...")
+    test_l7, test_l2, test_reg = get_test_outputs_tta(model, test_loader, device, n_tta=config["n_tta"])
 
-    # Save weight
-    save_path = MODEL_DIR / f'sacf_final_{protocol["id"]}_seed{seed}.pt'
-    torch.save({
-        "model_config": {"lang_model": "microsoft/deberta-v3-large", "audio_dim": 5,
-                         "vision_dim": 20, "modal_hidden": 128, "fusion_dim": 512,
-                         "top_k": 5, "num_classes": 7},
-        "model_state_dict": swa_state,
-        "protocol": protocol["id"], "seed": seed,
-        "n_tta": protocol["n_tta"], "use_mmaffin": protocol["use_mmaffin"],
-    }, save_path)
-    print(f"  ✓ 權重已儲存：{save_path.name}")
-    return test_l7, test_l2, test_reg, swa_state
-
-
-# ─────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────
-def main():
-    print("=" * 70)
-    print("SCAF Final — 4 協議 × 3 種子 = 12 個 SWA 模型集成訓練")
-    print("=" * 70)
-
-    common_cfg = {
-        "batch_size": 8, "num_epochs": 60,
-        "lang_lr": 4e-6, "head_lr": 8e-5,
-        "weight_decay": 0.01, "dropout": 0.15,
-        "label_smoothing": 0.05, "rdrop_alpha": 0.05,
-        "focal_gamma": 2.0, "swa_start": 42, "swa_step": 2,
-        "emd_weight": 0.25,
-    }
-
-    print(f"\n載入資料：{DATA_PATH}")
-    with open(DATA_PATH, "rb") as f: data = pickle.load(f)
-    tokenizer = DebertaV2Tokenizer.from_pretrained("microsoft/deberta-v3-large")
-
-    train_ds = MOSIDataset(data["train"], tokenizer)
-    val_ds   = MOSIDataset(data["valid"], tokenizer)
-    test_ds  = MOSIDataset(data["test"],  tokenizer)
-    print(f"  Train={len(train_ds)} Valid={len(val_ds)} Test={len(test_ds)}")
-
-    bs = common_cfg["batch_size"]
-    trainval_ds = ConcatDataset([train_ds, val_ds])
-    train_loader = DataLoader(trainval_ds, bs, shuffle=True, num_workers=2, pin_memory=True)
-    test_loader  = DataLoader(test_ds, bs, shuffle=False, num_workers=2, pin_memory=True)
-
-    all_train_labels = np.concatenate([data["train"]["regression_labels"],
-                                        data["valid"]["regression_labels"]])
-    class_weights = compute_class_weights(all_train_labels)
-
-    test_labels_np = np.array(data["test"]["regression_labels"])
-    test_cls7_true = np.clip(np.round(test_labels_np).astype(int), -3, 3) + 3
-
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    print(f"  設備：{device}")
-    print(f"  類別權重：{[f'{w:.3f}' for w in class_weights.tolist()]}")
-    MODEL_DIR.mkdir(exist_ok=True, parents=True)
-
-    # ─── Train 4 protocols × 3 seeds ───
-    protocol_logits = {}     # {pid: list of [3 seeds] of [test_l7, test_l2, test_reg]}
-    protocol_states = {}     # {pid: list of state_dicts}
-
-    for proto in PROTOCOLS:
-        print(f"\n\n╔══════════════════════════════════════════════════════════╗")
-        print(f"║  協議 {proto['id'].upper()} : {proto['name']} ({len(proto['seeds'])} seeds)")
-        print(f"╚══════════════════════════════════════════════════════════╝")
-        proto_l7, proto_l2, proto_reg = [], [], []
-        for seed in proto["seeds"]:
-            save_path = MODEL_DIR / f'sacf_final_{proto["id"]}_seed{seed}.pt'
-            logits_path = MODEL_DIR / f'_proto_{proto["id"]}_seed{seed}_logits.npz'
-            if save_path.exists() and logits_path.exists():
-                print(f"  ⊙ 跳過 {proto['id']}/seed{seed}（已存在）")
-                d = np.load(logits_path)
-                proto_l7.append(d['l7']); proto_l2.append(d['l2']); proto_reg.append(d['reg'])
-                continue
-            l7, l2, reg, _state = train_one_protocol_seed(
-                proto, seed, train_loader, test_loader, class_weights, device, common_cfg)
-            np.savez(logits_path, l7=l7, l2=l2, reg=reg)
-            proto_l7.append(l7); proto_l2.append(l2); proto_reg.append(reg)
-        # Save per-protocol mean logits
-        np.save(MODEL_DIR / f'raw_logits_final_{proto["id"]}.npy', np.stack(proto_l7))
-        protocol_logits[proto["id"]] = (np.mean(proto_l7, axis=0),
-                                          np.mean(proto_l2, axis=0),
-                                          np.mean(proto_reg, axis=0))
-
-    # ─── Final ensemble ───
-    print(f"\n\n{'═'*70}")
-    print(f"  最終多版本集成（4 協議的等權平均，無後處理）")
-    print(f"{'═'*70}")
-    ens_l7  = np.mean([protocol_logits[p["id"]][0] for p in PROTOCOLS], axis=0)
-    ens_l2  = np.mean([protocol_logits[p["id"]][1] for p in PROTOCOLS], axis=0)
-    ens_reg = np.mean([protocol_logits[p["id"]][2] for p in PROTOCOLS], axis=0)
-
-    pred7 = ens_l7.argmax(1)
-    test_cls2_true = (test_labels_np >= 0).astype(int)
-    pred2 = ens_l2.argmax(1)
+    pred7 = test_l7.argmax(1); pred2 = test_l2.argmax(1)
     acc7 = (pred7 == test_cls7_true).mean() * 100
     acc2 = (pred2 == test_cls2_true).mean() * 100
-    f1   = f1_score(test_cls2_true, pred2, average='weighted') * 100
-    mae  = np.abs(ens_reg - test_labels_np).mean()
-    corr = pearsonr(ens_reg.astype(float), test_labels_np.astype(float))[0]
+    f1 = f1_score(test_cls2_true, pred2, average='weighted') * 100
+    mae = np.abs(test_reg - test_labels_np).mean()
+    corr = pearsonr(test_reg.astype(float), test_labels_np.astype(float))[0]
     within1 = (np.abs(pred7 - test_cls7_true) <= 1).mean() * 100
 
-    print(f"\n  ╭─────────────────────────────────────────────────────╮")
-    print(f"  │  Acc-7     ：{acc7:>6.2f} %                                  │")
-    print(f"  │  Acc-2     ：{acc2:>6.2f} %                                  │")
-    print(f"  │  F1        ：{f1:>6.2f} %                                  │")
-    print(f"  │  MAE       ：{mae:>6.4f}                                    │")
-    print(f"  │  Corr      ：{corr:>6.4f}                                    │")
-    print(f"  │  Within-1  ：{within1:>6.2f} %                                  │")
-    print(f"  ╰─────────────────────────────────────────────────────╯")
-    print(f"\n  vs MOSI Acc-7 SOTA (MSAmba 49.67%)：{acc7-49.67:+.2f} %")
+    print(f"\n╭─────────────────────────────────────────────────────╮")
+    print(f"│  SCAF 單一模型最終結果（多分支內部 ensemble）         │")
+    print(f"├─────────────────────────────────────────────────────┤")
+    print(f"│  Acc-7      ：{acc7:>6.2f} %                          │")
+    print(f"│  Acc-2      ：{acc2:>6.2f} %                          │")
+    print(f"│  F1         ：{f1:>6.2f} %                          │")
+    print(f"│  MAE        ：{mae:>6.4f}                            │")
+    print(f"│  Corr       ：{corr:>6.4f}                            │")
+    print(f"│  Within-1   ：{within1:>6.2f} %                          │")
+    print(f"╰─────────────────────────────────────────────────────╯")
 
-    # Save final summary
-    np.save(MODEL_DIR / "raw_logits_final.npy", ens_l7)
-    summary = {
-        "protocols": [{"id": p["id"], "name": p["name"], "seeds": p["seeds"],
-                       "n_tta": p["n_tta"], "use_mmaffin": p["use_mmaffin"]}
-                      for p in PROTOCOLS],
-        "common_cfg": common_cfg,
-        "final_metrics": {"Acc-7": round(acc7, 2), "Acc-2": round(acc2, 2),
-                           "F1": round(f1, 2), "MAE": round(mae, 4),
-                           "Corr": round(corr, 4), "Within-1": round(within1, 2)},
-        "n_models_in_ensemble": sum(len(p["seeds"]) for p in PROTOCOLS),
-        "weights_pattern": "sacf_final_p{1..4}_seed{seed}.pt",
-    }
+    # 儲存單一最終權重
+    MODEL_DIR.mkdir(exist_ok=True, parents=True)
+    final_path = MODEL_DIR / "sacf_final.pt"
+    torch.save({
+        "model_class": "SACFFinalModel",
+        "num_branches": NUM_BRANCHES,
+        "model_config": {
+            "lang_model": config["lang_model"],
+            "audio_dim": 5, "vision_dim": 20, "modal_hidden": 128,
+            "fusion_dim": 512, "top_k": 5, "num_classes": 7,
+            "dropout": config["dropout"], "num_branches": NUM_BRANCHES,
+        },
+        "model_state_dict": swa_state,
+        "config": config,
+        "metrics": {"Acc-7": round(acc7, 2), "Acc-2": round(acc2, 2),
+                    "F1": round(f1, 2), "MAE": round(mae, 4),
+                    "Corr": round(corr, 4), "Within-1": round(within1, 2)},
+    }, str(final_path))
+    print(f"\n  ✓ 單一模型儲存：{final_path}")
+    print(f"  ✓ 大小：{os.path.getsize(final_path)/1024**3:.2f} GB")
+    print(f"  ✓ 推斷使用：emotion_system/sacf_final_loader.py 的 SACFFinal")
+
+    # 寫摘要
     with open(MODEL_DIR / "sacf_final_summary.json", "w") as f:
-        json.dump(summary, f, indent=2, ensure_ascii=False)
-    print(f"\n  ✓ 摘要已儲存：sacf_final_summary.json")
-    print(f"  ✓ 共 {summary['n_models_in_ensemble']} 個 SWA 權重存於 {MODEL_DIR}")
+        json.dump({
+            "model": "SACFFinalModel (multi-branch single model)",
+            "num_branches": NUM_BRANCHES,
+            "config": config,
+            "metrics": {"Acc-7": round(acc7, 2), "Acc-2": round(acc2, 2),
+                        "F1": round(f1, 2), "MAE": round(mae, 4),
+                        "Corr": round(corr, 4), "Within-1": round(within1, 2)},
+        }, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
