@@ -3,6 +3,7 @@
 ${agent} 住在 <${live_sector}>，裡面有 ${live_arenas}。
 ${agent} 目前的位置是 <${current_sector}>，裡面有 ${current_arenas}。
 ${daily_plan}
+${emotion_hint}
 問題：
 ${agent} 正在 ${complete_plan}。為了 ${decomposed_plan}，${agent} 應該去哪裡？
 

@@ -110,10 +110,11 @@ class Agent:
         """
         偵測文字中的情緒並更新代理人的情緒狀態。
 
-        流程：
-          1. 若有專用 EmoLLM 後端 → 直接呼叫（不消耗主 LLM token）
-          2. 否則透過 completion("emotion_detect", ...) 呼叫主 LLM
-          3. 若情緒顯著（強度≥6 或類別改變）→ 存入 Associate 記憶
+        雙路徑流程：
+          1. SACF 模型提供情感極性信號（正面/負面/中性）
+          2. LLM 作為主要��緒判斷（10 類情緒，情境感知）
+          3. SACF 與 LLM 互相校準，避免單方面偏向
+          4. 若情緒強度≥4 或標籤改變 → 存入 Associate 記憶
 
         Args:
             text:        行動描述或對話全文
@@ -145,22 +146,56 @@ class Agent:
         else:
             emollm_context = self.scratch.currently
 
-        # 優先使用專用 EmoLLM 後端
+        # ── 雙路徑情緒偵測：LLM 為主（10 類情緒 + 情境感知），SACF 為輔（情感強度校準）──
+        #
+        # 設計理念：讓 AI 自然產生多樣情緒，而非僅依賴 SACF 的正面偏向
+        # LLM 能理解角色個性、情境脈絡、社交關係，因此是更好的情緒判斷者
+        # SACF 提供客觀的情感極性信號，作為 LLM 判斷的參考校準
+
+        state = None
+        sacf_signal = None
+
+        # 路徑 1：SACF 提供情感極性信號（不直接決定情緒標籤）
         if self._emotion_model and self._emotion_model.is_available():
-            state = self._emotion_model.detect(
-                text, agent_name=self.name, context=emollm_context
-            )
-        elif self.llm_available():
-            # 透過 scratch 的提示詞系統使用主 LLM（有日誌、重試）
+            try:
+                sacf_state = self._emotion_model.detect(
+                    text, agent_name=self.name, context=emollm_context
+                )
+                sacf_signal = sacf_state  # 保存為參考信號
+            except Exception:
+                sacf_signal = None
+
+        # 路徑 2：LLM 作為主要情緒判斷（10 類情緒，情境感知）
+        if self.llm_available():
             result = self.completion(
                 "emotion_detect", text,
                 other_name  = other_agent.name if other_agent else None,
                 relation    = relation,
                 chat_memory = chat_memory or None,
             )
-            state = EmotionState.from_dict(result) if isinstance(result, dict) else EmotionState()
-        else:
+            state = EmotionState.from_dict(result) if isinstance(result, dict) else None
+
+        # 路徑 3：若 LLM 不可用，退回 SACF 結果
+        if state is None and sacf_signal is not None:
+            state = sacf_signal
+        elif state is None:
             return
+
+        # ── SACF 校準：當 SACF 偵測到負面情感但 LLM 給了正面標籤時，
+        #    適度降低 LLM 結果的強度，反之亦然。
+        #    這讓兩個系統互相制衡，避免單方面偏向。
+        if sacf_signal is not None and state is not sacf_signal:
+            sacf_negative = sacf_signal.label in ("悲傷", "焦慮")
+            llm_positive  = state.label in ("快樂", "興奮")
+            sacf_positive = sacf_signal.label in ("快樂", "興奮")
+            llm_negative  = state.label in ("悲傷", "焦慮", "憤怒", "恐懼")
+
+            if sacf_negative and llm_positive:
+                # SACF 感知到負面，但 LLM 給了正面 → 降低正面強度
+                state.intensity = max(1, state.intensity - 2)
+            elif sacf_positive and llm_negative:
+                # SACF 感知到正面，但 LLM 給了負面 → 降低負面強度
+                state.intensity = max(1, state.intensity - 1)
 
         # 慣性融合：以舊情緒為基礎，漸進融入新偵測結果
         prev.blend_update(state.label, state.intensity, state.reason)
@@ -190,8 +225,9 @@ class Agent:
                     )
                 )
 
-        # 情緒顯著時存入長期記憶（融合後強度≥6，或偵測到明確的標籤切換）
-        if prev.intensity >= 6 or state.label != prev_label:
+        # 情緒變化時存入長期記憶（強度≥4，或情緒標籤改變）
+        # 降低門檻讓更多情緒記憶累積，豐富角色的情感經歷
+        if prev.intensity >= 4 or state.label != prev_label:
             self._add_emotion_concept(prev)
 
     def _add_emotion_concept(self, state):
@@ -317,13 +353,18 @@ class Agent:
                     f"{self.name} 在 {utils.get_timer().daily_format_cn()} 的計畫。",
                     f"在 {self.name} 的生活中，重要的近期事件。",
                 ]
-                # 若當前情緒顯著（強度≥6），將其加入記憶檢索焦點，
-                # 讓 LLM 在生成計畫時參考近期情緒相關記憶
+                # 始終將情緒加入記憶檢索焦點（即使平靜也提供脈絡）
+                # 讓 LLM 自然判斷情緒如何影響每日計畫
                 current_emotion = EmotionState.from_dict(self.status.get("emotion"))
-                if current_emotion.intensity >= 6 and current_emotion.label != "平靜":
+                if current_emotion.label != "平靜":
                     focus.append(
                         f"{self.name} 目前感到{current_emotion.describe()}，"
                         f"這可能影響今日活動的選擇與心態。"
+                    )
+                else:
+                    focus.append(
+                        f"{self.name} 目前情緒平靜，"
+                        f"但日常生活中的各種事件可能帶來情緒起伏。"
                     )
                 retrieved = self.associate.retrieve_focus(focus)
                 self.logger.info(

@@ -30,11 +30,16 @@ class Scratch:
         return filled_content
 
     def _base_desc(self):
-        # 只在非平靜狀態時顯示情緒，避免無意義的空行干擾提示詞
+        # 始終顯示情緒狀態（含平靜），讓 LLM 了解角色的完整情緒脈絡
+        # 即使是平靜狀態，也讓 LLM 知道「目前很平靜」，
+        # 這樣才能自然地判斷何時應該從平靜轉變為其他情緒
         emotion = getattr(self, "emotion", None) or EmotionState()
-        emotion_line = (
-            f"目前情緒狀態：{emotion.describe()}" if emotion.label != "平靜" else ""
-        )
+        if emotion.label == "平靜":
+            emotion_line = f"目前情緒狀態：平靜（強度：{emotion.intensity}/10）— 情緒穩定，但可能因事件而改變"
+        else:
+            emotion_line = f"目前情緒狀態：{emotion.describe()}"
+            if emotion.reason:
+                emotion_line += f"（原因：{emotion.reason}）"
         return self.build_prompt(
             "base_desc",
             {
@@ -311,6 +316,17 @@ class Scratch:
         live_address = spatial.find_address("living_area", as_list=True)[:-1]
         curr_address = tile.get_address("sector", as_list=True)
 
+        # 情緒對地點選擇的自然影響
+        emotion = getattr(self, "emotion", None) or EmotionState()
+        if emotion.label != "平靜" and emotion.intensity >= 3:
+            emotion_hint = (
+                f"{self.name} 目前感到{emotion.describe()}。"
+                f"情緒可能自然影響他/她選擇去哪裡（例如疲憊時想回家休息，"
+                f"興奮時想去社交場所，焦慮時可能待在熟悉的地方）。"
+            )
+        else:
+            emotion_hint = ""
+
         prompt = self.build_prompt(
             "determine_sector",
             {
@@ -320,6 +336,7 @@ class Scratch:
                 "current_sector": curr_address[-1],
                 "current_arenas": ", ".join(i for i in spatial.get_leaves(curr_address)),
                 "daily_plan": self.config["daily_plan"],
+                "emotion_hint": emotion_hint,
                 "areas": ", ".join(i for i in spatial.get_leaves(address)),
                 "complete_plan": describes[0],
                 "decomposed_plan": describes[1],
@@ -962,9 +979,57 @@ class Scratch:
             relation_context = "\n".join(parts) + "\n"
         else:
             # 非對話場景：加入 currently 作為行動背景脈絡
-            # 讓 LLM 了解角色今日的心態與計畫，而非只看短短的行動描述
             if self.currently:
                 relation_context = f"今日狀態與計畫：{self.currently[:200]}\n"
+
+        # ── 情境因素：讓 LLM 自然推理出情緒變化的生理/社交因素 ──
+        # 這些是客觀事實，不預設任何情緒結論，由 LLM 自由判斷
+        situational_lines = []
+        try:
+            timer = utils.get_timer()
+            current_hour = timer.daily_duration(mode="hour")
+
+            # 清醒時長：從 lifestyle 中解析起床時間
+            lifestyle = self.config.get("lifestyle", "")
+            import re as _re
+            wake_match = _re.search(r'(\d+)點.*(?:醒|起)', lifestyle)
+            wake_hour = int(wake_match.group(1)) if wake_match else 7
+            hours_awake = max(0, current_hour - wake_hour)
+            if hours_awake > 0:
+                situational_lines.append(f"已清醒約 {hours_awake} 小時")
+
+            # 時段描述
+            if current_hour < 6:
+                situational_lines.append("現在是深夜/凌晨")
+            elif current_hour < 12:
+                situational_lines.append("現在是上午")
+            elif current_hour < 18:
+                situational_lines.append("現在是下午")
+            else:
+                situational_lines.append("現在是晚上")
+
+            # 就寢時間提醒
+            sleep_match = _re.search(r'(\d+)點.*(?:睡|床)', lifestyle)
+            if sleep_match:
+                sleep_hour = int(sleep_match.group(1))
+                if current_hour >= sleep_hour - 1:
+                    situational_lines.append("已接近或超過平時就寢時間")
+        except Exception:
+            pass
+
+        # 前一個情緒狀態（讓 LLM 知道情緒轉變的脈絡）
+        emotion = getattr(self, "emotion", None) or EmotionState()
+        if emotion._history:
+            recent_labels = [h["label"] for h in emotion._history[-3:]]
+            if len(set(recent_labels)) == 1 and recent_labels[0] == emotion.label:
+                situational_lines.append(
+                    f"近幾次情緒偵測都是「{emotion.label}」，"
+                    f"考慮是否有更細膩的情緒變化被忽略"
+                )
+
+        situational_context = ""
+        if situational_lines:
+            situational_context = "\n情境因素：" + "；".join(situational_lines)
 
         prompt = self.build_prompt(
             "emotion_detect",
@@ -972,7 +1037,7 @@ class Scratch:
                 "agent":            self.name,
                 "base_desc":        self._base_desc(),
                 "text":             str(text)[:600],
-                "relation_context": relation_context,
+                "relation_context": relation_context + situational_context,
             }
         )
 

@@ -129,6 +129,8 @@ class SimulateServer:
 
 
 # 從存檔數據總載入配置，用於斷點恢复
+# 恢復時會從 data/config.json 合併最新的 LLM/情緒/嵌入 設定，
+# 同時保留 checkpoint 中的代理狀態（排程、情緒、記憶、座標等）。
 def get_config_from_log(checkpoints_folder):
     files = sorted(os.listdir(checkpoints_folder))
 
@@ -142,6 +144,22 @@ def get_config_from_log(checkpoints_folder):
 
     with open(json_files[-1], "r", encoding="utf-8") as f:
         config = json.load(f)
+
+    # 從 data/config.json 合併最新的模型與後端設定
+    try:
+        with open("data/config.json", "r", encoding="utf-8") as f:
+            current_config = json.load(f)
+
+        if "agent" in current_config and "agent_base" in config:
+            config["agent_base"]["think"] = current_config["agent"]["think"]
+            config["agent_base"]["associate"]["embedding"] = current_config["agent"]["associate"]["embedding"]
+            if "api_keys" in current_config:
+                config["api_keys"] = current_config["api_keys"]
+            print(f"[resume] 已從 data/config.json 合併最新設定: "
+                  f"model={current_config['agent']['think']['llm']['model']}, "
+                  f"base_url={current_config['agent']['think']['llm']['base_url']}")
+    except FileNotFoundError:
+        print("[resume] 警告: data/config.json 不存在，使用 checkpoint 原始設定")
 
     assets_root = os.path.join("assets", "village")
 

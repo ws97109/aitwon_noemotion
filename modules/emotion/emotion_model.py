@@ -45,7 +45,8 @@ import requests
 class EmotionState:
     LABELS   = ["快樂", "悲傷", "憤怒", "恐懼", "厭惡", "驚訝", "平靜", "焦慮", "興奮", "疲憊"]
     DEFAULT  = "平靜"
-    MOMENTUM = 0.65   # 情緒慣性係數（0=完全跟隨新情緒，1=完全不變）
+    MOMENTUM = 0.50   # 情緒慣性係數（0=完全跟隨新情緒，1=完全不變）
+    # 從 0.65 降至 0.50，讓情緒轉變更靈敏，避免長期困在同一情緒中
 
     def __init__(self, label="平靜", intensity=3, reason=""):
         self.label     = label if label in self.LABELS else self.DEFAULT
