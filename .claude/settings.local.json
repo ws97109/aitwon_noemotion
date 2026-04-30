@@ -19,7 +19,8 @@
       "Bash(grep -r \"learned\\\\|innate\\\\|currently\" /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/modules/*.py)",
       "Bash(kill 1496151)",
       "Bash(kill 2779122)",
-      "Bash(awk '{print $2, $9, $10, $11}')"
+      "Bash(awk '{print $2, $9, $10, $11}')",
+      "Bash(git pull:*)"
     ],
     "deny": []
   }

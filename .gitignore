@@ -20,6 +20,9 @@ emollm_repo/
 # 環境變數
 .env
 
+# Claude Code 本機設定
+.claude/settings.local.json
+
 # 系統檔案
 .DS_Store
 Thumbs.db

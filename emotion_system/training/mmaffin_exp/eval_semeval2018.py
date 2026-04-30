@@ -10,7 +10,7 @@
   • E-c   (Emotion classification, 11-label multi-label)：jac, mi-F1, ma-F1
   • Overall = 各 task 主要指標（pcc 或 ma-F1）的平均
 
-backbone 從 `sacf_v60_best.pt` 載入（保留 MOSI 訓練先驗）。
+backbone 從 `sacf_v60_baseline_best.pt` 載入（保留 MOSI 訓練先驗）。
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ from scaf_final import PolarityEnhancedAttention  # noqa: E402
 
 DATA_ROOT = PROJECT_ROOT / "emotion_system" / "data" / "semeval2018" / "SemEval2018-Task1-all-data"
 MODEL_DIR = PROJECT_ROOT / "emotion_system" / "models"
-SACF_CKPT = MODEL_DIR / "sacf_v60_best.pt"
+SACF_CKPT = MODEL_DIR / "sacf_v60_baseline_best.pt"
 
 LANG_DIR  = {"en": "English", "ar": "Arabic", "es": "Spanish"}
 LANG_TAG  = {"en": "En",      "ar": "Ar",     "es": "Es"}
@@ -361,7 +361,7 @@ def main():
     print(f"  device     = {device} (CUDA_VISIBLE_DEVICES={args.gpu})")
     print(f"  backbone   = {args.lang_model}  | epochs = {args.epochs}  bs = {args.batch_size}")
     print(f"  lr         = lang {args.lang_lr:.0e} / head {args.head_lr:.0e}")
-    print(f"  pretrained = {'no' if args.no_pretrain else 'sacf_v60_best.pt'}")
+    print(f"  pretrained = {'no' if args.no_pretrain else 'sacf_v60_baseline_best.pt'}")
     print(f"  langs      = {langs}")
 
     tok = DebertaV2Tokenizer.from_pretrained(args.lang_model)
@@ -453,7 +453,7 @@ def main():
     lines.append("- **訓練集**：SemEval-2018 Task 1 的 train + dev（每任務每語言）")
     lines.append("- **測試集**：SemEval-2018 Task 1 的 **test-gold**")
     lines.append("- **基底模型**：`scaf_final.SACFModel` 純文字分支（DeBERTa-v3-large）")
-    lines.append(f"- **backbone init**：{'`sacf_v60_best.pt`' if not args.no_pretrain else 'HF 預訓練'}")
+    lines.append(f"- **backbone init**：{'`sacf_v60_baseline_best.pt`' if not args.no_pretrain else 'HF 預訓練'}")
     lines.append(f"- **訓練超參**：每 (lang, task) 獨立訓練 {args.epochs} epoch，"
                  f"bs={args.batch_size}, lang_lr={args.lang_lr:.0e}, head_lr={args.head_lr:.0e}")
     lines.append("")

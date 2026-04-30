@@ -12,7 +12,7 @@ SACFModel 原為「文字 + 音訊 + 視覺」三模態。本腳本只取其中�
   lang_backbone(DeBERTa-v3-large) + PolarityEnhancedAttention(text-only pooling)
   + shared MLP + per-task head
 完全不接 audio / vision，因此可在純文字資料上推論。
-backbone 權重可從使用者訓練好的 SACF checkpoint (sacf_v60_best.pt) 初始化，
+backbone 權重可從使用者訓練好的 SACF checkpoint (sacf_v60_baseline_best.pt) 初始化，
 保留其在 MOSI 上學到的情感先驗。
 
 【執行方式】
@@ -56,7 +56,7 @@ from scaf_final import PolarityEnhancedAttention  # noqa: E402
 MMAFFIN_DIR  = PROJECT_ROOT / "emotion_system" / "data" / "mmaffin_text"  / "texts"   # train + val
 MMAFFBEN_DIR = PROJECT_ROOT / "emotion_system" / "data" / "mmaffben_text" / "texts"   # test
 MODEL_DIR    = PROJECT_ROOT / "emotion_system" / "models"
-SACF_CKPT    = MODEL_DIR / "sacf_v60_best.pt"
+SACF_CKPT    = MODEL_DIR / "sacf_v60_baseline_best.pt"
 
 
 # ───────────────────────── 任務定義 ─────────────────────────
@@ -373,7 +373,7 @@ def main():
     print(f"  backbone     = {args.lang_model}")
     print(f"  epochs       = {args.epochs}  | bs = {args.batch_size}  | max_len = {args.max_len}")
     print(f"  lr           = lang {args.lang_lr:.1e} / head {args.head_lr:.1e}")
-    print(f"  pretrained   = {'no' if args.no_pretrain else 'sacf_v60_best.pt'}")
+    print(f"  pretrained   = {'no' if args.no_pretrain else 'sacf_v60_baseline_best.pt'}")
 
     task_list = list(TASKS.keys()) if args.tasks == "all" \
                 else [t.strip() for t in args.tasks.split(",") if t.strip()]
@@ -480,7 +480,7 @@ def main():
     lines.append("- **測試資料**：**MMAFFBen** `texts/*_test.json`（最終指標來源）")
     lines.append("- **基底模型**：`scaf_final.SACFModel` 的純文字分支 "
                  "（DeBERTa-v3-large + PolarityEnhancedAttention + shared MLP + per-task head）")
-    lines.append(f"- **backbone 初始化**：{'`sacf_v60_best.pt`（使用者 MOSI 訓練成果）' if not args.no_pretrain else 'HF 預訓練（無 SACF init）'}")
+    lines.append(f"- **backbone 初始化**：{'`sacf_v60_baseline_best.pt`（使用者 MOSI 訓練成果）' if not args.no_pretrain else 'HF 預訓練（無 SACF init）'}")
     lines.append(f"- **訓練超參數**：每任務獨立訓練 {args.epochs} epoch，"
                  f"batch={args.batch_size}, lang_lr={args.lang_lr:.0e}, head_lr={args.head_lr:.0e}（論文用 lr=5e-6）")
     lines.append("- **指標**：SP / EC 任務皆報 macro-F1（ma-F1）；XED 多標籤額外報 Jaccard")
