@@ -1,10 +1,14 @@
-# 生成式AI代理社區模擬系統 (Generative Agents Community Simulation)
+# 生成式AI代理社區模擬系統 + SACF 多模態情感模型
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-一個基於生成式AI的虛擬社區模擬系統，包含9個具有獨特性格的AI居民，並內建完整的問卷調查系統，可讓AI居民智能填寫問卷並生成真實的調查數據。
+整合兩大子系統的研究專案：
+
+1. **生成式AI代理社區模擬**：9個具有獨特性格的AI居民、完整問卷調查系統
+2. **SACF (Sentiment-Attention Cross-modal Fusion)**：多模態情感分析模型，於 CMU-MOSI 達到 Acc-7 = 53.21%
 
 ## ✨ 主要功能
 
@@ -13,6 +17,13 @@
 - **智能行為模擬**：AI居民會根據個性進行社交互動、移動和活動
 - **實時可視化**：2D遊戲引擎顯示AI居民的即時活動狀態
 - **互動分析**：追蹤和分析AI居民之間的對話和互動模式
+
+### 🧠 SACF 多模態情感模型
+- **多分支單一模型**：DeBERTa-v3-large + BiLSTM 音訊/視覺編碼器，4 個並行分支端對端訓練
+- **PolarityEnhancedAttention**：強化情感極性的注意力機制（PEA 模組）
+- **集成推斷**：4 訓練協議 × 3 種子 = 12 模型 SWA 等權平均
+- **跨資料集泛化**：CMU-MOSI 主訓 + MMAffBen / SemEval-2018 純文字評估
+- **完整訓練/推斷管線**：`scaf_final.py` 統一入口，`sacf_final_loader.py` 對外載入
 
 ### 📊 問卷調查系統
 - **多種匯入方式**：支援Google Forms URL、JSON格式或手動創建
@@ -156,12 +167,22 @@ https://forms.gle/[SHORT_ID]
 ## 🛠️ 技術架構
 
 ```
-generative_agents0910/
+aitown_addsacf/
 ├── modules/                 # 核心AI模擬模組
 │   ├── agent.py            # AI代理邏輯
 │   ├── game.py             # 遊戲主控制器
 │   ├── maze.py             # 環境地圖系統
 │   └── memory/             # AI記憶系統
+├── emotion_system/          # SACF 多模態情感模型
+│   ├── training/
+│   │   ├── scaf_final.py           # 多分支單一模型（主訓練腳本）
+│   │   └── mmaffin_exp/            # MMAffBen / SemEval-2018 評估
+│   ├── sacf_final_loader.py        # 推斷時對外載入介面
+│   ├── models/                     # 訓練好的權重與 logits（見 MANIFEST.md）
+│   ├── data/                       # MOSI / MMAffBen / SemEval 資料
+│   ├── core.py                     # 情感模組核心
+│   ├── emotion_memory.py           # 情感記憶
+│   └── agent_emotion_mixin.py      # 與 AI 代理整合
 ├── survey_system/          # 問卷系統模組
 │   ├── models.py           # 資料模型
 │   ├── ai_filler.py        # AI填寫器
@@ -171,17 +192,51 @@ generative_agents0910/
 ├── frontend/               # Web前端
 │   ├── templates/          # HTML模板
 │   └── static/             # 靜態資源
-├── start.py               # 模擬系統啟動器
-├── replay.py              # Web服務器
-└── data/                  # 配置和提示詞
+├── docs/                   # 論文與圖表
+│   ├── SACF_Methodology_Chapter3.docx
+│   ├── SACFFinalModel_Model_Card.docx
+│   └── figures/            # 架構圖、訓練曲線、結果比較圖
+├── start.py                # 模擬系統啟動器
+├── replay.py               # Web服務器
+└── data/                   # 配置和提示詞
 ```
 
 ### 核心技術
-- **後端框架**：Flask
-- **AI引擎**：支援OpenAI GPT系列
+- **AI 模擬後端**：Flask、OpenAI GPT
+- **情感模型**：PyTorch、HuggingFace Transformers (DeBERTa-v3-large)
 - **前端**：Bootstrap + jQuery + D3.js
-- **數據存儲**：JSON文件系統
-- **可視化**：Phaser.js遊戲引擎
+- **資料存儲**：JSON 檔案系統
+- **可視化**：Phaser.js 遊戲引擎、matplotlib
+
+## 🧪 SACF 模型快速使用
+
+### 訓練（CMU-MOSI 主資料集）
+```bash
+cd emotion_system/training
+python scaf_final.py --seed 42 --mode trainval
+```
+
+### 推斷
+```python
+from emotion_system.sacf_final_loader import load_sacf_final
+
+model = load_sacf_final(checkpoint="emotion_system/models/sacf_final_iter1_kd.pt")
+logits = model.predict(text, audio, vision)
+```
+
+### 評估
+```bash
+# CMU-MOSI 完整評估
+python emotion_system/training/cross_version_eval.py
+
+# MMAffBen 多語純文字評估
+python emotion_system/training/mmaffin_exp/eval_text_mmaffben.py
+
+# SemEval-2018 Task 1 評估
+python emotion_system/training/mmaffin_exp/eval_semeval2018.py
+```
+
+詳細的權重清單與集成設定見 [emotion_system/models/MANIFEST.md](emotion_system/models/MANIFEST.md)。
 
 ## 🧪 測試系統
 
@@ -313,4 +368,4 @@ A: 可以，模擬數據保存在 `results/checkpoints/` 目錄下，包含完�
 
 ---
 
-*最後更新：2024年9月12日*
+*最後更新：2026年5月4日*
