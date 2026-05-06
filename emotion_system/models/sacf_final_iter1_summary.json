@@ -1,0 +1,35 @@
+{
+  "model": "SACFFinalModel + KD distillation",
+  "num_branches": 4,
+  "config": {
+    "lang_model": "microsoft/deberta-v3-large",
+    "batch_size": 8,
+    "num_epochs": 60,
+    "lang_lr": 4e-06,
+    "head_lr": 8e-05,
+    "weight_decay": 0.01,
+    "dropout": 0.15,
+    "label_smoothing": 0.05,
+    "focal_gamma": 2.0,
+    "swa_start": 42,
+    "swa_step": 2,
+    "n_tta": 5,
+    "seed": 42,
+    "w_kd": 0.7,
+    "w_mean": 0.3,
+    "w_per": 0.4,
+    "w_corn": 0.05,
+    "kd_T": 4.0,
+    "mixup_alpha": 0.4,
+    "emd_weight": 0.25,
+    "diversity_weight": 0.03
+  },
+  "metrics": {
+    "Acc-7": 51.02,
+    "Acc-2": 84.99,
+    "F1": 84.98,
+    "MAE": 0.5898,
+    "Corr": 0.8693,
+    "Within-1": 91.69
+  }
+}

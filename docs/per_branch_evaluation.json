@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Branch 1 only",
+    "acc7": 49.56,
+    "acc2": 86.3,
+    "f1": 86.26,
+    "mae": 0.5988,
+    "corr": 0.8656,
+    "within1": 91.25
+  },
+  {
+    "name": "Branch 2 only",
+    "acc7": 50.0,
+    "acc2": 86.44,
+    "f1": 86.41,
+    "mae": 0.6001,
+    "corr": 0.8653,
+    "within1": 91.25
+  },
+  {
+    "name": "Branch 3 only",
+    "acc7": 50.29,
+    "acc2": 86.01,
+    "f1": 85.98,
+    "mae": 0.6007,
+    "corr": 0.8655,
+    "within1": 91.25
+  },
+  {
+    "name": "Branch 4 only",
+    "acc7": 49.71,
+    "acc2": 86.15,
+    "f1": 86.11,
+    "mae": 0.5995,
+    "corr": 0.8653,
+    "within1": 91.11
+  },
+  {
+    "name": "★ SACFFinalModel\n(4 分支內部 ensemble)",
+    "acc7": 50.0,
+    "acc2": 86.3,
+    "f1": 86.26,
+    "mae": 0.5994,
+    "corr": 0.8656,
+    "within1": 91.55
+  },
+  {
+    "name": "12 模型 logit ensemble (參考)",
+    "acc7": 53.21,
+    "acc2": 86.15,
+    "f1": 86.1,
+    "mae": 0.5719,
+    "corr": 0.8747,
+    "within1": 91.98
+  }
+]
