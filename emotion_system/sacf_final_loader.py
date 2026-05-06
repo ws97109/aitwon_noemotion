@@ -44,7 +44,13 @@ def load_sacf_final(ckpt_path: str, device: str = 'cuda:0'):
         dropout=cfg.get('dropout', 0.15),
         num_branches=cfg.get('num_branches', 4),
     )
-    model.load_state_dict(ck['model_state_dict'])
+    # strict=False 以容納新增的學習式 branch_weights（老 ckpt 沒有此參數時用 zeros 初值 = 均勻權重，等同舊行為）
+    missing, unexpected = model.load_state_dict(ck['model_state_dict'], strict=False)
+    if missing:
+        # 僅當缺漏的是新加入的參數（已用合理初值）時不報錯
+        non_branch = [m for m in missing if 'branch_weights' not in m]
+        if non_branch:
+            raise RuntimeError(f"載入錯誤：缺少參數 {non_branch}")
     model.to(device); model.eval()
     metrics = ck.get('metrics', {})
     print(f"[SACFFinal] 已載入單一多分支模型")
