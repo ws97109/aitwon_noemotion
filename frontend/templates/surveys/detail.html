@@ -205,13 +205,32 @@
                 <!-- 問卷結構 -->
                 <div class="col-md-6">
                     <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap:8px;">
                             <h5 class="mb-0">問卷結構</h5>
-                            {% if stats.total_responses == 0 %}
-                            <button class="btn btn-success btn-sm" onclick="fillSurvey('{{ survey.survey_id }}')">
-                                <i class="fas fa-robot"></i> 讓AI居民填寫
-                            </button>
-                            {% endif %}
+                            <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+                                <select id="simulationSelect" class="form-control form-control-sm" style="max-width:240px;" title="選擇要綁定的模擬上下文">
+                                    <option value="">— 不綁定模擬（僅靜態人設）—</option>
+                                    {% for sim in simulations or [] %}
+                                    <option value="{{ sim.name }}">
+                                        {{ sim.name }}
+                                        {%- if sim.has_simulation_md %} · md{% endif %}
+                                        {%- if sim.has_associate %} · 記憶{% endif %}
+                                        {%- if sim.has_checkpoint %} · 情緒{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-success btn-sm" onclick="fillSurvey('{{ survey.survey_id }}')">
+                                    <i class="fas fa-robot"></i> 讓AI居民填寫
+                                </button>
+                                {% if stats.total_responses > 0 %}
+                                <button class="btn btn-outline-warning btn-sm" onclick="clearResponses('{{ survey.survey_id }}', 'fallback')" title="只清掉看起來像 fallback（其他/無法提供）的回應">
+                                    <i class="fas fa-broom"></i> 清 fallback
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="clearResponses('{{ survey.survey_id }}', 'all')" title="刪除此問卷的所有回應">
+                                    <i class="fas fa-trash"></i> 全部清空
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="card-body">
                             {% for question in survey.questions %}
@@ -504,12 +523,18 @@ function fillSurvey(surveyId) {
         }
     }, 300);
 
+    // 取得使用者選擇的模擬上下文
+    const simulationName = document.getElementById('simulationSelect')
+        ? document.getElementById('simulationSelect').value
+        : '';
+
     // 發送AI填寫請求
     fetch(`/surveys/${surveyId}/fill`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ simulation_name: simulationName || null })
     })
     .then(response => response.json())
     .then(data => {
@@ -544,6 +569,27 @@ function fillSurvey(surveyId) {
         `);
         $('.spinner-border').hide();
     });
+}
+
+function clearResponses(surveyId, mode) {
+    const label = mode === 'fallback' ? '看起來像 fallback 的回應' : '所有回應';
+    if (!confirm(`確定要刪除${label}嗎？此操作無法復原。`)) return;
+
+    fetch(`/surveys/${surveyId}/clear-responses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: mode })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert(`已刪除 ${data.deleted} 份回應（mode=${data.mode}）`);
+            location.reload();
+        } else {
+            alert(`失敗：${data.error || '未知錯誤'}`);
+        }
+    })
+    .catch(err => alert(`請求失敗：${err.message}`));
 }
 
 // 頁面載入完成後初始化

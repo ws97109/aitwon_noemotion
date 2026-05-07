@@ -237,7 +237,11 @@ def generate_movement(checkpoints_folder, compressed_folder, compressed_file):
     interaction_file = os.path.join(compressed_folder, "interactions.json")
     with open(interaction_file, "w", encoding="utf-8") as f:
         f.write(json.dumps(interaction_data, indent=2, ensure_ascii=False))
-    
+
+    # 保存回放資料（提供 replay.py 載入）
+    with open(movement_file, "w", encoding="utf-8") as f:
+        f.write(json.dumps(result, indent=2, ensure_ascii=False))
+
     return result
 
 

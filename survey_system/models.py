@@ -226,23 +226,49 @@ class SurveyManager:
         """刪除問卷的所有回應"""
         deleted_count = 0
         responses_dir = f"{self.storage_path}/responses"
-        
+
         if not os.path.exists(responses_dir):
             return deleted_count
-            
+
         try:
             for filename in os.listdir(responses_dir):
                 if filename.endswith('.json'):
                     response_file = f"{responses_dir}/{filename}"
                     with open(response_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                    
+
                     if data["survey_id"] == survey_id:
                         os.remove(response_file)
                         deleted_count += 1
         except Exception as e:
             print(f"刪除回應失敗: {e}")
-        
+
+        return deleted_count
+
+    def delete_resident_responses(self, survey_id: str, respondent_name: str) -> int:
+        """刪除特定問卷中特定居民的所有回應（用於避免重複累積）"""
+        deleted_count = 0
+        responses_dir = f"{self.storage_path}/responses"
+
+        if not os.path.exists(responses_dir):
+            return deleted_count
+
+        try:
+            for filename in os.listdir(responses_dir):
+                if not filename.endswith('.json'):
+                    continue
+                response_file = f"{responses_dir}/{filename}"
+                try:
+                    with open(response_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                except Exception:
+                    continue
+                if data.get("survey_id") == survey_id and data.get("respondent_name") == respondent_name:
+                    os.remove(response_file)
+                    deleted_count += 1
+        except Exception as e:
+            print(f"刪除居民回應失敗: {e}")
+
         return deleted_count
     
     def get_survey_stats(self, survey_id: str) -> Dict:

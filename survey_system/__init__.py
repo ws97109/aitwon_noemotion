@@ -5,14 +5,16 @@
 
 from .models import Survey, SurveyResponse, SurveyManager
 from .ai_filler import AIResidentSurveyFiller
+from .simulation_context import SimulationContext
 from .importers import GoogleFormsImporter, JSONImporter, SurveyImportManager
 from .exporters import CSVExporter, JSONExporter, ExcelExporter, SurveyExportManager
 
 __all__ = [
     'Survey',
-    'SurveyResponse', 
+    'SurveyResponse',
     'SurveyManager',
     'AIResidentSurveyFiller',
+    'SimulationContext',
     'GoogleFormsImporter',
     'JSONImporter',
     'SurveyImportManager',

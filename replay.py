@@ -1,14 +1,18 @@
 import os
 import json
+import argparse
 import collections
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 
 from compress import frames_per_step, file_movement
 from start import load_personas_from_config
 
 # 載入AI居民列表
 personas = load_personas_from_config()
+
+# CLI 預設模擬名稱（在 __main__ 設定）
+DEFAULT_SIM_NAME = ""
 
 app = Flask(
     __name__,
@@ -177,6 +181,42 @@ def extract_interaction_data(checkpoints_folder):
     return object_interactions, location_interactions
 
 
+def _render_simulation_picker():
+    """`/` 沒給 name 時顯示可用 simulation 清單供使用者點選。"""
+    compressed_root = "results/compressed"
+    items = []
+    if os.path.isdir(compressed_root):
+        for entry in sorted(os.listdir(compressed_root)):
+            folder = os.path.join(compressed_root, entry)
+            if not os.path.isdir(folder):
+                continue
+            replay_ready = os.path.exists(os.path.join(folder, file_movement))
+            md_ready = os.path.exists(os.path.join(folder, "simulation.md"))
+            items.append({
+                "name": entry,
+                "replay_ready": replay_ready,
+                "has_simulation_md": md_ready,
+            })
+
+    rows = []
+    for it in items:
+        if it["replay_ready"]:
+            link = f'<a href="/?name={it["name"]}">▶ 開始回放</a>'
+        else:
+            link = '<span style="color:#888">尚未壓縮（請先 python compress.py --name ...）</span>'
+        md_tag = ' · <span style="color:#0a7">md</span>' if it["has_simulation_md"] else ''
+        rows.append(f'<li><b>{it["name"]}</b>{md_tag} — {link}</li>')
+
+    body = (
+        "<h2>請選擇要回放的模擬</h2>"
+        "<p style='color:#666'>提示：可用 <code>python replay.py --name &lt;sim&gt;</code> "
+        "啟動時就指定，下次直接訪問 / 即可。</p>"
+        f"<ul>{''.join(rows) if rows else '<li>尚無可用模擬，請先執行 start.py 與 compress.py</li>'}</ul>"
+        '<p><a href="/surveys">→ 進入問卷系統</a></p>'
+    )
+    return f"<!doctype html><meta charset='utf-8'><title>Replay</title>{body}"
+
+
 @app.route("/", methods=['GET'])
 def index():
     name = request.args.get("name", "")          # 紀錄名稱
@@ -184,10 +224,15 @@ def index():
     speed = int(request.args.get("speed", 2))    # 回放速度（0~5）
     zoom = float(request.args.get("zoom", 0.8))  # 畫面缩放比例
 
-    if len(name) > 0:
-        compressed_folder = f"results/compressed/{name}"
-    else:
-        return f"Invalid name of the simulation: '{name}'"
+    # 沒帶 name 時：優先使用 CLI 預設；仍沒有則顯示可用模擬清單
+    if not name and DEFAULT_SIM_NAME:
+        return redirect(url_for("index", name=DEFAULT_SIM_NAME, step=step or None,
+                                speed=speed, zoom=zoom))
+
+    if not name:
+        return _render_simulation_picker()
+
+    compressed_folder = f"results/compressed/{name}"
 
     replay_file = f"{compressed_folder}/{file_movement}"
     if not os.path.exists(replay_file):
@@ -605,41 +650,113 @@ def survey_create():
 @app.route("/surveys/<survey_id>", methods=['GET'])
 def survey_detail(survey_id):
     """問卷詳情頁面"""
-    from survey_system import SurveyManager
+    from survey_system import SurveyManager, SimulationContext
     manager = SurveyManager()
-    
+
     survey = manager.load_survey(survey_id)
     if not survey:
         return "問卷不存在", 404
-    
+
     responses = manager.get_responses_by_survey(survey_id)
     stats = manager.get_survey_stats(survey_id)
-    
+    simulations = SimulationContext.list_available()
+
     return render_template(
         "surveys/detail.html",
         survey=survey,
         responses=responses,
-        stats=stats
+        stats=stats,
+        simulations=simulations
     )
 
 
 @app.route("/surveys/<survey_id>/fill", methods=['POST'])
 def survey_fill(survey_id):
-    """讓AI居民填寫問卷"""
+    """讓AI居民填寫問卷（可選擇要綁定的模擬上下文）"""
     from survey_system import SurveyManager, AIResidentSurveyFiller
-    
+
+    payload = request.get_json(silent=True) or {}
+    simulation_name = payload.get("simulation_name") or request.form.get("simulation_name") or None
+    if simulation_name == "":
+        simulation_name = None
+
     manager = SurveyManager()
-    filler = AIResidentSurveyFiller(manager)
-    
     try:
+        filler = AIResidentSurveyFiller(manager, simulation_name=simulation_name)
         responses = filler.fill_survey_for_all_residents(survey_id)
         return {
             "success": True,
             "message": f"成功生成 {len(responses)} 個AI居民的問卷回應",
-            "response_count": len(responses)
+            "response_count": len(responses),
+            "simulation_name": simulation_name,
         }
     except Exception as e:
         return {"success": False, "error": str(e)}, 400
+
+
+@app.route("/surveys/simulations", methods=['GET'])
+def survey_simulations():
+    """列出可用的模擬上下文（給前端動態下拉選單使用）"""
+    from survey_system import SimulationContext
+    return {"simulations": SimulationContext.list_available()}
+
+
+@app.route("/surveys/<survey_id>/clear-responses", methods=['POST'])
+def survey_clear_responses(survey_id):
+    """清空問卷回應。mode=all 全清；mode=fallback 只清明顯 fallback 的回應。"""
+    import json as _json
+    from survey_system import SurveyManager
+
+    payload = request.get_json(silent=True) or {}
+    mode = payload.get("mode", "all")  # all | fallback
+
+    manager = SurveyManager()
+    survey = manager.load_survey(survey_id)
+    if not survey:
+        return {"success": False, "error": "問卷不存在"}, 404
+
+    if mode == "all":
+        deleted = manager.delete_survey_responses(survey_id)
+        return {"success": True, "deleted": deleted, "mode": "all"}
+
+    # mode == fallback：逐一檢查並刪除高比例 fallback 的回應
+    fallback_signals = ["其他", "其他收入", "抱歉，目前無法提供", "無法回答"]
+    responses_dir = os.path.join(manager.storage_path, "responses")
+    deleted = 0
+    if not os.path.isdir(responses_dir):
+        return {"success": True, "deleted": 0, "mode": "fallback"}
+
+    for filename in os.listdir(responses_dir):
+        if not filename.endswith(".json"):
+            continue
+        path = os.path.join(responses_dir, filename)
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+        except Exception:
+            continue
+        if data.get("survey_id") != survey_id:
+            continue
+        answers = data.get("responses", {})
+        total = len(answers)
+        if total == 0:
+            continue
+        fb = 0
+        for v in answers.values():
+            if isinstance(v, str) and any(s in v for s in fallback_signals):
+                fb += 1
+            elif isinstance(v, list) and v and all(
+                isinstance(x, str) and any(s in x for s in fallback_signals) for x in v
+            ):
+                fb += 1
+        if fb / total >= 0.7:
+            try:
+                os.remove(path)
+                deleted += 1
+            except Exception:
+                pass
+
+    return {"success": True, "deleted": deleted, "mode": "fallback"}
 
 
 @app.route("/surveys/<survey_id>/export", methods=['GET'])
@@ -691,4 +808,18 @@ def survey_analytics(survey_id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    parser = argparse.ArgumentParser(description="Replay server for the simulated village")
+    parser.add_argument("--name", type=str, default="",
+                        help="預設要載入的模擬名稱（例：scafv10）。設定後 / 會自動帶入。")
+    parser.add_argument("--port", type=int, default=5001, help="HTTP port（預設 5001）")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="綁定主機（預設 127.0.0.1）")
+    parser.add_argument("--no-debug", action="store_true", help="關閉 Flask debug 模式")
+    args = parser.parse_args()
+
+    DEFAULT_SIM_NAME = args.name
+    if DEFAULT_SIM_NAME:
+        print(f"[replay] 預設模擬: {DEFAULT_SIM_NAME} → 直接開 http://{args.host}:{args.port}/")
+    else:
+        print(f"[replay] 未指定預設模擬，開 http://{args.host}:{args.port}/ 會看到清單")
+
+    app.run(host=args.host, port=args.port, debug=not args.no_debug)
