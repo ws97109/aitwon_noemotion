@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kill 1788493)",
+      "Bash(kill 738983)",
+      "Bash(kill 890488)",
+      "Bash(kill 960932)",
+      "Bash(kill 1007315)",
+      "Bash(kill 3971574)",
+      "Bash(kill 4063708)",
+      "Bash(kill 89371)",
+      "Bash(kill 333476)",
+      "Bash(kill 402133)",
+      "Bash(kill 425896 960934 3971577)",
+      "Bash(kill 754977)",
+      "Bash(awk -F'→' '{print $2}')",
+      "Bash(awk -F'（' '{print $1}')",
+      "Read(//mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/**)",
+      "Bash(awk -F'（' '{gsub\\(/ /,\"\",$1\\); print $1}')"
+    ]
+  }
+}

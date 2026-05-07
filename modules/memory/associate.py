@@ -129,9 +129,9 @@ class Associate:
         max_memory=-1,
         max_importance=10,
         recency_decay=0.995,
-        recency_weight=0.5,
-        relevance_weight=3,
-        importance_weight=2,
+        recency_weight=1.5,
+        relevance_weight=1.5,
+        importance_weight=1.5,
         memory=None,
     ):
         self._index_config = {"embedding": embedding, "path": path}

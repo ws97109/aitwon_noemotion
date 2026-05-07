@@ -204,7 +204,8 @@ class EmotionModel:
     @staticmethod
     def _discover_sacf_checkpoint():
         """
-        自動掃描 emotion_system/models/ 找最新的 sacf_*_best.pt 檔案。
+        自動掃描 emotion_system/models/ 找 SACF checkpoint。
+        優先順序：sacf_final.pt > sacf_*_best.pt（字典序最大）
         找到則回傳路徑字串，否則回傳空字串。
         """
         import glob
@@ -212,10 +213,18 @@ class EmotionModel:
 
         # 從本模組路徑推算專案根目錄
         project_root = Path(__file__).parent.parent.parent
-        pattern = str(project_root / "emotion_system" / "models" / "sacf_*_best.pt")
+        models_dir = project_root / "emotion_system" / "models"
+
+        # 優先使用 sacf_final.pt（最終整合模型）
+        final_path = models_dir / "sacf_final.pt"
+        if final_path.exists():
+            print(f"[EmotionModel] 自動發現 SACF checkpoint：{final_path}")
+            return str(final_path)
+
+        # 備援：找 sacf_*_best.pt
+        pattern = str(models_dir / "sacf_*_best.pt")
         candidates = sorted(glob.glob(pattern))
         if candidates:
-            # 取最新（按字典序最大 = 版本號最高）
             chosen = candidates[-1]
             print(f"[EmotionModel] 自動發現 SACF checkpoint：{chosen}")
             return chosen
