@@ -20,6 +20,12 @@ class Scratch:
         self.template_path = "data/prompts"
         self.emotion = EmotionState()  # 當前情緒狀態，由 EmotionModel 更新
 
+    LANGUAGE_SUFFIX = (
+        "\n\n【語言要求】請一律使用繁體中文（台灣用字）回答，"
+        "避免出現簡體中文字。JSON 結構與英文欄位名稱保持原樣，"
+        "僅自然語言內容需為繁體中文。"
+    )
+
     def build_prompt(self, template, data):
         with open(f"{self.template_path}/{template}.txt", "r", encoding="utf-8") as file:
             file_content = file.read()
@@ -27,7 +33,7 @@ class Scratch:
         tmpl = Template(file_content)
         filled_content = tmpl.safe_substitute(data)
 
-        return filled_content
+        return filled_content + self.LANGUAGE_SUFFIX
 
     def _base_desc(self):
         # 始終顯示情緒狀態（含平靜），讓 LLM 了解角色的完整情緒脈絡

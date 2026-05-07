@@ -21,6 +21,12 @@ class EmotionPrompts:
     與現有的 Scratch.prompt_XXX() 方法格式一致
     """
 
+    LANGUAGE_SUFFIX = (
+        "\n\n【語言要求】請一律使用繁體中文（台灣用字）回答，"
+        "避免出現簡體中文字。JSON 結構與英文欄位名稱保持原樣，"
+        "僅自然語言內容需為繁體中文。"
+    )
+
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
 
@@ -113,7 +119,7 @@ class EmotionPrompts:
         )
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 2
@@ -238,7 +244,7 @@ class EmotionPrompts:
         failsafe = f"（{self.agent_name} 一時不知道該說什麼）"
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 2
@@ -316,7 +322,7 @@ class EmotionPrompts:
         }
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 1
@@ -379,7 +385,7 @@ class EmotionPrompts:
         failsafe = max(5, min(10, int(5 + emotion_intensity * 5)))
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 2
@@ -426,7 +432,7 @@ class EmotionPrompts:
         failsafe = f"{self.agent_name} 度過了平靜的一天，情緒整體穩定。"
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 1
@@ -476,7 +482,7 @@ class EmotionPrompts:
         failsafe = f"正在{current_activity}"
 
         return {
-            "prompt": prompt,
+            "prompt": prompt + self.LANGUAGE_SUFFIX,
             "callback": callback,
             "failsafe": failsafe,
             "retry": 1
