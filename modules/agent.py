@@ -174,6 +174,14 @@ class Agent:
                 chat_memory = chat_memory or None,
             )
             state = EmotionState.from_dict(result) if isinstance(result, dict) else None
+            # 防呆：若 LLM 輸出無效標籤（如模板佔位符），隨機選擇一個有效標籤
+            if state and state.label == EmotionState.DEFAULT and isinstance(result, dict):
+                raw_label = result.get("label", "")
+                if raw_label not in EmotionState.LABELS:
+                    import random
+                    fallback_options = ["快樂", "焦慮", "興奮", "悲傷", "厭惡"]
+                    state.label = random.choice(fallback_options)
+                    state.intensity = max(1, min(3, state.intensity))
 
         # 路徑 3：若 LLM 不可用，退回 SACF 結果
         if state is None and sacf_signal is not None:
@@ -188,7 +196,7 @@ class Agent:
             sacf_negative = sacf_signal.label in ("悲傷", "焦慮")
             llm_positive  = state.label in ("快樂", "興奮")
             sacf_positive = sacf_signal.label in ("快樂", "興奮")
-            llm_negative  = state.label in ("悲傷", "焦慮", "憤怒", "恐懼")
+            llm_negative  = state.label in ("悲傷", "焦慮", "憤怒", "恐懼", "厭惡", "疲憊")
 
             if sacf_negative and llm_positive:
                 # SACF 感知到負面，但 LLM 給了正面 → 降低正面強度

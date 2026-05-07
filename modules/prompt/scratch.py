@@ -672,11 +672,42 @@ class Scratch:
         memory = "\n- " + "\n- ".join([n.describe for n in nodes])
         chat_nodes = agent.associate.retrieve_chats(other.name)
         pass_context = ""
+        recent_topics = []
         for n in chat_nodes:
             delta = utils.get_timer().get_delta(n.create)
             if delta > 480:
                 continue
             pass_context += f"{delta} 分鐘前，{agent.name} 和 {other.name} 進行過對話。{n.describe}\n"
+            # 收集近期對話主題，用於避免重複
+            if n.describe and len(n.describe) > 5:
+                recent_topics.append(n.describe[:50])
+
+        # 全局話題黑名單：收集 agent 與所有人的近期對話主題（防止話題瀑布效應）
+        all_chat_nodes = agent.associate.retrieve_chats()  # 不指定名稱，取全部
+        global_topics = []
+        for n in all_chat_nodes:
+            delta = utils.get_timer().get_delta(n.create)
+            if delta > 720:  # 12小時內
+                continue
+            if n.describe and len(n.describe) > 5:
+                global_topics.append(n.describe[:50])
+
+        # 合併同一對的近期話題 + 全局高頻話題
+        all_topics = list(set(recent_topics + global_topics))
+
+        # 構建話題黑名單提示：避免回音室效應
+        topic_blacklist = ""
+        if all_topics:
+            topic_blacklist = (
+                f"\n嚴格禁止：{agent.name} 最近已經和各人反覆討論過以下話題，"
+                f"這些話題已經過度重複，絕對不要再提起：\n"
+            )
+            for t in all_topics[:8]:
+                topic_blacklist += f"- {t}\n"
+            topic_blacklist += (
+                f"請完全避開上述話題，改聊全新的、日常的內容（例如：天氣變化、食物口味、"
+                f"最近看的書/電影、身體狀況、未來計畫、校園八卦、家人近況等）。\n"
+            )
 
         address = agent.get_tile().get_address()
         if len(pass_context) > 0:
@@ -686,6 +717,8 @@ class Scratch:
         curr_context = (
             f"{agent.name} {agent.get_event().get_describe(False)} 時，看到 {other.name} {other.get_event().get_describe(False)}。"
         )
+        if topic_blacklist:
+            curr_context += topic_blacklist
 
         conversation = "\n".join(["{}: {}".format(n, u) for n, u in chats])
         conversation = (
@@ -982,54 +1015,124 @@ class Scratch:
             if self.currently:
                 relation_context = f"今日狀態與計畫：{self.currently[:200]}\n"
 
-        # ── 情境因素：讓 LLM 自然推理出情緒變化的生理/社交因素 ──
-        # 這些是客觀事實，不預設任何情緒結論，由 LLM 自由判斷
+        # ── 情境因素（僅在極端情境才提示，避免過度影響判斷）──
         situational_lines = []
         try:
             timer = utils.get_timer()
             current_hour = timer.daily_duration(mode="hour")
 
-            # 清醒時長：從 lifestyle 中解析起床時間
+            # 只在極端時段提示（深夜/凌晨 或 非常晚）
             lifestyle = self.config.get("lifestyle", "")
             import re as _re
-            wake_match = _re.search(r'(\d+)點.*(?:醒|起)', lifestyle)
-            wake_hour = int(wake_match.group(1)) if wake_match else 7
-            hours_awake = max(0, current_hour - wake_hour)
-            if hours_awake > 0:
-                situational_lines.append(f"已清醒約 {hours_awake} 小時")
-
-            # 時段描述
-            if current_hour < 6:
-                situational_lines.append("現在是深夜/凌晨")
-            elif current_hour < 12:
-                situational_lines.append("現在是上午")
-            elif current_hour < 18:
-                situational_lines.append("現在是下午")
-            else:
-                situational_lines.append("現在是晚上")
-
-            # 就寢時間提醒
-            sleep_match = _re.search(r'(\d+)點.*(?:睡|床)', lifestyle)
+            sleep_match = _re.search(r'(晚上|午夜|下午)?(\d+)點.*(?:睡|床)', lifestyle)
             if sleep_match:
-                sleep_hour = int(sleep_match.group(1))
-                if current_hour >= sleep_hour - 1:
-                    situational_lines.append("已接近或超過平時就寢時間")
+                prefix = sleep_match.group(1) or ""
+                sleep_hour = int(sleep_match.group(2))
+                # 「晚上9點」→ 21, 「午夜」→ 保持原值或+12
+                if prefix in ("晚上", "下午") and sleep_hour < 12:
+                    sleep_hour += 12
+                elif prefix == "午夜":
+                    sleep_hour = 0 if sleep_hour == 12 else sleep_hour
+                if current_hour >= sleep_hour:
+                    situational_lines.append("已超過平時就寢時間")
+            if current_hour < 5:
+                situational_lines.append("現在是深夜/凌晨")
         except Exception:
             pass
 
-        # 前一個情緒狀態（讓 LLM 知道情緒轉變的脈絡）
+        # 情緒單調性：連續 3 次相同就從選項中移除該情緒
         emotion = getattr(self, "emotion", None) or EmotionState()
-        if emotion._history:
+        banned_emotion = None
+        if emotion._history and len(emotion._history) >= 3:
             recent_labels = [h["label"] for h in emotion._history[-3:]]
             if len(set(recent_labels)) == 1 and recent_labels[0] == emotion.label:
+                banned_emotion = emotion.label
                 situational_lines.append(
-                    f"近幾次情緒偵測都是「{emotion.label}」，"
-                    f"考慮是否有更細膩的情緒變化被忽略"
+                    f"「{banned_emotion}」已被禁用（連續出現3次）。你必須從剩餘選項中選擇。"
                 )
+
+        # 情緒多樣性強制：近5次只出現常見情緒時，強制嘗試罕見情緒
+        common_emotions = {"平靜", "快樂", "焦慮", "疲憊"}
+        rare_emotions = {"悲傷", "憤怒", "恐懼", "厭惡", "驚訝", "興奮"}
+        if emotion._history and len(emotion._history) >= 5:
+            recent5_all = [h["label"] for h in emotion._history[-5:]]
+            # 只有當近5次全是常見情緒，且當前也不是罕見情緒時才強制
+            if (all(l in common_emotions for l in recent5_all)
+                    and emotion.label not in rare_emotions):
+                # 動態計算：排除歷史中已出現過多次的「罕見」情緒
+                # 這防止 LLM 每次 force-rare 都只挑最容易的（如驚訝）
+                all_hist_labels = [h["label"] for h in emotion._history]
+                from collections import Counter as _Counter
+                hist_counts = _Counter(all_hist_labels)
+                # 罕見情緒候選池，排除歷史中出現 ≥2 次的
+                available_rare = [
+                    e for e in ["悲傷", "興奮", "驚訝", "憤怒", "恐懼"]
+                    if hist_counts.get(e, 0) < 2
+                ]
+                # 若全部都已出現過，退回完整列表（避免空列表）
+                if not available_rare:
+                    available_rare = ["悲傷", "憤怒", "恐懼"]
+
+                # 構建情緒描述對照
+                # 注意：厭惡不在候選池（太容易合理化導致波動），靠自然出現
+                rare_descriptions = {
+                    "悲傷": "想念某人、感到孤獨、對現狀略感失落",
+                    "興奮": "期待即將發生的事、有新想法或靈感",
+                    "驚訝": "注意到意外的事物、計畫外的變化",
+                    "憤怒": "對不公平、被打擾或計畫被打亂感到不滿",
+                    "恐懼": "對未知結果、不確定的未來感到不安",
+                }
+                desc_lines = "\n".join(
+                    f"- {e}：{rare_descriptions[e]}" for e in available_rare
+                )
+
+                banned_emotion = "__force_rare__"
+                situational_lines.append(
+                    "強制多樣性：近期情緒過於單調。"
+                    f"這次必須從以下情緒中選擇最合適的一個：\n{desc_lines}"
+                )
+        # 正面情緒過度集中：近5次都是安全情緒時，禁用平靜
+        elif emotion._history and len(emotion._history) >= 5:
+            recent5 = [h["label"] for h in emotion._history[-5:]]
+            safe_emotions = {"平靜", "快樂", "興奮"}
+            if all(l in safe_emotions for l in recent5):
+                if not banned_emotion:
+                    banned_emotion = "平靜"
+                situational_lines.append(
+                    "近期情緒過度正面。請從焦慮、厭惡、悲傷、疲憊中選擇一個合適的情緒。"
+                )
+
+        # 睡眠/起床後情緒恢復：剛起床不應該疲憊
+        try:
+            wake_match = _re.search(r'(?:早上|上午)?(\d+)點.*(?:醒|起|起床)', lifestyle)
+            if wake_match:
+                wake_hour = int(wake_match.group(1))
+                if wake_hour < 12:
+                    wake_hour = wake_hour  # 早上的時間已是正確的
+                # 起床後 2 小時內，不應判定為疲憊
+                if wake_hour <= current_hour < wake_hour + 2:
+                    situational_lines.append(
+                        "角色剛起床不久，精神應該已恢復。"
+                        "除非有明確原因（如生病、失眠），不應判定為疲憊"
+                    )
+        except Exception:
+            pass
 
         situational_context = ""
         if situational_lines:
             situational_context = "\n情境因素：" + "；".join(situational_lines)
+
+        # 動態生成可選情緒列表：移除被禁用的情緒或強制罕見
+        all_emotions = ["快樂", "悲傷", "憤怒", "恐懼", "厭惡", "驚訝", "平靜", "焦慮", "興奮", "疲憊"]
+        if banned_emotion == "__force_rare__":
+            all_emotions = available_rare if available_rare else ["悲傷", "憤怒", "恐懼", "厭惡", "驚訝", "興奮"]
+        elif banned_emotion and banned_emotion in all_emotions:
+            all_emotions.remove(banned_emotion)
+        emotion_options = "、".join(all_emotions)
+
+        # 動態生成 JSON 範例，使用實際可選的第一個情緒���為範例
+        _ex_label = all_emotions[0] if all_emotions else "快樂"
+        json_example = f'{{"label": "{_ex_label}", "intensity": 3, "reason": "簡短原因"}}'
 
         prompt = self.build_prompt(
             "emotion_detect",
@@ -1038,6 +1141,8 @@ class Scratch:
                 "base_desc":        self._base_desc(),
                 "text":             str(text)[:600],
                 "relation_context": relation_context + situational_context,
+                "emotion_options":  emotion_options,
+                "json_example":     json_example,
             }
         )
 

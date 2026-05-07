@@ -131,7 +131,7 @@ class SACFEmotionBackend:
 
     def _load_ensemble(self, model_path: str, lang_model_arg: str):
         try:
-            from scaf_final import SACFModel
+            from scaf_final import SACFFinalModel as SACFModel
             from transformers import DebertaV2Tokenizer
 
             seed_paths = self._discover_seed_models(model_path)
@@ -151,6 +151,8 @@ class SACFEmotionBackend:
                 fusion_dim   = model_cfg.get("fusion_dim",   512)
                 top_k        = model_cfg.get("top_k",         5)
                 num_classes  = model_cfg.get("num_classes",   7)
+                dropout      = model_cfg.get("dropout",      0.15)
+                num_branches = model_cfg.get("num_branches",  4)
             else:
                 lang_model   = lang_model_arg
                 audio_dim    = self._audio_dim
@@ -159,6 +161,8 @@ class SACFEmotionBackend:
                 fusion_dim   = 512
                 top_k        = 5
                 num_classes  = 7
+                dropout      = 0.15
+                num_branches = 4
 
             print(f"[SACFEmotionBackend] 載入 tokenizer：{lang_model}")
             self._tokenizer = DebertaV2Tokenizer.from_pretrained(lang_model)
@@ -180,7 +184,8 @@ class SACFEmotionBackend:
                     fusion_dim   = fusion_dim,
                     top_k        = top_k,
                     num_classes  = num_classes,
-                    dropout      = 0.0,
+                    dropout      = dropout,
+                    num_branches = num_branches,
                 )
                 model.load_state_dict(state_dict)
                 model.to(self._device)
@@ -190,7 +195,8 @@ class SACFEmotionBackend:
 
             self._available = len(self._models) > 0
             print(f"[SACFEmotionBackend] Ensemble 載入完成 ✓"
-                  f"（{len(self._models)} 模型，純文字模式）")
+                  f"（{len(self._models)} 模型，純文字模式，"
+                  f"num_branches={num_branches}）")
 
         except FileNotFoundError:
             print(

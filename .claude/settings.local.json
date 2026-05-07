@@ -20,8 +20,24 @@
       "Bash(kill 1496151)",
       "Bash(kill 2779122)",
       "Bash(awk '{print $2, $9, $10, $11}')",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(kill 2787942)",
+      "Bash(du -sh results/checkpoints/scafv1/ results/checkpoints/scaf* results/checkpoints/clauderun results/checkpoints/test* results/checkpoints/0311 results/checkpoints/emollm*)",
+      "Bash(awk '{print $2, $11, $12, $13, $14}')",
+      "Bash(awk '{print $2, $9, $10, $11, $12, $13}')",
+      "Bash(kill 2920084)",
+      "Read(//proc/2914602/**)",
+      "Bash(kill 2914602)",
+      "Bash(grep \"lifestyle\" /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/frontend/static/assets/village/agents/*/agent.json)",
+      "Bash(kill 2798919)",
+      "Bash(awk '{count[$1]++} END {total=0; for\\(k in count\\) total+=count[k]; for\\(k in count\\) printf \"%s: %d \\(%.1f%%\\)\\\\n\", k, count[k], count[k]/total*100}')",
+      "Bash(sort -t'\\(' -k2 -rn)",
+      "Bash(kill 274129)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/results/checkpoints/clauderun"
+    ]
   }
 }

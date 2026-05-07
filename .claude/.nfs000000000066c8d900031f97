@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(ollama list:*)",
+      "Bash(echo:*)",
+      "Bash(unset:*)",
+      "Bash(git remote set-url origin https://github.com/ws97109/aitwon_noemotion.git)",
+      "Bash(find /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf -path \"*/scaf/*\" -name \"default__vector_store.json\" -exec sh -c 'if [ ! -s \"$1\" ]; then echo \"EMPTY: $1\"; elif ! python3 -c \"import json; json.load\\(open\\(\\\\\"$1\\\\\"\\)\\)\" 2>/dev/null; then echo \"INVALID: $1\"; fi' _ {} \\\\;)",
+      "Bash(kill 251735)",
+      "Bash(kill 586571)",
+      "Bash(kill 669038)",
+      "Bash(kill 1379643)",
+      "Bash(grep -r \"learned\\\\|innate\\\\|currently\" /mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/modules/*.py)",
+      "Bash(kill 1496151)",
+      "Bash(kill 2779122)",
+      "Bash(awk '{print $2, $9, $10, $11}')"
+    ],
+    "deny": []
+  }
+}

@@ -18,7 +18,7 @@
             },
             "emotion": {
                 "enabled": true,
-                "sacf_model_path": "/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/emotion_system/models/sacf_v63_best.pt",
+                "sacf_model_path": "/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf/emotion_system/models/sacf_final.pt",
                 "sacf_lang_model": "microsoft/deberta-v3-large",
                 "model_path": "",
                 "ollama_model": "",
