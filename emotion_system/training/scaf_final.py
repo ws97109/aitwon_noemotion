@@ -1,44 +1,33 @@
 """
-SCAF Final — 多分支單一模型（Multi-Branch Single Model）+ 強化訓練
-═══════════════════════════════════════════════════════════════════
+SACFFinalModel — Multi-Branch Single Model for CMU-MOSI Multimodal Sentiment
+═══════════════════════════════════════════════════════════════════════════
 
-本模型在「架構層面」就是一個單一模型，內部以 4 個並行分支提供多樣性，
-端對端訓練、單一 forward pass、單一 sacf_final.pt 輸出。
+本模型在架構層面就是一個單一 nn.Module，端對端訓練、單一 forward、單一 .pt 輸出。
+所有訓練/推論訊號皆內生於本模型 — 不使用任何外部教師、不載入任何先前訓練之權重。
 
 【架構】
   輸入（文字 / 音訊 / 視覺）
-        │
         ▼
   ┌────────────────────────────────────────┐
   │ DeBERTa-v3-large (24 層, 1024d)  [共享] │
   │ BiLSTM 音訊編碼器 (5 → 128)       [共享] │
   │ BiLSTM 視覺編碼器 (20 → 128)      [共享] │
   └────────────────────────────────────────┘
-        │
-        ├──→ Branch 1: PEA₁ + SACF₁ + Proj₁ + Heads₁
-        ├──→ Branch 2: PEA₂ + SACF₂ + Proj₂ + Heads₂
-        ├──→ Branch 3: PEA₃ + SACF₃ + Proj₃ + Heads₃
-        └──→ Branch 4: PEA₄ + SACF₄ + Proj₄ + Heads₄
-                          │
-                  ┌───────┴────────┐
-                  │  分支內部平均   │
-                  │  (mean logits)  │
-                  └────────────────┘
-                          │
-                  cls7 / cls2 / reg
+        ├──→ Branch 1: PEA + SACF + Proj + (cls7, cls2, reg)
+        ├──→ Branch 2: ...
+        ├──→ Branch 3: ...
+        └──→ Branch 4: ...
+                          ▼
+              分支內部平均 → cls7_mean / cls2_mean / reg_mean
+                          ▼
+              Reg-Cls 機率融合（推斷時）  →  ŷ
 
-【強化訓練 (相對於原始版本)】
-  1. **DKD (Decoupled KD)** — 用 12 模型 ensemble teacher logits 蒸餾，
-     拆解為 TCKD（目標類）與 NCKD（非目標類），β=8 強化 dark knowledge。
-  2. **DIST loss** — Pearson 相關係數蒸餾，補強強教師與學生差距。
-  3. **SORD soft labels** — 利用 7 類序數性質，將 one-hot 替換為高斯軟標籤。
-  4. **Manifold Mixup** — 在融合特徵層做 mixup，提升泛化。
-  5. **Reg-Cls 推斷融合** — 將回歸頭預測值轉為高斯 PMF，與分類 softmax 幾何平均。
-  6. **SWA + EMA** — 平均後段快照，降低變異。
-  7. **更寬的分支 dropout 散佈** — [0.10, 0.20, 0.30, 0.40] 強化分支差異化。
-
-【KD 教師檔】
-  emotion_system/models/teacher_logits_trainval.npy  (1513, 7)  ← 必要
+【內生訓練訊號（無外部依賴）】
+  · 每分支獨立任務損失（per-branch SORD/EMD/CE/SmoothL1）
+  · 分支平均輸出損失（mean SORD/EMD/CE/SmoothL1）
+  · 分支多樣性正則化（cosine penalty between branch features）
+  · Manifold Mixup（fusion-layer mixup）
+  · EMA + SWA（多快照權重平均）
 
 【產出】
   emotion_system/models/sacf_final.pt   ← 單一檔案、單一 state_dict
@@ -60,7 +49,6 @@ from transformers import AutoModel, DebertaV2Tokenizer, get_cosine_schedule_with
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_PATH = PROJECT_ROOT / "emotion_system/data/mosi/unaligned_50.pkl"
 MODEL_DIR = PROJECT_ROOT / "emotion_system/models"
-TEACHER_LOGITS_PATH = MODEL_DIR / "teacher_logits_trainval.npy"
 TASK_PROMPT = "Predict the sentiment intensity (-3 to 3, negative to positive) of the following text: "
 
 NUM_BRANCHES = 4
@@ -79,11 +67,8 @@ def set_seed(seed):
 # Dataset (optional teacher logits via index)
 # ─────────────────────────────────────────────────────────────
 class MOSIDataset(Dataset):
-    """
-    通用 MOSI 資料集；若提供 teacher_logits（shape [N, 7]）則樣本附帶 KD 軟目標。
-    為保持與既有 loader 相容：未提供 teacher_logits 時行為與舊版一致。
-    """
-    def __init__(self, split_data, tokenizer, max_text_len=80, teacher_logits=None):
+    """通用 CMU-MOSI 資料集，輸出文字／音訊／視覺三模態與三種標籤（cls7、cls2、reg）。"""
+    def __init__(self, split_data, tokenizer, max_text_len=80):
         self.tokenizer = tokenizer; self.max_text_len = max_text_len
         self.raw_text = split_data["raw_text"]
         self.audio = torch.FloatTensor(split_data["audio"])
@@ -95,7 +80,6 @@ class MOSIDataset(Dataset):
         rounded = np.clip(np.round(labels).astype(int), -3, 3)
         self.cls7_labels = torch.LongTensor(rounded + 3)
         self.cls2_labels = torch.LongTensor((labels >= 0).astype(int))
-        self.teacher_logits = teacher_logits  # [N, 7] or None
 
     def __len__(self): return len(self.raw_text)
     def __getitem__(self, idx):
@@ -106,16 +90,13 @@ class MOSIDataset(Dataset):
         vis_len = min(int(self.vision_lengths[idx]), self.vision.shape[1])
         aud_mask = torch.zeros(self.audio.shape[1]); aud_mask[:aud_len] = 1.0
         vis_mask = torch.zeros(self.vision.shape[1]); vis_mask[:vis_len] = 1.0
-        item = {"input_ids": enc["input_ids"].squeeze(0),
+        return {"input_ids": enc["input_ids"].squeeze(0),
                 "attention_mask": enc["attention_mask"].squeeze(0),
                 "audio": self.audio[idx], "audio_mask": aud_mask,
                 "vision": self.vision[idx], "vision_mask": vis_mask,
                 "cls7_label": self.cls7_labels[idx],
                 "cls2_label": self.cls2_labels[idx],
                 "reg_label": self.reg_labels[idx]}
-        if self.teacher_logits is not None:
-            item["teacher_logits"] = torch.FloatTensor(self.teacher_logits[idx])
-        return item
 
 
 # ─────────────────────────────────────────────────────────────
@@ -175,6 +156,53 @@ class ModalityEncoder(nn.Module):
         return self.proj(torch.cat([h[-2], h[-1]], dim=-1))
 
 
+class HierarchicalSACF(nn.Module):
+    """兩階段 cross-modal fusion：第一階段做粗融合，第二階段以其輸出為新查詢做精融合。"""
+    def __init__(self, lang_dim, modal_dim, top_k=5, dropout=0.1):
+        super().__init__()
+        self.sacf1 = SentimentAwareCrossModalAttention(lang_dim, modal_dim, top_k, dropout)
+        self.sacf2 = SentimentAwareCrossModalAttention(lang_dim, modal_dim, top_k, dropout)
+
+    def forward(self, xl_hidden, xl_cls, gates, xa, xv):
+        f1 = self.sacf1(xl_hidden, xl_cls, gates, xa, xv)
+        f2 = self.sacf2(xl_hidden, f1, gates, xa, xv)
+        return f2
+
+
+class CMCProjection(nn.Module):
+    """跨模態對比學習投影頭：text_cls / audio / vision → 共用 d 維 unit-norm 空間。
+    僅於訓練時使用（推斷不需），但會與模型一同 save/load。"""
+    def __init__(self, lang_dim=1024, modal_dim=128, proj_dim=128):
+        super().__init__()
+        self.text_proj = nn.Sequential(
+            nn.Linear(lang_dim, lang_dim // 4), nn.GELU(),
+            nn.Linear(lang_dim // 4, proj_dim))
+        self.audio_proj = nn.Sequential(
+            nn.Linear(modal_dim, modal_dim), nn.GELU(),
+            nn.Linear(modal_dim, proj_dim))
+        self.vision_proj = nn.Sequential(
+            nn.Linear(modal_dim, modal_dim), nn.GELU(),
+            nn.Linear(modal_dim, proj_dim))
+
+    def forward(self, text_repr, xa, xv):
+        return (F.normalize(self.text_proj(text_repr), dim=-1),
+                F.normalize(self.audio_proj(xa), dim=-1),
+                F.normalize(self.vision_proj(xv), dim=-1))
+
+
+def info_nce_cmc(t_emb, a_emb, v_emb, tau=0.07):
+    """對稱 InfoNCE: text↔audio + text↔vision，雙方向皆計算。
+    正樣本 = 同 batch 同 idx；負樣本 = batch 內其他樣本。"""
+    B = t_emb.size(0)
+    if B < 2: return torch.tensor(0.0, device=t_emb.device)
+    labels = torch.arange(B, device=t_emb.device)
+    sim_ta = t_emb @ a_emb.T / tau
+    sim_tv = t_emb @ v_emb.T / tau
+    l_ta = (F.cross_entropy(sim_ta, labels) + F.cross_entropy(sim_ta.T, labels)) / 2
+    l_tv = (F.cross_entropy(sim_tv, labels) + F.cross_entropy(sim_tv.T, labels)) / 2
+    return (l_ta + l_tv) / 2
+
+
 # ═══════════════════════════════════════════════════════════════
 # 多分支單一模型
 # ═══════════════════════════════════════════════════════════════
@@ -203,8 +231,9 @@ class SACFFinalModel(nn.Module):
         self.pea = nn.ModuleList([
             PolarityEnhancedAttention(lang_dim, d_list[i]) for i in range(num_branches)
         ])
+        # 每分支採用 Hierarchical SACF（2-stage cross-modal fusion）
         self.sacf = nn.ModuleList([
-            SentimentAwareCrossModalAttention(lang_dim, modal_hidden, top_k, d_list[i])
+            HierarchicalSACF(lang_dim, modal_hidden, top_k, d_list[i])
             for i in range(num_branches)
         ])
         self.shared_proj = nn.ModuleList([
@@ -225,14 +254,31 @@ class SACFFinalModel(nn.Module):
             with torch.no_grad():
                 head.weight.add_(torch.randn_like(head.weight) * 0.005 * (i + 1))
 
+        # 跨模態對比學習投影頭（訓練輔助訊號；推斷不需要但仍 save/load）
+        self.cmc_proj = CMCProjection(lang_dim=lang_dim, modal_dim=modal_hidden, proj_dim=128)
+
+        # Modality dropout 機率（保留 API 兼容；預設 0 不啟用）
+        self.modality_dropout_p = 0.0
+
     def forward(self, input_ids, attention_mask, audio, audio_mask, vision, vision_mask,
                 return_per_branch=False, mixup_perm=None, mix_lambda=1.0,
-                return_features=False):
+                return_features=False, return_cmc=False):
         audio = F.normalize(torch.nan_to_num(audio, nan=0.0, posinf=1.0, neginf=-1.0), p=2, dim=-1)
         vision = F.normalize(torch.nan_to_num(vision, nan=0.0, posinf=1.0, neginf=-1.0), p=2, dim=-1)
         hidden = self.lang_backbone(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state
         xa = self.audio_encoder(audio, audio_mask)
         xv = self.vision_encoder(vision, vision_mask)
+        text_cls = hidden[:, 0, :]   # DeBERTa [CLS] (用於 CMC 對比)
+
+        # Modality dropout（保留 API；預設 0）
+        if self.training and self.modality_dropout_p > 0:
+            B = xa.size(0)
+            trigger = torch.rand(B, device=xa.device) < self.modality_dropout_p
+            choose_audio = torch.rand(B, device=xa.device) < 0.5
+            audio_mask_zero = (trigger & choose_audio).float().unsqueeze(-1)
+            vision_mask_zero = (trigger & (~choose_audio)).float().unsqueeze(-1)
+            xa = xa * (1.0 - audio_mask_zero)
+            xv = xv * (1.0 - vision_mask_zero)
 
         l7_list, l2_list, reg_list, feat_list = [], [], [], []
         for i in range(self.num_branches):
@@ -250,6 +296,11 @@ class SACFFinalModel(nn.Module):
         l2_mean = torch.stack(l2_list).mean(0)
         reg_mean = torch.stack(reg_list).mean(0)
 
+        if return_cmc:
+            # 投影至共用空間（unit-norm）以便計算 InfoNCE
+            t_emb, a_emb, v_emb = self.cmc_proj(text_cls, xa, xv)
+            return (l7_mean, l2_mean, reg_mean, l7_list, l2_list, reg_list, feat_list,
+                    t_emb, a_emb, v_emb)
         if return_per_branch and return_features:
             return l7_mean, l2_mean, reg_mean, l7_list, l2_list, reg_list, feat_list
         if return_per_branch:
@@ -303,72 +354,6 @@ def sord_loss(logits, labels, sigma=1.0, weight=None):
     return -(soft * log_p).sum(-1).mean()
 
 
-def dkd_loss(student_logits, teacher_logits, target, T=4.0, alpha=1.0, beta=8.0, num_classes=7):
-    """
-    Decoupled Knowledge Distillation (Zhao et al., CVPR 2022).
-    L_DKD = alpha * TCKD + beta * NCKD
-    TCKD: KL on binary {target, non-target} distribution.
-    NCKD: KL on non-target classes (teacher 'dark knowledge').
-
-    實作對齊 mdistiller 官方版（避開 0 * -inf 的 NaN 風險）。
-    """
-    gt = F.one_hot(target, num_classes=num_classes).float()  # [B, K]
-    other = 1.0 - gt
-    s_p = F.softmax(student_logits / T, dim=-1).clamp(min=1e-7)
-    t_p = F.softmax(teacher_logits / T, dim=-1).clamp(min=1e-7)
-
-    # ---- TCKD: 二元 {target, non-target} 分佈的 KL ----
-    s_target = (s_p * gt).sum(dim=-1)                # [B]
-    s_non = (s_p * other).sum(dim=-1)
-    t_target = (t_p * gt).sum(dim=-1)
-    t_non = (t_p * other).sum(dim=-1)
-    # KL(p_t || p_s) ≈ p_t * log(p_t/p_s)
-    s_pair = torch.stack([s_target, s_non], dim=-1).clamp(min=1e-7)
-    t_pair = torch.stack([t_target, t_non], dim=-1).clamp(min=1e-7)
-    tckd = (t_pair * (t_pair.log() - s_pair.log())).sum(-1).mean() * (T * T)
-
-    # ---- NCKD: 非目標類別 K-1 維分佈上的 KL ----
-    # 將 target 機率歸零後重新歸一
-    s_nc = (s_p * other) / s_non.unsqueeze(-1).clamp(min=1e-7)   # [B, K]，target 行為 0
-    t_nc = (t_p * other) / t_non.unsqueeze(-1).clamp(min=1e-7)
-    s_nc = s_nc.clamp(min=1e-7); t_nc = t_nc.clamp(min=1e-7)
-    # KL(t_nc || s_nc) — target 那一列在 t_nc 為極小（≈1e-7）但乘 log(...) 仍有微弱貢獻；
-    # 為嚴謹起見在 target 那一列 mask 掉貢獻
-    elem = t_nc * (t_nc.log() - s_nc.log()) * other
-    nckd = elem.sum(-1).mean() * (T * T)
-
-    return alpha * tckd + beta * nckd
-
-
-def dist_loss(student_logits, teacher_logits, beta_inter=2.0, beta_intra=2.0, T=1.0):
-    """
-    DIST: Knowledge Distillation from a Stronger Teacher (Huang et al., NeurIPS 2022).
-    Pearson correlation match (relation-based KD).
-    inter-class: row-wise correlation across classes per-sample.
-    intra-class: column-wise correlation across batch per-class.
-    """
-    s = F.softmax(student_logits / T, dim=-1)
-    t = F.softmax(teacher_logits / T, dim=-1)
-
-    def pcorr(a, b, dim):
-        a = a - a.mean(dim=dim, keepdim=True)
-        b = b - b.mean(dim=dim, keepdim=True)
-        num = (a * b).sum(dim=dim)
-        den = (a.pow(2).sum(dim=dim).sqrt() * b.pow(2).sum(dim=dim).sqrt()).clamp(min=1e-7)
-        return (num / den).mean()
-
-    inter = 1 - pcorr(s, t, dim=-1)   # per-sample across classes
-    intra = 1 - pcorr(s, t, dim=0)    # per-class across batch
-    return beta_inter * inter + beta_intra * intra
-
-
-def kd_kl_loss(student_logits, teacher_logits, T=4.0):
-    """Vanilla KL distillation as fallback."""
-    s_log_p = F.log_softmax(student_logits / T, dim=-1)
-    t_p = F.softmax(teacher_logits / T, dim=-1)
-    return F.kl_div(s_log_p, t_p, reduction='batchmean') * (T * T)
-
-
 class EMA:
     def __init__(self, model, decay=0.9995):
         self.model = model; self.decay = decay
@@ -399,13 +384,45 @@ def compute_class_weights(labels, n=7):
 
 
 # ─────────────────────────────────────────────────────────────
-# Train epoch — DKD + DIST + SORD + manifold mixup + per-branch
+# Squared EMD loss (CDF L2) — better than abs-EMD on small ordinal sets
+# ─────────────────────────────────────────────────────────────
+def squared_emd_loss(logits, labels, num_classes=7):
+    p = F.softmax(logits, dim=-1)
+    cdf_p = p.cumsum(dim=-1)
+    cdf_t = F.one_hot(labels, num_classes).float().cumsum(dim=-1)
+    return ((cdf_p - cdf_t) ** 2).mean()
+
+
+# ─────────────────────────────────────────────────────────────
+# Logit standardization (Sun et al., CVPR 2024) — z-score per sample
+# 用於 EMA self-teacher KL 計算前的標準化（解決 logit scale mismatch）
+# ─────────────────────────────────────────────────────────────
+def logit_z(logits, eps=1e-7):
+    mu = logits.mean(dim=-1, keepdim=True)
+    sd = logits.std(dim=-1, keepdim=True).clamp(min=eps)
+    return (logits - mu) / sd
+
+
+# ─────────────────────────────────────────────────────────────
+# Train epoch — 純內生訊號：SORD + sq-EMD + per-branch + diversity + manifold mixup
+# 進階訊號（內生）：EMA self-teacher MSE on standardized logits、R-Drop 對偶 KL
 # ─────────────────────────────────────────────────────────────
 def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
-                optimizer, scheduler, device, scaler, ema, cfg, emd_crit):
+                optimizer, scheduler, device, scaler, ema, cfg, emd_crit,
+                ema_teacher=None, ema_teacher_decay=0.999, current_epoch=0):
+    """ema_teacher: 額外的 EMA shadow 模型（self-teacher），若為 None 則不啟用 self-distill。
+    ema_teacher_decay: 每步 step-wise EMA 更新動量（推薦 0.999）。"""
     model.train(); total_loss = 0.0; nan_count = 0
     rng = np.random.default_rng()
-    use_kd = cfg.get("w_kd_dkd", 0.0) + cfg.get("w_kd_dist", 0.0) + cfg.get("w_kd_kl", 0.0) > 0
+
+    @torch.no_grad()
+    def _step_ema_teacher_update():
+        if ema_teacher is None: return
+        for ts, ms in zip(ema_teacher.state_dict().values(), model.state_dict().values()):
+            if ts.dtype.is_floating_point:
+                ts.mul_(ema_teacher_decay).add_(ms.detach(), alpha=1.0 - ema_teacher_decay)
+            else:
+                ts.copy_(ms)
 
     for batch in tqdm(loader, desc="Train", leave=False):
         ids = batch["input_ids"].to(device); mask = batch["attention_mask"].to(device)
@@ -413,7 +430,6 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
         vis = batch["vision"].to(device); vmask = batch["vision_mask"].to(device)
         cl7 = batch["cls7_label"].to(device); cl2 = batch["cls2_label"].to(device)
         rl = batch["reg_label"].to(device)
-        teacher = batch["teacher_logits"].to(device) if use_kd and "teacher_logits" in batch else None
 
         # Manifold mixup setup
         do_mixup = cfg["mixup_alpha"] > 0 and rng.random() < cfg.get("mixup_p", 0.5)
@@ -424,12 +440,23 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
         else:
             lam = 1.0; perm = None
 
+        # 啟用 CMC 對比輔助時（且已超過 warmup 階段），需要 model forward 同時返回 t/a/v 投影
+        use_cmc = ((cfg.get("w_cmc", 0.0) > 0)
+                   and (not do_mixup)
+                   and (current_epoch >= cfg.get("cmc_warmup_epochs", 0)))
+
         optimizer.zero_grad()
         with torch.amp.autocast('cuda', enabled=(scaler is not None)):
-            l7m, l2m, regm, l7l, l2l, regl, feat_list = model(
-                ids, mask, aud, amask, vis, vmask,
-                return_per_branch=True, return_features=True,
-                mixup_perm=perm, mix_lambda=lam)
+            if use_cmc:
+                l7m, l2m, regm, l7l, l2l, regl, feat_list, t_emb, a_emb, v_emb = model(
+                    ids, mask, aud, amask, vis, vmask,
+                    return_cmc=True,
+                    mixup_perm=perm, mix_lambda=lam)
+            else:
+                l7m, l2m, regm, l7l, l2l, regl, feat_list = model(
+                    ids, mask, aud, amask, vis, vmask,
+                    return_per_branch=True, return_features=True,
+                    mixup_perm=perm, mix_lambda=lam)
 
             # ---- per-branch GT losses (SORD soft labels for cls7) ----
             sord_sigma = cfg.get("sord_sigma", 1.0)
@@ -439,14 +466,14 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
                     cl7_b = cl7[perm]; cl2_b = cl2[perm]; rl_b = rl[perm]
                     bcls7 = lam * sord_loss(l7, cl7, sord_sigma) + (1-lam) * sord_loss(l7, cl7_b, sord_sigma)
                     if emd_crit is not None and cfg["emd_weight"] > 0:
-                        bemd = lam * emd_crit(l7, cl7) + (1-lam) * emd_crit(l7, cl7_b)
+                        bemd = lam * squared_emd_loss(l7, cl7) + (1-lam) * squared_emd_loss(l7, cl7_b)
                         bcls7 = (1 - cfg["emd_weight"]) * bcls7 + cfg["emd_weight"] * bemd
                     bcls2 = lam * cls2_crit(l2, cl2) + (1-lam) * cls2_crit(l2, cl2_b)
                     breg = reg_crit(reg, lam * rl + (1-lam) * rl_b)
                 else:
                     bcls7 = sord_loss(l7, cl7, sord_sigma)
                     if emd_crit is not None and cfg["emd_weight"] > 0:
-                        bcls7 = (1 - cfg["emd_weight"]) * bcls7 + cfg["emd_weight"] * emd_crit(l7, cl7)
+                        bcls7 = (1 - cfg["emd_weight"]) * bcls7 + cfg["emd_weight"] * squared_emd_loss(l7, cl7)
                     bcls2 = cls2_crit(l2, cl2)
                     breg = reg_crit(reg, rl)
                 per_branch_loss = per_branch_loss + bcls7 + 0.3 * bcls2 + 0.4 * breg
@@ -457,32 +484,35 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
                 cl7_b = cl7[perm]; cl2_b = cl2[perm]; rl_b = rl[perm]
                 mcls7 = lam * sord_loss(l7m, cl7, sord_sigma) + (1-lam) * sord_loss(l7m, cl7_b, sord_sigma)
                 if emd_crit is not None and cfg["emd_weight"] > 0:
-                    memd = lam * emd_crit(l7m, cl7) + (1-lam) * emd_crit(l7m, cl7_b)
+                    memd = lam * squared_emd_loss(l7m, cl7) + (1-lam) * squared_emd_loss(l7m, cl7_b)
                     mcls7 = (1 - cfg["emd_weight"]) * mcls7 + cfg["emd_weight"] * memd
                 mcls2 = lam * cls2_crit(l2m, cl2) + (1-lam) * cls2_crit(l2m, cl2_b)
                 mreg = reg_crit(regm, lam * rl + (1-lam) * rl_b)
             else:
                 mcls7 = sord_loss(l7m, cl7, sord_sigma)
                 if emd_crit is not None and cfg["emd_weight"] > 0:
-                    mcls7 = (1 - cfg["emd_weight"]) * mcls7 + cfg["emd_weight"] * emd_crit(l7m, cl7)
+                    mcls7 = (1 - cfg["emd_weight"]) * mcls7 + cfg["emd_weight"] * squared_emd_loss(l7m, cl7)
                 mcls2 = cls2_crit(l2m, cl2)
                 mreg = reg_crit(regm, rl)
             mean_loss = mcls7 + 0.3 * mcls2 + 0.4 * mreg
 
-            # ---- KD losses (DKD + DIST + optional KL) on mean logits ----
-            kd_total = torch.tensor(0.0, device=device)
-            if teacher is not None and not do_mixup:
-                if cfg.get("w_kd_dkd", 0.0) > 0:
-                    kd_total = kd_total + cfg["w_kd_dkd"] * dkd_loss(
-                        l7m, teacher, cl7, T=cfg["kd_T"],
-                        alpha=cfg.get("dkd_alpha", 1.0),
-                        beta=cfg.get("dkd_beta", 8.0))
-                if cfg.get("w_kd_dist", 0.0) > 0:
-                    kd_total = kd_total + cfg["w_kd_dist"] * dist_loss(l7m, teacher)
-                if cfg.get("w_kd_kl", 0.0) > 0:
-                    kd_total = kd_total + cfg["w_kd_kl"] * kd_kl_loss(l7m, teacher, T=cfg["kd_T"])
+            # ---- 內生訊號 1: EMA self-teacher (Mean Teacher style, no external) ----
+            sd_loss = torch.tensor(0.0, device=device)
+            if (ema_teacher is not None) and (cfg.get("w_self_distill", 0.0) > 0) and not do_mixup:
+                with torch.no_grad():
+                    t_l7m, _, _ = ema_teacher(ids, mask, aud, amask, vis, vmask)
+                # Logit standardization (Sun et al., CVPR 2024) before MSE
+                sd_loss = F.mse_loss(logit_z(l7m), logit_z(t_l7m).detach())
 
-            # ---- Diversity (on features, low weight) ----
+            # ---- 內生訊號 2: R-Drop (Liang NeurIPS 2021) — symmetric KL between two stochastic forwards ----
+            rd_loss = torch.tensor(0.0, device=device)
+            if (cfg.get("w_rdrop", 0.0) > 0) and not do_mixup:
+                l7m2, _, _ = model(ids, mask, aud, amask, vis, vmask)
+                p1 = F.log_softmax(l7m, dim=-1); p2 = F.log_softmax(l7m2, dim=-1)
+                rd_loss = 0.5 * (F.kl_div(p1, p2.exp().detach(), reduction='batchmean')
+                               + F.kl_div(p2, p1.exp().detach(), reduction='batchmean'))
+
+            # ---- 內生訊號 3: Diversity (cosine penalty on branch features) ----
             div_l = 0.0
             if cfg["diversity_weight"] > 0:
                 feats_norm = [F.normalize(f.flatten(1), dim=1) for f in feat_list]
@@ -493,9 +523,16 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
                         cnt += 1
                 div_l = div_l / max(cnt, 1)
 
+            # ---- 內生訊號 4: 跨模態 InfoNCE 對比輔助（text↔audio + text↔vision） ----
+            cmc_loss = torch.tensor(0.0, device=device)
+            if use_cmc and ids.size(0) >= 4:
+                cmc_loss = info_nce_cmc(t_emb, a_emb, v_emb, tau=cfg.get("cmc_tau", 0.07))
+
             loss = (cfg["w_mean"] * mean_loss
                   + cfg["w_per"]  * per_branch_loss
-                  + kd_total
+                  + cfg.get("w_self_distill", 0.0) * sd_loss
+                  + cfg.get("w_rdrop", 0.0) * rd_loss
+                  + cfg.get("w_cmc", 0.0) * cmc_loss
                   + cfg["diversity_weight"] * div_l)
 
         if torch.isnan(loss) or torch.isinf(loss):
@@ -512,6 +549,7 @@ def train_epoch(model, loader, cls7_crit, cls2_crit, reg_crit,
         ema.update(); scheduler.step()
         if hasattr(scheduler, '_new_group_sched'):
             scheduler._new_group_sched.step()
+        _step_ema_teacher_update()  # step-wise EMA update for self-teacher
         total_loss += loss.item()
     if nan_count > 0:
         print(f"  [warn] {nan_count} NaN batches", end="")
@@ -578,70 +616,75 @@ def fuse_reg_cls(cls_logits, reg_pred, alpha=0.7, sigma=0.7, T_cls=1.0):
 # ─────────────────────────────────────────────────────────────
 def main():
     print("=" * 70)
-    print("SCAF Final — 多分支單一模型 + DKD/DIST/SORD/Reg-Cls 融合")
+    print("SACFFinalModel — Multi-Branch Single Model")
+    print("  Architecture: Shared (DeBERTa + BiLSTM) + 4-Branch (PEA + Hierarchical SACF + heads)")
+    print("  Auxiliary  : Cross-Modal InfoNCE Contrastive (text↔audio, text↔vision)")
     print(f"  分支數：{NUM_BRANCHES}  |  Branch Dropouts：{BRANCH_DROPOUTS}")
     print("=" * 70)
 
+    # ─────────────────────────────────────────────────────────────
+    # 兩階段訓練設計（封裝於單一 script，論文中描述為「two-stage in single run」）
+    #   Stage 1 (E1–60): base training (SORD + sq-EMD + R-Drop + Manifold Mixup)
+    #     · cosine LR schedule, peak head_lr=8e-5, lang_lr=4e-6
+    #     · DeBERTa 下 6 層在 E20 解凍
+    #     · SWA window E42–60，每 2 個 epoch 採樣（10 snapshots）
+    #     · Cross-Modal Contrastive 不啟用
+    #   Stage 2 (E61–80): polish + cross-modal contrastive
+    #     · 低 LR：head_lr/4=2e-5, lang_lr/4=1e-6 (重置 cosine schedule)
+    #     · 啟用 w_cmc=0.3
+    #     · 密集 SWA 視窗：每 epoch 採樣（12 snapshots）
+    #     · 結束時 22 個 SWA 快照平均
+    # ─────────────────────────────────────────────────────────────
     cfg = {
         "lang_model": "microsoft/deberta-v3-large",
-        "batch_size": 8, "num_epochs": 60,
-        "lang_lr": 4e-6, "head_lr": 8e-5,
+        "batch_size": 8,
         "weight_decay": 0.01, "dropout": 0.15,
         "label_smoothing": 0.05,
         "focal_gamma": 2.0,
-        "swa_start": 42, "swa_step": 2,
-        "n_tta": 1, "seed": 2024,
-        # KD
-        "w_kd_dkd": 1.0,        # DKD primary
-        "dkd_alpha": 1.0,       # TCKD weight
-        "dkd_beta":  8.0,       # NCKD weight (dark knowledge)
-        "kd_T":      4.0,
-        "w_kd_dist": 1.5,       # DIST stronger-teacher relation loss
-        "w_kd_kl":   0.0,       # vanilla KL (off; DKD covers it)
-        # GT losses
-        "w_mean":   0.5,        # mean-output GT
-        "w_per":    0.5,        # per-branch GT
-        "sord_sigma": 1.0,      # SORD softness
-        "emd_weight":  0.25,
-        # Regularization
+        "n_tta": 1, "seed": 42,
+        "stage2_seed": 1234,    # Stage 2 開始時重置 seed（替 fine-tune 階段提供新軌跡）
+        # 主要任務損失
+        "w_mean": 0.5, "w_per": 0.5,
+        "sord_sigma": 0.8, "emd_weight": 0.3,
+        # 自蒸餾關閉
+        "w_self_distill": 0.0, "ema_teacher_decay": 0.999, "ema_warmup_epochs": 999,
+        # R-Drop
+        "w_rdrop": 0.1,
+        # 跨模態 InfoNCE（兩階段控制）
+        "w_cmc_stage1": 0.0,        # Stage 1 關閉
+        "w_cmc_stage2": 0.3,        # Stage 2 啟用
+        "cmc_tau": 0.07,
+        "cmc_warmup_epochs": 0,     # 兩階段以 stage 切換控制，不再用 epoch warmup
+        # Stage 1 配置
+        "stage1_epochs": 60,
+        "stage1_lang_lr": 4e-6, "stage1_head_lr": 8e-5,
+        "stage1_swa_start": 42, "stage1_swa_step": 2,
+        # Stage 2 配置
+        "stage2_epochs": 20,
+        "stage2_lang_lr": 1e-6, "stage2_head_lr": 2e-5,
+        "stage2_swa_start": 5, "stage2_swa_step": 1,
+        # 正則化
         "mixup_alpha": 0.4, "mixup_p": 0.5,
         "diversity_weight": 0.02,
-        # Inference fusion
-        "fuse_alpha": 0.65,     # weight on cls vs reg-pmf
-        "fuse_sigma": 0.65,     # reg PMF spread
-        "fuse_T":     1.0,
+        # 推斷時 Reg-Cls 融合（事前固定）
+        "fuse_alpha": 0.65, "fuse_sigma": 0.65, "fuse_T": 1.0,
+        # 衍生欄位（為了 train_epoch 介面相容；實際使用 cfg["w_cmc"] 而非 stage1/2）
+        "w_cmc": 0.0,    # 訓練主迴圈會在 stage 切換時動態設定
+        "lang_lr": 4e-6, "head_lr": 8e-5,
+        "num_epochs": 80,    # 總 epoch (60 + 20)
+        "swa_start": 42, "swa_step": 2,
     }
 
     set_seed(cfg["seed"])
 
-    # ── 載入資料與 teacher logits ──
+    # ── 載入資料 ──
     print(f"\n載入資料：{DATA_PATH}")
     with open(DATA_PATH, "rb") as f: data = pickle.load(f)
     tokenizer = DebertaV2Tokenizer.from_pretrained(cfg["lang_model"])
 
-    teacher_logits = None
-    if TEACHER_LOGITS_PATH.exists():
-        teacher_logits = np.load(str(TEACHER_LOGITS_PATH)).astype(np.float32)
-        print(f"  [KD] teacher logits: {teacher_logits.shape}  "
-              f"mean={teacher_logits.mean():.3f} std={teacher_logits.std():.3f}")
-    else:
-        print(f"  [KD] teacher logits not found → KD disabled")
-        cfg["w_kd_dkd"] = 0.0; cfg["w_kd_dist"] = 0.0; cfg["w_kd_kl"] = 0.0
-
-    n_train = len(data["train"]["raw_text"]); n_val = len(data["valid"]["raw_text"])
-    if teacher_logits is not None:
-        assert teacher_logits.shape[0] == n_train + n_val, \
-            f"Teacher size {teacher_logits.shape[0]} ≠ train+val {n_train+n_val}"
-        merged = {k: (np.concatenate([data["train"][k], data["valid"][k]], axis=0)
-                      if hasattr(data["train"][k], "shape")
-                      else (list(data["train"][k]) + list(data["valid"][k])))
-                  for k in data["train"].keys()}
-        trainval_ds = MOSIDataset(merged, tokenizer, teacher_logits=teacher_logits)
-    else:
-        train_ds = MOSIDataset(data["train"], tokenizer)
-        val_ds = MOSIDataset(data["valid"], tokenizer)
-        trainval_ds = ConcatDataset([train_ds, val_ds])
-
+    train_ds = MOSIDataset(data["train"], tokenizer)
+    val_ds = MOSIDataset(data["valid"], tokenizer)
+    trainval_ds = ConcatDataset([train_ds, val_ds])
     test_ds = MOSIDataset(data["test"], tokenizer)
     print(f"  Train+Val={len(trainval_ds)}  Test={len(test_ds)}")
 
@@ -665,23 +708,10 @@ def main():
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"  總參數量：{n_params/1e6:.1f}M")
 
-    # 凍結 DeBERTa 下層 6 層（前 1/3 epoch）
+    # 凍結 DeBERTa 下層 6 層（Stage 1 前 1/3 epoch）
     for i in range(6):
         for p in model.lang_backbone.encoder.layer[i].parameters():
             p.requires_grad = False
-
-    backbone_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" in n]
-    head_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" not in n]
-    optimizer = optim.AdamW([
-        {"params": backbone_p, "lr": cfg["lang_lr"]},
-        {"params": head_p, "lr": cfg["head_lr"]},
-    ], weight_decay=cfg["weight_decay"])
-
-    total_steps = len(train_loader) * cfg["num_epochs"]
-    warmup_steps = int(total_steps * 0.06)
-    scheduler = get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps)
-    scaler = torch.amp.GradScaler('cuda') if "cuda" in device else None
-    ema = EMA(model, 0.9995)
 
     cw = class_weights.to(device)
     cls7_crit = FocalLoss(cfg["focal_gamma"], cw, cfg["label_smoothing"])
@@ -689,43 +719,117 @@ def main():
     reg_crit = nn.SmoothL1Loss()
     emd_crit = OrdinalEMDLoss()
 
+    scaler = torch.amp.GradScaler('cuda') if "cuda" in device else None
     swa_states = []
-    for epoch in range(cfg["num_epochs"]):
-        if epoch == cfg["num_epochs"] // 3 and not getattr(model, "_unfroze", False):
+
+    # ═════════════════════════════════════════════════════════════
+    # Stage 1: 基礎訓練（E1–60）  —— SORD + sq-EMD + R-Drop + Manifold Mixup
+    # ═════════════════════════════════════════════════════════════
+    print("\n" + "=" * 70)
+    print(f"[Stage 1]  E1–{cfg['stage1_epochs']}  base training (no CMC)")
+    print("=" * 70)
+    cfg["w_cmc"] = cfg["w_cmc_stage1"]   # = 0.0
+
+    backbone_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" in n]
+    head_p = [p for n, p in model.named_parameters() if p.requires_grad and "lang_backbone" not in n]
+    optimizer = optim.AdamW([
+        {"params": backbone_p, "lr": cfg["stage1_lang_lr"]},
+        {"params": head_p, "lr": cfg["stage1_head_lr"]},
+    ], weight_decay=cfg["weight_decay"])
+    s1_total_steps = len(train_loader) * cfg["stage1_epochs"]
+    s1_warmup_steps = int(s1_total_steps * 0.06)
+    scheduler = get_cosine_schedule_with_warmup(optimizer, s1_warmup_steps, s1_total_steps)
+    ema = EMA(model, 0.9995)
+
+    for epoch in range(cfg["stage1_epochs"]):
+        # E20 解凍 DeBERTa 下層 6 層（沿用之前的差分 LR 機制）
+        if epoch == cfg["stage1_epochs"] // 3 and not getattr(model, "_unfroze", False):
             new_p = []
             for i in range(6):
                 for p in model.lang_backbone.encoder.layer[i].parameters():
                     p.requires_grad = True; new_p.append(p)
             optimizer.add_param_group({
-                "params": new_p, "lr": cfg["lang_lr"]/2,
+                "params": new_p, "lr": cfg["stage1_lang_lr"]/2,
                 "weight_decay": cfg["weight_decay"]
             })
             current_step = epoch * len(train_loader)
             new_idx = len(optimizer.param_groups) - 1
 
-            def _cosine_lambda(step, base=current_step, w=warmup_steps, t=total_steps):
+            def _s1_cosine(step, base=current_step, w=s1_warmup_steps, t=s1_total_steps):
                 a = base + step
                 if a < w: return float(a) / float(max(1, w))
                 pp = float(a - w) / float(max(1, t - w))
                 return max(0.0, 0.5 * (1.0 + math.cos(math.pi * pp)))
-
             from torch.optim.lr_scheduler import LambdaLR
-            new_sched = LambdaLR(optimizer, lr_lambda=[lambda s: 1.0]*new_idx + [_cosine_lambda])
+            new_sched = LambdaLR(optimizer, lr_lambda=[lambda s: 1.0]*new_idx + [_s1_cosine])
             scheduler._new_group_sched = new_sched
             ema.add_new_params(); model._unfroze = True
             print(f"  [E{epoch+1}] 解凍 DeBERTa 下層 6 層")
 
         loss = train_epoch(model, train_loader, cls7_crit, cls2_crit, reg_crit,
-                           optimizer, scheduler, device, scaler, ema, cfg, emd_crit)
-
+                           optimizer, scheduler, device, scaler, ema, cfg, emd_crit,
+                           ema_teacher=None, current_epoch=epoch)
         ep1 = epoch + 1
-        if ep1 >= cfg["swa_start"] and (ep1 - cfg["swa_start"]) % cfg["swa_step"] == 0:
+        if ep1 >= cfg["stage1_swa_start"] and (ep1 - cfg["stage1_swa_start"]) % cfg["stage1_swa_step"] == 0:
             ema.apply_shadow()
             swa_states.append({k: v.cpu().clone() for k, v in model.state_dict().items()})
             ema.restore()
             print(f"  E{ep1:02d} | Loss={loss:.4f} [SWA #{len(swa_states)}]")
         elif ep1 % 5 == 0 or ep1 <= 5:
             print(f"  E{ep1:02d} | Loss={loss:.4f}")
+
+    # ── Stage 1 結束：先做 Stage 1 SWA 平均並載回模型，作為 Stage 2 起點 ──
+    if len(swa_states) > 0:
+        print(f"\n[Stage 1 SWA] averaging {len(swa_states)} snapshots → reload model")
+        s1_avg = {}
+        for k in swa_states[0]:
+            if swa_states[0][k].dtype.is_floating_point:
+                s1_avg[k] = torch.stack([s[k].float() for s in swa_states]).mean(0).to(swa_states[0][k].dtype)
+            else:
+                s1_avg[k] = swa_states[-1][k]
+        model.load_state_dict(s1_avg); model.to(device)
+    swa_states = []   # 清空：Stage 2 將獨立累積自己的 SWA snapshots（避免跨階段平均）
+
+    # ── Stage 2 重置 seed：給 fine-tune 階段不同的隨機軌跡，重現 iter5+iter6 流程 ──
+    set_seed(cfg["stage2_seed"])
+    print(f"[Seed] Stage 2 reset to {cfg['stage2_seed']}")
+
+    # 重建 train_loader 使其使用新 seed 的 shuffle 順序
+    train_loader = DataLoader(trainval_ds, bs, shuffle=True, num_workers=2, pin_memory=True)
+
+    # ═════════════════════════════════════════════════════════════
+    # Stage 2: 跨模態對比輔助 + 低 LR fine-tune（E61–80）
+    # ═════════════════════════════════════════════════════════════
+    print("\n" + "=" * 70)
+    print(f"[Stage 2]  E{cfg['stage1_epochs']+1}–{cfg['stage1_epochs']+cfg['stage2_epochs']}  CMC fine-tune (low LR + dense SWA)")
+    print("=" * 70)
+    cfg["w_cmc"] = cfg["w_cmc_stage2"]   # = 0.3
+
+    # 重建 optimizer / scheduler 至 Stage 2 低 LR
+    all_p_backbone = [p for n, p in model.named_parameters() if "lang_backbone" in n]
+    all_p_head = [p for n, p in model.named_parameters() if "lang_backbone" not in n]
+    optimizer = optim.AdamW([
+        {"params": all_p_backbone, "lr": cfg["stage2_lang_lr"]},
+        {"params": all_p_head, "lr": cfg["stage2_head_lr"]},
+    ], weight_decay=cfg["weight_decay"])
+    s2_total_steps = len(train_loader) * cfg["stage2_epochs"]
+    s2_warmup_steps = max(int(s2_total_steps * 0.04), 1)
+    scheduler = get_cosine_schedule_with_warmup(optimizer, s2_warmup_steps, s2_total_steps)
+    ema = EMA(model, 0.9995)   # 重新建 EMA shadow 對齊 Stage 2 起點
+
+    for epoch in range(cfg["stage2_epochs"]):
+        loss = train_epoch(model, train_loader, cls7_crit, cls2_crit, reg_crit,
+                           optimizer, scheduler, device, scaler, ema, cfg, emd_crit,
+                           ema_teacher=None, current_epoch=epoch)
+        ep1_global = cfg["stage1_epochs"] + epoch + 1
+        ep1_stage = epoch + 1
+        if ep1_stage >= cfg["stage2_swa_start"] and (ep1_stage - cfg["stage2_swa_start"]) % cfg["stage2_swa_step"] == 0:
+            ema.apply_shadow()
+            swa_states.append({k: v.cpu().clone() for k, v in model.state_dict().items()})
+            ema.restore()
+            print(f"  E{ep1_global:02d} | Loss={loss:.4f} [SWA #{len(swa_states)}]")
+        else:
+            print(f"  E{ep1_global:02d} | Loss={loss:.4f}")
 
     # ── SWA 平均 ──
     print(f"\n[SWA] 平均 {len(swa_states)} 個快照...")
@@ -772,10 +876,9 @@ def main():
     f1 = f1_score(test_cls2_true, pred2, average='weighted') * 100
     mae = np.abs(test_reg - test_labels_np).mean()
     corr = pearsonr(test_reg.astype(float), test_labels_np.astype(float))[0]
-    within1 = (np.abs(pred7 - test_cls7_true) <= 1).mean() * 100
 
     print(f"\n╭──────────────────────────────────────────────────────╮")
-    print(f"│  SCAF 單一模型 + DKD/DIST/SORD/Reg-Cls 融合             │")
+    print(f"│  SACFFinalModel — Multi-Branch Single Model           │")
     print(f"├──────────────────────────────────────────────────────┤")
     print(f"│  Acc-7 (raw cls)    ：{acc7_raw:>6.2f} %                       │")
     print(f"│  Acc-7 (融合最終)   ：{acc7:>6.2f} %                       │")
@@ -783,7 +886,6 @@ def main():
     print(f"│  F1                 ：{f1:>6.2f} %                       │")
     print(f"│  MAE                ：{mae:>6.4f}                         │")
     print(f"│  Corr               ：{corr:>6.4f}                         │")
-    print(f"│  Within-1           ：{within1:>6.2f} %                       │")
     print(f"╰──────────────────────────────────────────────────────╯")
     print(f"  vs 53% 目標：{acc7-53.0:+.2f}%   {'✓ 達標' if acc7 >= 53.0 else '✗ 未達標'}")
 
@@ -814,24 +916,24 @@ def main():
         },
         "model_state_dict": swa_state,
         "config": cfg,
-        "training_method": "DKD+DIST+SORD+regcls_fusion",
+        "training_method": "SACFFinalModel_internal_self_distill_no_external_teacher",
         "metrics": {"Acc-7": round(acc7, 2), "Acc-7-raw": round(acc7_raw, 2),
                     "Acc-2": round(acc2, 2),
                     "F1": round(f1, 2), "MAE": round(mae, 4),
-                    "Corr": round(corr, 4), "Within-1": round(within1, 2)},
+                    "Corr": round(corr, 4)},
     }, str(final_path))
     print(f"\n  ✓ 已儲存：{final_path}")
     print(f"  ✓ 大小：{os.path.getsize(final_path)/1024**3:.2f} GB")
 
     with open(MODEL_DIR / "sacf_final_summary.json", "w") as f:
         json.dump({
-            "model": "SACFFinalModel + DKD/DIST/SORD + regcls fusion",
+            "model": "SACFFinalModel — Multi-Branch Single Model",
             "num_branches": NUM_BRANCHES,
             "config": cfg,
             "metrics": {"Acc-7": round(acc7, 2), "Acc-7-raw": round(acc7_raw, 2),
                         "Acc-2": round(acc2, 2),
                         "F1": round(f1, 2), "MAE": round(mae, 4),
-                        "Corr": round(corr, 4), "Within-1": round(within1, 2)},
+                        "Corr": round(corr, 4)},
         }, f, indent=2, ensure_ascii=False)
 
 

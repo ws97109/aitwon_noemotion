@@ -178,7 +178,7 @@ aitown_addsacf/
 │   │   ├── scaf_final.py           # 多分支單一模型（主訓練腳本）
 │   │   └── mmaffin_exp/            # MMAffBen / SemEval-2018 評估
 │   ├── sacf_final_loader.py        # 推斷時對外載入介面
-│   ├── models/                     # 訓練好的權重與 logits（見 MANIFEST.md）
+│   ├── models/                     # 訓練好的權重與 logits
 │   ├── data/                       # MOSI / MMAffBen / SemEval 資料
 │   ├── core.py                     # 情感模組核心
 │   ├── emotion_memory.py           # 情感記憶
@@ -235,8 +235,6 @@ python emotion_system/training/mmaffin_exp/eval_text_mmaffben.py
 # SemEval-2018 Task 1 評估
 python emotion_system/training/mmaffin_exp/eval_semeval2018.py
 ```
-
-詳細的權重清單與集成設定見 [emotion_system/models/MANIFEST.md](emotion_system/models/MANIFEST.md)。
 
 ## 🧪 測試系統
 
