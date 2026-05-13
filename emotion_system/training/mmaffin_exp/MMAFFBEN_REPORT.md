@@ -6,7 +6,7 @@
 - **驗證資料**：MMAFFIn `texts/*_val.json`（過程監看，不用於早停）
 - **測試資料**：**MMAFFBen** `texts/*_test.json`（最終指標來源）
 - **基底模型**：`scaf_final.SACFModel` 的純文字分支 （DeBERTa-v3-large + PolarityEnhancedAttention + shared MLP + per-task head）
-- **backbone 初始化**：`sacf_v60_best.pt`（使用者 MOSI 訓練成果）
+- **backbone 初始化**：`sacf_final.pt`（使用者 MOSI 訓練成果）
 - **訓練超參數**：每任務獨立訓練 1 epoch，batch=16, lang_lr=5e-06, head_lr=5e-05（論文用 lr=5e-6）
 - **指標**：SP / EC 任務皆報 macro-F1（ma-F1）；XED 多標籤額外報 Jaccard
 
@@ -14,7 +14,7 @@
 
 | Models | EWECT-usual | EWECT-virus | MMS | XED | Onlineshopping | Average |
 |--------|------:|------:|------:|------:|------:|--------:|
-| **SACF-Text (ours, sacf_v60 backbone)** | **59.39** | **48.78** | **61.57** | **14.33** | **93.42** | **55.50** |
+| **SACF-Text (ours, sacf_v60 backbone)** | **62.36** | **50.70** | **61.42** | **16.41** | **92.82** | **56.74** |
 | EmoLlama-chat-7b | 45.60 | 36.50 | 44.00 | 48.60 | 20.30 | 39.00 |
 | Llama3.2-1b-instruct | 24.20 | 18.00 | 49.10 | 30.90 | 28.70 | 30.18 |
 | Llama3.2-3b-instruct | 51.90 | 39.90 | 52.20 | 33.10 | 11.90 | 37.80 |
@@ -32,20 +32,20 @@
 
 | Task | Tag | Lang | #cls | n_train | n_val | n_test | ma-F1 | 其他 |
 |------|-----|------|-----:|--------:|------:|-------:|------:|------|
-| Onlineshopping | SP | zh | 2 | 8000 | 1500 | 2500 | **93.42** | mi-F1=93.44, acc=93.44 |
-| MMS | SP | multi | 3 | 27000 | 13500 | 13500 | **61.57** | mi-F1=63.37, acc=63.37 |
-| EWECT-usual | EC | zh | 6 | 10000 | 2000 | 5000 | **59.39** | mi-F1=70.42, acc=70.42 |
-| EWECT-virus | EC | zh | 6 | 8606 | 2000 | 3000 | **48.78** | mi-F1=73.70, acc=73.70 |
-| XED | EC-multi | multi | 8 | 25000 | 12500 | 12500 | **14.33** | jac=11.05, subset-acc=8.18 |
+| Onlineshopping | SP | zh | 2 | 8000 | 1500 | 2500 | **92.82** | mi-F1=92.84, acc=92.84 |
+| MMS | SP | multi | 3 | 27000 | 13500 | 13500 | **61.42** | mi-F1=63.27, acc=63.27 |
+| EWECT-usual | EC | zh | 6 | 10000 | 2000 | 5000 | **62.36** | mi-F1=71.50, acc=71.50 |
+| EWECT-virus | EC | zh | 6 | 8606 | 2000 | 3000 | **50.70** | mi-F1=74.53, acc=74.53 |
+| XED | EC-multi | multi | 8 | 25000 | 12500 | 12500 | **16.41** | jac=13.21, subset-acc=9.68 |
 
 ## Val (MMAFFIn) vs Test (MMAFFBen) 對照
 
 | Task | val ma-F1 | test ma-F1 | Δ |
 |------|----------:|-----------:|----:|
-| Onlineshopping | 92.80 | 93.42 | +0.62 |
-| MMS | 60.98 | 61.57 | +0.59 |
-| EWECT-usual | 59.86 | 59.39 | -0.47 |
-| EWECT-virus | 47.87 | 48.78 | +0.91 |
-| XED | 14.33 | 14.33 | -0.01 |
+| Onlineshopping | 93.73 | 92.82 | -0.91 |
+| MMS | 61.14 | 61.42 | +0.28 |
+| EWECT-usual | 62.96 | 62.36 | -0.60 |
+| EWECT-virus | 48.93 | 50.70 | +1.77 |
+| XED | 16.68 | 16.41 | -0.27 |
 
-_耗時：785s，設備：cuda_
+_耗時：1081s，設備：cuda_
