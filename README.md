@@ -8,7 +8,7 @@
 整合兩大子系統的研究專案：
 
 1. **生成式AI代理社區模擬**：9個具有獨特性格的AI居民、完整問卷調查系統
-2. **SACF (Sentiment-Attention Cross-modal Fusion)**：多模態情感分析模型，於 CMU-MOSI 達到 Acc-7 = 53.21%
+2. **SACFFinalModel (Sentiment-Aware Cross-modal Fusion)**：多模態情感分析模型，於 CMU-MOSI 達到 **Acc-7 = 53.06%**（無外部教師、單一 .pt 權重檔）
 
 ## ✨ 主要功能
 
@@ -18,12 +18,15 @@
 - **實時可視化**：2D遊戲引擎顯示AI居民的即時活動狀態
 - **互動分析**：追蹤和分析AI居民之間的對話和互動模式
 
-### 🧠 SACF 多模態情感模型
+### 🧠 SACFFinalModel 多模態情感模型
 - **多分支單一模型**：DeBERTa-v3-large + BiLSTM 音訊/視覺編碼器，4 個並行分支端對端訓練
-- **PolarityEnhancedAttention**：強化情感極性的注意力機制（PEA 模組）
-- **集成推斷**：4 訓練協議 × 3 種子 = 12 模型 SWA 等權平均
-- **跨資料集泛化**：CMU-MOSI 主訓 + MMAffBen / SemEval-2018 純文字評估
+- **極性增強注意力（PEA）**：為每個 DeBERTa 詞元學習情感顯著性閘值
+- **階層式跨模態融合（Hierarchical SACF）**：兩階段堆疊之跨模態注意力，相較單階段 +0.6% Acc-7
+- **跨模態 InfoNCE 對比輔助（CMC）**：訓練第二階段對齊三模態語義空間，+0.7% Acc-7
+- **兩階段訓練 + 多執行快照集成**：Stage 1 基底（60 ep）→ Stage 2 CMC 精修（20 ep），三次獨立執行於參數層加權平均合併為單一 .pt
+- **無外部教師、零資料洩漏**：所有訓練訊號內生，推斷融合超參數於訓練前固定
 - **完整訓練/推斷管線**：`scaf_final.py` 統一入口，`sacf_final_loader.py` 對外載入
+- **詳細方法說明**：見 `emotion_system/SCAF_FLOWCHART.md` 與 `docs/SACF_Methodology_Chapter3_v2.docx`
 
 ### 📊 問卷調查系統
 - **多種匯入方式**：支援Google Forms URL、JSON格式或手動創建
@@ -173,13 +176,14 @@ aitown_addsacf/
 │   ├── game.py             # 遊戲主控制器
 │   ├── maze.py             # 環境地圖系統
 │   └── memory/             # AI記憶系統
-├── emotion_system/          # SACF 多模態情感模型
+├── emotion_system/          # SACFFinalModel 多模態情感模型
 │   ├── training/
-│   │   ├── scaf_final.py           # 多分支單一模型（主訓練腳本）
+│   │   ├── scaf_final.py           # 兩階段訓練主腳本（PEA + Hier-SACF + CMC）
 │   │   └── mmaffin_exp/            # MMAffBen / SemEval-2018 評估
-│   ├── sacf_final_loader.py        # 推斷時對外載入介面
-│   ├── models/                     # 訓練好的權重與 logits（見 MANIFEST.md）
+│   ├── sacf_final_loader.py        # 推斷時對外載入介面（含 Reg-Cls 融合）
+│   ├── models/sacf_final.pt        # 最終權重（53.06% Acc-7，1.65 GB）
 │   ├── data/                       # MOSI / MMAffBen / SemEval 資料
+│   ├── SCAF_FLOWCHART.md           # 詳細流程圖（Mermaid 圖、超參數表）
 │   ├── core.py                     # 情感模組核心
 │   ├── emotion_memory.py           # 情感記憶
 │   └── agent_emotion_mixin.py      # 與 AI 代理整合
@@ -193,9 +197,10 @@ aitown_addsacf/
 │   ├── templates/          # HTML模板
 │   └── static/             # 靜態資源
 ├── docs/                   # 論文與圖表
-│   ├── SACF_Methodology_Chapter3.docx
-│   ├── SACFFinalModel_Model_Card.docx
-│   └── figures/            # 架構圖、訓練曲線、結果比較圖
+│   ├── SACF_Methodology_Chapter3_v2.docx   # 論文方法章節（中文，~3MB）
+│   ├── generate_paper_v2.py                # 圖文生成腳本
+│   ├── paper_v2_data.npz                   # 真實測試集 logits 快取
+│   └── figures/v2_fig*.svg / .png          # 11 張章節圖檔
 ├── start.py                # 模擬系統啟動器
 ├── replay.py               # Web服務器
 └── data/                   # 配置和提示詞
@@ -208,26 +213,35 @@ aitown_addsacf/
 - **資料存儲**：JSON 檔案系統
 - **可視化**：Phaser.js 遊戲引擎、matplotlib
 
-## 🧪 SACF 模型快速使用
+## 🧪 SACFFinalModel 快速使用
 
-### 訓練（CMU-MOSI 主資料集）
+### 訓練（兩階段，60+20 ep，~90 min on RTX A6000）
 ```bash
-cd emotion_system/training
-python scaf_final.py --seed 42 --mode trainval
+python emotion_system/training/scaf_final.py
+# 自動執行 Stage 1（基底訓練）→ Stage 1 SWA 平均載回 → Stage 2（CMC fine-tune）
+# 輸出單一 .pt 至 emotion_system/models/sacf_final.pt
 ```
 
 ### 推斷
 ```python
 from emotion_system.sacf_final_loader import load_sacf_final
 
-model = load_sacf_final(checkpoint="emotion_system/models/sacf_final_iter1_kd.pt")
-logits = model.predict(text, audio, vision)
+model = load_sacf_final(ckpt_path="emotion_system/models/sacf_final.pt", device="cuda:0")
+# forward: cls7_logits, cls2_logits, reg = model(input_ids, attention_mask,
+#                                                audio, audio_mask, vision, vision_mask)
 ```
 
-### 評估
+### CLI 評估
 ```bash
-# CMU-MOSI 完整評估
-python emotion_system/training/cross_version_eval.py
+python emotion_system/sacf_final_loader.py \
+    --ckpt emotion_system/models/sacf_final.pt --n_tta 1 --device cuda:0
+# → Acc-7 = 53.06%, Acc-2 = 85.42%, F1 = 85.41%, MAE = 0.5840, Corr = 0.8691
+```
+
+### 完整方法說明
+- **流程圖**：`emotion_system/SCAF_FLOWCHART.md`（Mermaid 圖、超參數對照表）
+- **學術章節**：`docs/SACF_Methodology_Chapter3_v2.docx`（中文，9 節）
+- **章節圖檔**：`docs/figures/v2_fig*.svg`（架構、PEA、SACF、訓練、結果共 11 張）
 
 # MMAffBen 多語純文字評估
 python emotion_system/training/mmaffin_exp/eval_text_mmaffben.py
@@ -235,8 +249,6 @@ python emotion_system/training/mmaffin_exp/eval_text_mmaffben.py
 # SemEval-2018 Task 1 評估
 python emotion_system/training/mmaffin_exp/eval_semeval2018.py
 ```
-
-詳細的權重清單與集成設定見 [emotion_system/models/MANIFEST.md](emotion_system/models/MANIFEST.md)。
 
 ## 🧪 測試系統
 
