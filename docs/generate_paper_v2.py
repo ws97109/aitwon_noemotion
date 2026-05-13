@@ -1,5 +1,5 @@
-"""SACFFinalModel (PEA + SACF + 4-branch internal ensemble + Reg-Cls fusion + 2-stage SWA)
-Chapter 3 generator. Outputs to docs/figures/v2_*.svg/png and docs/SACF_Methodology_Chapter3_v2.docx
+"""Generator for the methodology chapter (Chapter 3) and accompanying figures.
+Produces docs/figures/v2_*.svg/png and docs/SACF_Methodology_Chapter3_v2.docx
 """
 import os, sys, json, pickle, warnings
 warnings.filterwarnings("ignore")
@@ -92,7 +92,7 @@ def fig1_architecture():
 
     # Title bar
     ax.text(7, 13.0,
-            "SACFFinalModel:  Multi-Branch Single Model with PEA + SACF + Reg-Cls Fusion",
+            "Multi-Branch Single Model: PEA + Hierarchical SACF + CMC + Reg-Cls Fusion",
             ha="center", va="center", fontsize=13.5, fontweight="bold",
             color=C["primary"])
     ax.text(7, 12.55, f"Acc-7 = {ACC7_FUSED:.2f}%   |   Acc-2 = {ACC2:.2f}%   |   F1 = {F1:.2f}%   |   MAE = {MAE:.4f}   |   Corr = {CORR:.4f}",
@@ -374,7 +374,7 @@ def fig6_training_timeline():
     ax.set_xlim(0, 80); ax.set_ylim(0, 5); ax.axis("off")
 
     # Header
-    ax.text(40, 4.7, "Two-Stage Training Pipeline (single .pt artifact)",
+    ax.text(40, 4.7, "Two-Stage Training Pipeline (single weight file)",
             ha="center", fontsize=12.5, fontweight="bold", color=C["primary"])
 
     # Stage 1 — iter1 (60 ep)
@@ -406,7 +406,7 @@ def fig6_training_timeline():
     ax.text(78.5, 0.05, "final", ha="center", fontsize=8, color=C["muted"])
 
     # final outcome
-    ax.text(40, -0.1, f"→  sacf_final.pt   (1.65 GB)   |   Acc-7 = {ACC7_FUSED:.2f}%",
+    ax.text(40, -0.1, f"→  single weight file (1.65 GB)   |   Acc-7 = {ACC7_FUSED:.2f}%",
             ha="center", fontsize=11, fontweight="bold", color=C["danger"])
     fig.tight_layout()
     return save(fig, "v2_fig6_training_timeline")
@@ -598,7 +598,7 @@ PATHS["fig7"] = fig7_loss_curves()
 PATHS["fig8"] = fig8_class_distribution()
 PATHS["fig9"] = fig9_confusion()
 PATHS["fig10"] = fig10_per_class_acc()
-PATHS["fig11"] = fig11_metrics_radar()
+# fig11 (雷達圖) 已移除
 PATHS["fig12"] = fig12_per_branch()
 for k, v in PATHS.items():
     print(f"  {k}  →  {v['svg'].name}, {v['png'].name}")
@@ -691,9 +691,9 @@ heading(doc, "第三章   研究方法", 1)
 # ── 3.1 ──────────────────────────────────────────────────────────────────────
 heading(doc, "3.1   研究框架概覽", 2)
 body(doc,
-    "本章提出 SACFFinalModel — 一個專為多模態情感分析（Multimodal Sentiment Analysis, MSA）"
+    "本章提出之模型 — 一個專為多模態情感分析（Multimodal Sentiment Analysis, MSA）"
     "任務所設計之「多分支單一模型」（Multi-Branch Single Model）。"
-    "本模型在架構層面就是單一 nn.Module、單一 forward、單一 .pt 權重檔；"
+    "本模型在實作層面為單一可載入的神經網路；對外只暴露一次正向推論計算與一份權重檔，"
     "其內部以 4 條並行分支提供集成多樣性，相較於傳統「先訓練多個獨立模型再事後融合」之集成方法，"
     "本架構同時兼具：（1）部署簡單—僅需單一 1.65 GB 之權重檔；"
     "（2）推斷效率—DeBERTa 共享計算僅執行一次；（3）真正的「單一模型」可解釋與可重現性。")
@@ -711,19 +711,19 @@ body(doc,
     "與分類頭 softmax 以幾何平均合併（α=0.65、σ=0.65 事前固定）；"
     "（7）兩階段訓練 + 多執行快照集成（Snapshot Ensemble across runs）— "
     "Stage 1（60 ep 基底訓練）→ Stage 2（20 ep 啟用 CMC 之精修），重複三次獨立執行後"
-    "於參數層平均（snapshot ensemble at parameter level），輸出單一 .pt 權重檔。")
+    "於參數層平均（snapshot ensemble at parameter level），輸出單一權重檔。")
 body(doc,
     "本研究將「無條件分類準確度」明確定義為：對全部 686 筆測試樣本進行預測（不過濾、不拒絕），"
     "且不以任何測試集統計量或外部分布資訊調整最終預測類別。"
     "在此嚴格定義下，零資料洩漏（zero data leakage）為核心設計原則："
-    "推斷融合超參數（α = 0.65、σ = 0.65）於訓練前已固定於 cfg 字典，"
+    "推斷融合超參數（α = 0.65、σ = 0.65）於訓練前已預先寫入訓練配置，"
     "並於訓練全程保持不變，測試集僅在最後評估時使用一次；"
     f"最終模型在 CMU-MOSI 測試集上達 Acc-7 = {ACC7_FUSED:.2f}%。")
 fig_block(doc, PATHS["fig1"]["png"], "3.1",
-    "SACFFinalModel 整體架構",
+    "本模型整體架構",
     "從上至下：（i）三模態原始輸入；（ii）共享編碼層（DeBERTa-v3-large、Audio BiLSTM、Vision BiLSTM）；"
     "（iii）4 個並行分支，每分支以不同 dropout 率（0.10、0.20、0.30、0.40）與獨立的 PEA、SACF、投影、"
-    "三個任務頭組成，提供集成多樣性；分支內部以算術平均得到 cls7_mean、cls2_mean、reg_mean；"
+    "三個任務頭組成，提供集成多樣性；分支內部以算術平均彙整為「七分類 logits」、「二分類 logits」與「回歸值」；"
     "（iv）推斷時，cls7_mean 經 softmax 與回歸頭預測之高斯機率（σ=0.65）以幾何平均融合，"
     "α=0.65 之超參數於訓練前固定。最終在 CMU-MOSI 測試集上達 "
     f"Acc-7 = {ACC7_FUSED:.2f}%、Acc-2 = {ACC2:.2f}%、F1 = {F1:.2f}%。")
@@ -736,7 +736,7 @@ body(doc,
     "該資料集為多模態情感分析之標準基準，由 93 位 YouTube 評論者之獨白影片片段構成，"
     "提供文字逐字稿、音訊聲學特徵（COVAREP, 5 維）與視覺面部特徵（FACET, 20 維）三種模態，"
     "並以連續情感強度分數 s ∈ [−3, +3] 標注。"
-    "本研究採用官方非對齊版本（unaligned_50），最大文字 token 長度為 80、音訊最大 375 幀、"
+    "本研究採用官方非對齊版本之資料（modalities 各自保留原始時序，未經對齊），最大文字 token 長度為 80、音訊最大 375 幀、"
     "視覺最大 500 幀。資料集劃分如表 3.1。")
 add_table(doc,
     ["資料劃分", "樣本數", "用途"],
@@ -764,7 +764,7 @@ body(doc,
 heading(doc, "3.2.3  輸入前處理", 3)
 body(doc,
     "文字：每個語句加入任務導向提示前綴「Predict the sentiment intensity (−3 to 3, negative to positive) "
-    "of the following text: ⟨語句⟩」，由 DebertaV2Tokenizer 分詞並填補至長度 80。"
+    "of the following text: ⟨語句⟩」，由 DeBERTa 預訓練之子詞分詞器處理並填補至長度 80。"
     "音訊與視覺：每幀進行 L2 正規化、NaN/Inf 替換為零，並維護有效長度遮罩；"
     "BiLSTM 編碼器使用 pack_padded_sequence 對可變長度序列進行壓縮處理，避免填補幀進入計算。")
 
@@ -786,14 +786,12 @@ body(doc,
 
 heading(doc, "3.3.2  4 個並行分支", 3)
 body(doc,
-    "本架構之核心創新在於將「多模型集成的多樣性」內建於模型架構之中。"
-    "4 個分支共享上游編碼結果（H、x_a、x_v），但各自獨立進行下游融合與預測。"
-    "為確保分支間之多樣性，採用三項機制：")
+    "本架構之核心創新在於將「多模型集成的多樣性」內建於模型架構之中。傳統多模型集成（multi-model ensemble）需訓練多份獨立模型再於推斷時融合輸出，不僅佔用多倍儲存與推斷時間，且難以避免模型間之高度相關性。本研究將集成多樣性內化於同一神經網路之 4 條並行分支內：所有分支共享上游語言／音訊／視覺編碼結果（避免重複計算高成本骨幹），但各自獨立進行情感感知融合與多工預測，於推斷時內部聚合輸出，達到「單一模型即內建集成」之效果。為確保分支間之多樣性，採用三項機制：")
 body(doc,
     "（1）不同 Dropout 率：Branch 1 = 0.10、Branch 2 = 0.20、Branch 3 = 0.30、Branch 4 = 0.40。"
     "不同 dropout 率使每個分支於訓練時看到不同有效子網路，導致收斂至不同局部極小值。"
     "（2）獨立隨機初始化：每分支之 PEA、SACF、投影、預測頭均以不同種子初始化；"
-    "此外於 cls7_head 加入小擾動（標準差 0.005·i 隨分支遞增），加速差異化。"
+    "此外於七分類頭之權重加入小擾動（標準差 0.005·i 隨分支遞增），加速差異化。"
     "（3）獨立梯度路徑：訓練時每分支之 cls7、cls2、reg 損失皆獨立計算後加總，"
     "強迫每個分支獨立完成任務而非依賴其他分支。")
 
@@ -851,14 +849,18 @@ heading(doc, "3.3.2.3  共享投影層與多工預測頭", 3)
 body(doc,
     "融合表徵 f ∈ ℝ^(B × 1024) 通過該分支獨立的投影模組壓縮為 e ∈ ℝ^(B × 512)："
     "Linear(1024 → 512) → LayerNorm → GELU → Dropout(per-branch)。"
-    "三個任務頭由 e 並行產生：cls7_head（Linear(512 → 7)）、cls2_head（Linear(512 → 2)）、"
-    "與 reg_head（Linear(512 → 256) → GELU → Linear(256 → 1) → Tanh × 3）。"
+    "三個任務頭由 e 並行產生：七分類頭（Linear 512 → 7）、二分類頭（Linear 512 → 2）、"
+    "與回歸頭（Linear 512 → 256 → GELU → Linear 256 → 1 → Tanh × 3）。"
     "Tanh × 3 將回歸輸出限制在 [−3, +3]，與標籤範圍一致並避免極端值。")
 
 heading(doc, "3.3.3  內部集成（Internal Ensemble）", 3)
 body(doc,
     "推斷時，4 個分支之輸出於模型內部進行算術平均："
-    "cls7_logits = (l7₁ + l7₂ + l7₃ + l7₄) / 4，cls2 與 reg 同。"
+    "cls7_logits = (l7₁ + l7₂ + l7₃ + l7₄) / 4，二分類與回歸輸出同理。"
+    "此算術平均之優點在於：（1）線性組合下，個別分支之偏誤可相互抵消（bias cancellation）；"
+    "（2）對未訓練之測試分布更穩健，降低 overconfident 錯誤；"
+    "（3）相較於投票（majority vote）或學習式聚合，算術平均無額外參數、亦無學習階段，"
+    "因此不會引入訓練偏差。"
     "圖 3.11 顯示各分支單獨之 Acc-7、4 分支平均、以及最終 Reg-Cls 融合之比較，可清楚看到"
     "每分支單獨能力相近，但分支平均提供穩定基線；最終的 Reg-Cls 融合再加上回歸資訊推升至 "
     f"{ACC7_FUSED:.2f}%。")
@@ -912,7 +914,7 @@ heading(doc, "3.4.4  跨模態 InfoNCE 對比輔助（CMC）", 3)
 body(doc,
     "為強化文字／音訊／視覺三模態於語義空間之對齊，本研究於訓練第二階段（§3.5.2）"
     "啟用跨模態對比輔助損失（Cross-Modal Contrastive, CMC）。"
-    "模型額外配備一組投影頭 CMCProjection：將 DeBERTa 之 [CLS] 表徵投影至 128 維單位向量 t_emb，"
+    "模型額外配備一組投影頭：將 DeBERTa 之 [CLS] 表徵投影至 128 維單位向量 t_emb，"
     "將音訊／視覺編碼器之輸出分別投影至同空間之 a_emb、v_emb（皆為 L2 正規化）。"
     "對比損失採對稱 InfoNCE 形式："
     "L_CMC = ½ · [InfoNCE(t↔a, τ) + InfoNCE(t↔v, τ)]，"
@@ -920,15 +922,15 @@ body(doc,
     "正樣本為 batch 內相同 idx，負樣本為 batch 內其他樣本，溫度 τ = 0.07。"
     "此項僅於第二階段啟用之動機：第一階段需先收斂出穩定之單模態表徵，過早施加跨模態對比"
     "易產生噪聲干擾（經實驗驗證）；於收斂後施加 CMC 可額外提升 +0.7% Acc-7。"
-    "CMCProjection 屬於模型本體，會與其他參數一同 save/load，"
-    "但推斷時不參與 forward；其功能僅作為訓練輔助監督。")
+    "此投影頭屬於模型本體，會與其他參數一同儲存／載入，"
+    "但推斷時不參與計算；其功能僅作為訓練階段之輔助監督。")
 
 # ── 3.5 ──────────────────────────────────────────────────────────────────────
 heading(doc, "3.5   兩階段訓練 + 多執行快照集成", 2)
 body(doc,
     "本研究採用兩階段訓練協議，於收斂後執行多次獨立執行並進行參數層集成。"
     "Stage 1 為基底訓練（60 epoch）、Stage 2 為 CMC 對比精修（20 epoch），"
-    "三次獨立執行之 SWA-averaged 權重再以參數加權平均合併為最終 sacf_final.pt。"
+    "三次獨立執行之 SWA-averaged 權重再以參數加權平均合併為最終單一權重檔。"
     "圖 3.5 為訓練時間軸；圖 3.6 為損失曲線。")
 fig_block(doc, PATHS["fig6"]["png"], "3.5",
     "兩階段訓練時間軸",
@@ -1011,7 +1013,7 @@ body(doc,
     "提供更穩健之泛化能力（Wortsman et al., Model Soups, ICML 2022）。"
     "於 CMU-MOSI 上實證：三次執行單獨之 Acc-7 raw 分別為 52.62%、52.48%、51.60%，"
     f"權重 (0.25, 0.45, 0.30) 之參數平均達 Acc-7 = {ACC7_FUSED:.2f}%（融合最終）。"
-    "結果仍為單一 .pt 權重檔，推斷階段不需處理多個模型。")
+    "結果仍為單一權重檔，推斷階段不需處理多個模型。")
 
 heading(doc, "3.5.5  整體訓練損失", 3)
 body(doc,
@@ -1019,7 +1021,7 @@ body(doc,
     "L_total = w_mean · L_mean + w_per · L_per_branch + w_div · L_diversity "
     "+ w_R-Drop · L_R-Drop + w_CMC · L_CMC，"
     "其中 L_mean 與 L_per_branch 於 §3.4 已詳述，L_diversity 為分支多樣性正則化（§3.4.3），"
-    "L_R-Drop 為對偶 forward 之對稱 KL 一致性損失（Liang et al., NeurIPS 2021），"
+    "L_R-Drop 為對同一輸入做兩次帶 Dropout 之前向計算後施加之對稱 KL 一致性損失（Liang et al., NeurIPS 2021），"
     "L_CMC 為跨模態 InfoNCE 對比損失（§3.4.4），僅於 Stage 2 啟用（w_CMC = 0.3）。"
     "權重設定如表 3.2。")
 
@@ -1043,7 +1045,7 @@ fig_block(doc, PATHS["fig5"]["png"], "3.4",
 heading(doc, "3.7   實驗結果", 2)
 body(doc,
     "本節報告本架構於 CMU-MOSI 測試集（n = 686）上之最終評估結果。"
-    "所有指標皆以單一 sacf_final.pt 權重檔、單一 forward、無任何測試端後處理調參計算。"
+    "所有指標皆以單一 單一權重檔、單一前向推論、無任何測試端後處理調參計算。"
     "表 3.3 列出主要指標。")
 add_table(doc,
     ["評估指標", "數值", "說明"],
@@ -1079,22 +1081,12 @@ fig_block(doc, PATHS["fig10"]["png"], "3.9",
     "整體模型於各類別均顯著超過隨機基線；中性類別（0）最具挑戰性，"
     "因其與相鄰類在標注上之模糊性最大。")
 
-heading(doc, "3.7.3  整體效能雷達圖", 3)
-body(doc,
-    "圖 3.10 以條形與雷達兩種視覺化呈現本模型於主要指標上之表現。"
-    "為使各指標可疊加比較，回歸指標經以下歸一化：Corr × 100、(1 − MAE / 3) × 100。"
-    "可見本模型於分類（Acc-2、F1）與回歸（MAE、Corr）兩大面向均達高水準，"
-    "形成均衡且全面之效能輪廓。")
-fig_block(doc, PATHS["fig11"]["png"], "3.10",
-    "效能雷達圖",
-    "（左）四項分類指標之長條圖；橫向虛線為 53% 之既定目標。"
-    "（右）六項指標歸一化後之雷達圖；越接近外圈代表表現越好。"
-    "本模型於各維度皆達到高水準，且 Acc-7 超過 53% 之預設目標。")
+# §3.7.3 整體效能雷達圖已移除（使用者要求）
 
-# ── 3.9 ──────────────────────────────────────────────────────────────────────
+# ── 3.8 ──────────────────────────────────────────────────────────────────────
 heading(doc, "3.8   小結", 2)
 body(doc,
-    "本章詳細描述了 SACFFinalModel 之架構與訓練流程，包含七項要素："
+    "本章詳細描述了本模型之架構與訓練流程，包含七項要素："
     "（1）共享之 DeBERTa-v3-large 文字編碼器與雙向 LSTM 模態編碼器；"
     "（2）極性增強注意力（PEA）為每個詞元學習情感顯著性閘值；"
     "（3）階層式情感感知跨模態融合（Hierarchical SACF）以兩階段堆疊之跨模態注意力進行精修融合；"
@@ -1107,7 +1099,7 @@ body(doc,
     f"Acc-7 = {ACC7_FUSED:.2f}%、Acc-2 = {ACC2:.2f}%、F1 = {F1:.2f}%、"
     f"MAE = {MAE:.4f}、Pearson Corr = {CORR:.4f}。"
     "全體流程嚴格遵守零資料洩漏與無外部教師原則："
-    "（i）推斷融合超參數（α = 0.65、σ = 0.65、τ_CMC = 0.07）於訓練前固定於 cfg；"
+    "（i）推斷融合超參數（α = 0.65、σ = 0.65、τ_CMC = 0.07）於訓練前寫入訓練配置；"
     "（ii）模型訓練不載入任何先前模型之權重，亦不依賴外部知識蒸餾教師；"
     "（iii）測試集僅於最終評估時使用一次，確保結果之可重現性與科學嚴謹性。"
     "下一章將針對本架構進行更深入之消融分析與比較研究。")
