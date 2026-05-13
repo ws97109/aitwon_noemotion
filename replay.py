@@ -14,6 +14,14 @@ personas = load_personas_from_config()
 # CLI 預設模擬名稱（在 __main__ 設定）
 DEFAULT_SIM_NAME = ""
 
+
+def _resolve_active_simulation():
+    """問卷填寫時綁定的 simulation = `python replay.py --name <X>` 的 <X>。
+
+    沒指定 `--name` 時回傳 None（居民只用靜態人設回答）。
+    """
+    return DEFAULT_SIM_NAME or None
+
 app = Flask(
     __name__,
     template_folder="frontend/templates",
@@ -650,7 +658,7 @@ def survey_create():
 @app.route("/surveys/<survey_id>", methods=['GET'])
 def survey_detail(survey_id):
     """問卷詳情頁面"""
-    from survey_system import SurveyManager, SimulationContext
+    from survey_system import SurveyManager
     manager = SurveyManager()
 
     survey = manager.load_survey(survey_id)
@@ -659,26 +667,23 @@ def survey_detail(survey_id):
 
     responses = manager.get_responses_by_survey(survey_id)
     stats = manager.get_survey_stats(survey_id)
-    simulations = SimulationContext.list_available()
+    active_simulation = _resolve_active_simulation()
 
     return render_template(
         "surveys/detail.html",
         survey=survey,
         responses=responses,
         stats=stats,
-        simulations=simulations
+        active_simulation=active_simulation
     )
 
 
 @app.route("/surveys/<survey_id>/fill", methods=['POST'])
 def survey_fill(survey_id):
-    """讓AI居民填寫問卷（可選擇要綁定的模擬上下文）"""
+    """讓AI居民填寫問卷（自動綁定當前 simulation）"""
     from survey_system import SurveyManager, AIResidentSurveyFiller
 
-    payload = request.get_json(silent=True) or {}
-    simulation_name = payload.get("simulation_name") or request.form.get("simulation_name") or None
-    if simulation_name == "":
-        simulation_name = None
+    simulation_name = _resolve_active_simulation()
 
     manager = SurveyManager()
     try:

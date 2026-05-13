@@ -1,115 +1,367 @@
 {% extends "base.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/survey-enhanced.css') }}">
+{% endblock %}
+
 {% block content %}
 <style>
-    /* 優化字體大小和可讀性 */
+    /* ============== 問卷詳情頁專屬樣式 ============== */
     .survey-detail-container {
         font-size: 15px;
         line-height: 1.7;
     }
 
-    .survey-detail-container h2 {
-        font-size: 28px;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-
-    .survey-detail-container .lead {
-        font-size: 16px;
-        line-height: 1.6;
-    }
-
-    .question-card {
-        margin-bottom: 20px;
-        border-radius: 8px;
-    }
-
-    .question-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 12px;
-    }
-
+    /* 居民回應卡片 */
     .response-card {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        background: #fafafa;
-        transition: all 0.3s ease;
+        background: var(--bg-card, #fff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-lg, 16px);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: var(--transition, all .25s ease);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .response-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        opacity: 0.6;
+        transition: var(--transition, all .25s ease);
     }
 
     .response-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        background: #ffffff;
+        box-shadow: var(--shadow-md, 0 4px 6px rgba(15,23,42,.05), 0 10px 15px rgba(15,23,42,.08));
+        transform: translateY(-2px);
+        border-color: var(--border-strong, #cbd5e1);
+    }
+
+    .response-card:hover::before {
+        opacity: 1;
+        width: 5px;
     }
 
     .response-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px dashed var(--border, #e2e8f0);
+        gap: 0.5rem;
+    }
+
+    .resident-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-right: 0.6rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1));
     }
 
     .response-name {
-        font-size: 17px;
-        font-weight: 600;
-        color: #34495e;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary, #0f172a);
+        display: inline-flex;
+        align-items: center;
     }
 
     .response-content {
-        max-height: 120px;
+        max-height: 140px;
         overflow: hidden;
         transition: max-height 0.3s ease;
-        font-size: 15px;
+        font-size: 14px;
         line-height: 1.7;
+        position: relative;
+    }
+
+    .response-content:not(.expanded)::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 50px;
+        background: linear-gradient(to bottom, transparent, var(--bg-card, #fff));
+        pointer-events: none;
     }
 
     .response-content.expanded {
         max-height: none;
     }
 
+    .response-content.expanded::after {
+        display: none;
+    }
+
     .answer-item {
-        padding: 8px 12px;
-        margin: 6px 0;
+        padding: 0.65rem 0.85rem;
+        margin: 0.4rem 0;
+        background: var(--bg-canvas, #f8fafc);
+        border-left: 3px solid var(--primary, #667eea);
+        border-radius: var(--radius-sm, 8px);
+        transition: var(--transition-fast, all .15s ease);
+    }
+
+    .answer-item:hover {
         background: white;
-        border-left: 3px solid #3498db;
-        border-radius: 4px;
+        border-left-color: var(--secondary, #764ba2);
+        transform: translateX(3px);
     }
 
     .answer-label {
         font-weight: 600;
-        color: #555;
-        margin-right: 8px;
-        font-size: 14px;
+        color: var(--text-secondary, #475569);
+        font-size: 0.82rem;
+        margin-bottom: 0.25rem;
+        letter-spacing: 0.01em;
+    }
+
+    .answer-label .q-num {
+        display: inline-block;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        color: white !important;
+        padding: 0.1rem 0.5rem;
+        border-radius: var(--radius-pill, 999px);
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-right: 0.4rem;
     }
 
     .answer-value {
-        color: #2c3e50;
-        font-size: 15px;
+        color: var(--text-primary, #0f172a);
+        font-size: 0.92rem;
+        font-weight: 500;
     }
 
     .toggle-btn {
         cursor: pointer;
-        color: #3498db;
-        font-size: 14px;
-        text-decoration: none;
-        display: inline-block;
-        margin-top: 8px;
-        font-weight: 500;
+        color: var(--primary, #667eea);
+        font-size: 0.85rem;
+        text-decoration: none !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-top: 0.6rem;
+        font-weight: 600;
+        padding: 0.3rem 0.7rem;
+        border-radius: var(--radius-pill, 999px);
+        background: var(--bg-muted, #f1f5f9);
+        transition: var(--transition-fast, all .15s ease);
     }
 
     .toggle-btn:hover {
-        color: #2980b9;
-        text-decoration: underline;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        color: white !important;
+        text-decoration: none !important;
     }
 
     .stats-badge {
-        font-size: 14px;
-        padding: 4px 10px;
+        font-size: 0.75rem !important;
+        padding: 0.3em 0.75em !important;
+    }
+
+    /* 問題卡片（統計頁籤用） */
+    .question-card {
+        background: var(--bg-card, #fff);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: var(--radius-lg, 16px);
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        transition: var(--transition, all .25s ease);
+    }
+
+    .question-card:hover {
+        box-shadow: var(--shadow-md, 0 4px 6px rgba(15,23,42,.05), 0 10px 15px rgba(15,23,42,.08));
+        border-color: var(--border-strong, #cbd5e1);
+    }
+
+    .question-title {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--text-primary, #0f172a);
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 2px solid var(--bg-muted, #f1f5f9);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .question-title .q-num {
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        color: white !important;
+        padding: 0.15rem 0.6rem;
+        border-radius: var(--radius-pill, 999px);
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        margin-top: 0.15rem;
+    }
+
+    /* 統計進度條：每個選項的長條 */
+    .stat-row {
+        margin-bottom: 0.85rem;
+    }
+
+    .stat-row-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.35rem;
+        font-size: 0.88rem;
+    }
+
+    .stat-row-head .option-text {
+        color: var(--text-primary, #0f172a);
+        font-weight: 500;
+    }
+
+    .stat-row-head .option-count {
+        color: var(--text-secondary, #475569);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .stat-row-head .option-count strong {
+        color: var(--primary, #667eea);
+        font-size: 1rem;
+        margin-right: 0.2rem;
+    }
+
+    .stat-bar {
+        height: 10px;
+        border-radius: var(--radius-pill, 999px);
+        background: var(--bg-muted, #f1f5f9);
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(15,23,42,0.06);
+    }
+
+    .stat-bar-fill {
+        height: 100%;
+        background: var(--gradient-primary, linear-gradient(135deg, #667eea, #764ba2));
+        border-radius: var(--radius-pill, 999px);
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-bar-fill::after {
+        content: '';
+        position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2.5s infinite;
+    }
+
+    /* 評分區塊 */
+    .rating-display {
+        text-align: center;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border: 1px solid #fde68a;
+        border-radius: var(--radius-lg, 16px);
+        padding: 1.5rem;
+    }
+
+    .rating-display .rating-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #d97706;
+        line-height: 1;
+        margin-bottom: 0.4rem;
+    }
+
+    .rating-display .rating-stars-wrap {
+        font-size: 1.5rem;
+        color: #f59e0b;
+        margin-bottom: 0.4rem;
+        letter-spacing: 0.15em;
+    }
+
+    .rating-display .rating-meta {
+        color: #92400e;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* 文字題引用 */
+    .text-quote {
+        background: var(--bg-canvas, #f8fafc);
+        border-left: 3px solid var(--info, #3b82f6);
+        border-radius: var(--radius-md, 12px);
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+        transition: var(--transition-fast, all .15s ease);
+        font-size: 0.9rem;
+        line-height: 1.65;
+        color: var(--text-primary, #0f172a);
+    }
+
+    .text-quote::before {
+        content: '“';
+        position: absolute;
+        top: -0.5rem; left: 0.4rem;
+        font-size: 2.5rem;
+        color: var(--info, #3b82f6);
+        opacity: 0.25;
+        line-height: 1;
+        font-family: serif;
+    }
+
+    .text-quote:hover {
+        background: white;
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.06));
+        transform: translateX(3px);
+    }
+
+    /* 空狀態 */
+    .empty-responses {
+        text-align: center;
+        padding: 3rem 1.5rem;
+    }
+
+    .empty-responses .fa-inbox {
+        font-size: 4rem;
+        color: var(--border-strong, #cbd5e1);
+        margin-bottom: 1rem;
+    }
+
+    .empty-responses h5 {
+        color: var(--text-secondary, #475569);
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+    }
+
+    .empty-responses p {
+        color: var(--text-muted, #94a3b8);
+    }
+
+    /* 居民色彩主題（按名字 hash 分配色彩） */
+    .resident-avatar[data-color="0"] { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .resident-avatar[data-color="1"] { background: linear-gradient(135deg, #f43f5e, #be123c); }
+    .resident-avatar[data-color="2"] { background: linear-gradient(135deg, #10b981, #059669); }
+    .resident-avatar[data-color="3"] { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .resident-avatar[data-color="4"] { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+    .resident-avatar[data-color="5"] { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .resident-avatar[data-color="6"] { background: linear-gradient(135deg, #ec4899, #db2777); }
+    .resident-avatar[data-color="7"] { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    .resident-avatar[data-color="8"] { background: linear-gradient(135deg, #84cc16, #65a30d); }
+
+    @media (max-width: 768px) {
+        .response-card { padding: 1rem; }
+        .question-card { padding: 1rem; }
+        .rating-display .rating-number { font-size: 2rem; }
     }
 </style>
 
@@ -208,17 +460,6 @@
                         <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap:8px;">
                             <h5 class="mb-0">問卷結構</h5>
                             <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
-                                <select id="simulationSelect" class="form-control form-control-sm" style="max-width:240px;" title="選擇要綁定的模擬上下文">
-                                    <option value="">— 不綁定模擬（僅靜態人設）—</option>
-                                    {% for sim in simulations or [] %}
-                                    <option value="{{ sim.name }}">
-                                        {{ sim.name }}
-                                        {%- if sim.has_simulation_md %} · md{% endif %}
-                                        {%- if sim.has_associate %} · 記憶{% endif %}
-                                        {%- if sim.has_checkpoint %} · 情緒{% endif %}
-                                    </option>
-                                    {% endfor %}
-                                </select>
                                 <button class="btn btn-success btn-sm" onclick="fillSurvey('{{ survey.survey_id }}')">
                                     <i class="fas fa-robot"></i> 讓AI居民填寫
                                 </button>
@@ -316,7 +557,10 @@
                                     {% for response in responses %}
                                     <div class="response-card">
                                         <div class="response-header">
-                                            <div>
+                                            <div style="display:flex; align-items:center;">
+                                                <span class="resident-avatar" data-color="{{ loop.index0 % 9 }}">
+                                                    {{ response.respondent_name[0] }}
+                                                </span>
                                                 <span class="response-name">{{ response.respondent_name }}</span>
                                                 {% if response.is_completed() %}
                                                 <span class="badge badge-success stats-badge ml-2">已完成</span>
@@ -333,12 +577,14 @@
                                             {% for question in survey.questions %}
                                             {% set answer = response.responses.get(question.id|string, '未回答') %}
                                             <div class="answer-item">
-                                                <div class="answer-label">Q{{ question.id }}: {{ question.text }}</div>
+                                                <div class="answer-label">
+                                                    <span class="q-num">Q{{ question.id }}</span>{{ question.text }}
+                                                </div>
                                                 <div class="answer-value">
                                                     {% if answer is string %}
                                                         {{ answer }}
                                                     {% elif answer is iterable %}
-                                                        {{ answer|join(', ') }}
+                                                        {{ answer|join('、') }}
                                                     {% else %}
                                                         {{ answer }}
                                                     {% endif %}
@@ -349,7 +595,7 @@
 
                                         <a class="toggle-btn" onclick="toggleResponse({{ loop.index }})">
                                             <i class="fas fa-chevron-down" id="icon-{{ loop.index }}"></i>
-                                            <span id="text-{{ loop.index }}">展開查看更多</span>
+                                            <span id="text-{{ loop.index }}">展開查看完整回答</span>
                                         </a>
                                     </div>
                                     {% endfor %}
@@ -358,8 +604,11 @@
                                 <!-- 統計摘要標籤頁 -->
                                 <div class="tab-pane fade" id="statistics" role="tabpanel">
                                     {% for question in survey.questions %}
-                                    <div class="mb-4 question-card">
-                                        <h6 class="question-title">Q{{ question.id }}: {{ question.text }}</h6>
+                                    <div class="question-card">
+                                        <div class="question-title">
+                                            <span class="q-num">Q{{ question.id }}</span>
+                                            <span>{{ question.text }}</span>
+                                        </div>
 
                                         {% if question.type in ['single_choice', 'multiple_choice'] and question.options %}
                                         <!-- 選擇題統計 -->
@@ -380,13 +629,13 @@
                                         {% for option in question.options %}
                                         {% set count = option_counts.get(option, 0) %}
                                         {% set percentage = (count / responses|length * 100) if responses else 0 %}
-                                        <div class="mb-2">
-                                            <div class="d-flex justify-content-between">
-                                                <span style="font-size: 15px;">{{ option }}</span>
-                                                <span style="font-size: 15px;"><strong>{{ count }}</strong> ({{ "%.1f"|format(percentage) }}%)</span>
+                                        <div class="stat-row">
+                                            <div class="stat-row-head">
+                                                <span class="option-text">{{ option }}</span>
+                                                <span class="option-count"><strong>{{ count }}</strong>票 · {{ "%.1f"|format(percentage) }}%</span>
                                             </div>
-                                            <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-info" style="width: {{ percentage }}%"></div>
+                                            <div class="stat-bar">
+                                                <div class="stat-bar-fill" style="width: {{ percentage }}%"></div>
                                             </div>
                                         </div>
                                         {% endfor %}
@@ -403,18 +652,14 @@
 
                                         {% if ratings %}
                                         {% set avg_rating = (ratings|sum / ratings|length) %}
-                                        <div class="text-center p-3" style="background: #f8f9fa; border-radius: 8px;">
-                                            <h3 class="text-warning mb-2">{{ "%.1f"|format(avg_rating) }}</h3>
-                                            <div class="mb-2">
+                                        <div class="rating-display">
+                                            <div class="rating-number">{{ "%.1f"|format(avg_rating) }}</div>
+                                            <div class="rating-stars-wrap">
                                                 {% for i in range(1, 6) %}
-                                                    {% if i <= avg_rating %}
-                                                        <i class="fas fa-star text-warning" style="font-size: 24px;"></i>
-                                                    {% else %}
-                                                        <i class="far fa-star text-muted" style="font-size: 24px;"></i>
-                                                    {% endif %}
+                                                    {% if i <= avg_rating %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
                                                 {% endfor %}
                                             </div>
-                                            <small class="text-muted">平均分數 (基於{{ ratings|length }}個回應)</small>
+                                            <div class="rating-meta">基於 {{ ratings|length }} 個回應的平均分數</div>
                                         </div>
                                         {% endif %}
 
@@ -430,17 +675,17 @@
 
                                         <div>
                                             <div class="mb-2">
-                                                <span class="badge badge-info stats-badge">{{ text_responses|length }} 個文字回應</span>
+                                                <span class="badge badge-info stats-badge">
+                                                    <i class="fas fa-comment-dots"></i> {{ text_responses|length }} 個文字回應
+                                                </span>
                                             </div>
                                             {% if text_responses %}
                                             <div class="mt-2">
                                                 {% for text in text_responses[:5] %}
-                                                <div class="border-left pl-3 mb-3" style="border-left: 3px solid #17a2b8 !important; background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                                                    <div style="font-size: 15px; line-height: 1.6;">{{ text }}</div>
-                                                </div>
+                                                <div class="text-quote">{{ text }}</div>
                                                 {% endfor %}
                                                 {% if text_responses|length > 5 %}
-                                                <small class="text-muted">還有 {{ text_responses|length - 5 }} 個回應...</small>
+                                                <small class="text-muted">還有 {{ text_responses|length - 5 }} 個回應未顯示</small>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -452,10 +697,10 @@
                             </div>
 
                             {% else %}
-                            <div class="text-center py-5">
-                                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                                <h5 class="text-muted">尚無回應數據</h5>
-                                <p class="text-muted">點擊上方按鈕讓AI居民填寫問卷</p>
+                            <div class="empty-responses">
+                                <i class="fas fa-inbox"></i>
+                                <h5>尚無回應數據</h5>
+                                <p>點擊「讓 AI 居民填寫」按鈕，9 位居民就會依各自的人生經歷作答</p>
                             </div>
                             {% endif %}
                         </div>
@@ -523,18 +768,12 @@ function fillSurvey(surveyId) {
         }
     }, 300);
 
-    // 取得使用者選擇的模擬上下文
-    const simulationName = document.getElementById('simulationSelect')
-        ? document.getElementById('simulationSelect').value
-        : '';
-
-    // 發送AI填寫請求
+    // 後端會自動使用當前綁定的模擬（不需前端指定）
     fetch(`/surveys/${surveyId}/fill`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ simulation_name: simulationName || null })
+        }
     })
     .then(response => response.json())
     .then(data => {

@@ -188,34 +188,15 @@ class AIResidentSurveyFiller:
         llm_response = llm_response.strip()
 
         if question_type == "single_choice":
-            for option in options:
-                if option == llm_response or option in llm_response or llm_response in option:
-                    return option
-            for option in options:
-                option_words = set(option.replace("、", " ").replace("，", " ").split())
-                response_words = set(llm_response.replace("、", " ").replace("，", " ").split())
-                if option_words & response_words:
-                    return option
-            print(f"         ⚠️  無法匹配選項，使用 LLM 原始回應: {llm_response}")
-            return llm_response
+            matched = self._match_to_option(llm_response, options)
+            if matched is not None:
+                return matched
+            # 真的找不到 → 回 fallback（不再保留出格的 LLM 原文）
+            print(f"         ⚠️  選項全無匹配，使用 fallback: 原回應='{llm_response[:40]}'")
+            return self._get_error_fallback_answer(question_type)
 
         elif question_type == "multiple_choice":
-            selected: List[str] = []
-            for option in options:
-                if option in llm_response:
-                    selected.append(option)
-            if selected:
-                return selected
-            parts = llm_response.replace("、", ",").replace("，", ",").split(",")
-            for part in parts:
-                part = part.strip()
-                for option in options:
-                    if (part in option or option in part) and option not in selected:
-                        selected.append(option)
-            if selected:
-                return selected
-            print("         ⚠️  無法匹配選項，使用 LLM 原始回應")
-            return [llm_response]
+            return self._match_multiple_to_options(llm_response, options)
 
         elif question_type == "rating":
             import re
@@ -230,6 +211,126 @@ class AIResidentSurveyFiller:
             return llm_response
 
         return llm_response
+
+    # ------------------------------------------------------------
+    # 選項匹配輔助：保證輸出一定落在 options 內
+    # ------------------------------------------------------------
+    @staticmethod
+    def _parse_numeric_range(option: str):
+        """從選項文字抽取數字範圍。回傳 (low, high) 或 None。
+
+        支援格式：
+          "20,000元以下"            → (None, 20000)
+          "20,000-40,000元"         → (20000, 40000)
+          "40%以上" / "100,000元以上" → (40, None) / (100000, None)
+          "10%-20%"                  → (10, 20)
+        """
+        import re
+        cleaned = option.replace(",", "").replace("，", "")
+        nums = [int(n) for n in re.findall(r"\d+", cleaned)]
+        if not nums:
+            return None
+        if "以下" in option or "以內" in option:
+            return (None, nums[0])
+        if "以上" in option:
+            return (nums[0], None)
+        if len(nums) >= 2:
+            return (nums[0], nums[1])
+        return (nums[0], nums[0])
+
+    @classmethod
+    def _match_numeric_range(cls, value: int, options: List[str]):
+        """根據單一數值，挑出包含它的範圍選項。"""
+        best = None
+        best_dist = None
+        for opt in options:
+            rng = cls._parse_numeric_range(opt)
+            if rng is None:
+                continue
+            low, high = rng
+            in_range = (low is None or value >= low) and (high is None or value <= high)
+            if in_range:
+                return opt
+            # 不在範圍 → 計算到最近邊界的距離，留作 fallback
+            edge = low if (low is not None and value < low) else high
+            if edge is None:
+                continue
+            dist = abs(value - edge)
+            if best_dist is None or dist < best_dist:
+                best_dist, best = dist, opt
+        return best
+
+    @classmethod
+    def _match_to_option(cls, response: str, options: List[str]):
+        """把 LLM 回應匹配到合法選項。找不到回 None。"""
+        if not options:
+            return response
+        resp = response.strip().strip("「」\"'`。 ")
+
+        # 1) 完全相等
+        for opt in options:
+            if opt == resp:
+                return opt
+        # 2) 雙向包含
+        for opt in options:
+            if opt in resp or resp in opt:
+                return opt
+        # 3) 範圍題：抽出回應中的數字 → 找包含它的範圍
+        import re
+        nums = [int(n) for n in re.findall(r"\d+", resp.replace(",", "").replace("，", ""))]
+        if nums and any(cls._parse_numeric_range(o) for o in options):
+            # 若 LLM 回應本身也是個範圍（兩個數字），取中位以避免落在邊界端點
+            value = (nums[0] + nums[1]) // 2 if len(nums) >= 2 else nums[0]
+            matched = cls._match_numeric_range(value, options)
+            if matched:
+                return matched
+        # 4) difflib 模糊比對（相似度 >= 0.5）
+        import difflib
+        matches = difflib.get_close_matches(resp, options, n=1, cutoff=0.5)
+        if matches:
+            return matches[0]
+        # 5) 詞袋交集
+        resp_words = set(resp.replace("、", " ").replace("，", " ").split())
+        for opt in options:
+            opt_words = set(opt.replace("、", " ").replace("，", " ").split())
+            if opt_words & resp_words:
+                return opt
+        return None
+
+    @classmethod
+    def _match_multiple_to_options(cls, response: str, options: List[str]) -> List[str]:
+        """多選題：把回應拆解後逐一匹配，全部落在合法選項內。"""
+        if not options:
+            return [response]
+
+        selected: List[str] = []
+
+        # 先看是否有整段子字串就是某個選項
+        for opt in options:
+            if opt in response and opt not in selected:
+                selected.append(opt)
+
+        # 用分隔符拆分後逐一匹配
+        import re
+        parts = re.split(r"[、,，;；\n/]+", response)
+        for part in parts:
+            part = part.strip().strip("「」\"'`。 ")
+            if not part:
+                continue
+            matched = cls._match_to_option(part, options)
+            if matched and matched not in selected:
+                selected.append(matched)
+
+        if not selected:
+            # 整段交給單選匹配器試一次
+            matched = cls._match_to_option(response, options)
+            if matched:
+                selected.append(matched)
+
+        if not selected:
+            print(f"         ⚠️  多選題無匹配，回傳空 list: 原回應='{response[:40]}'")
+            return []
+        return selected
 
     def _get_error_fallback_answer(self, question_type: str) -> Any:
         fallbacks = {
