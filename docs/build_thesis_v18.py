@@ -928,9 +928,30 @@ def _apply_text_edits_to_doc(doc):
 #  Table 4 (MMAFFBen) — update SACF-Text row + baseline rows (Liu 2025)
 # ════════════════════════════════════════════════════════════════════════════
 def _rewrite_mosi_table(doc):
-    """Replace last 4 rows of Table 3 (SACF seeds 42/123/2024 + ensemble)
-    with Run 1/Run 2/Run 3 + final 3-Run param ensemble."""
+    """Patch baseline rows (1-13) of Table 3 (CMU-MOSI) where they differed
+    from the user-provided ground-truth values, AND replace the last 4 rows
+    (SACF seeds 42/123/2024 + ensemble) with Run 1 / Run 2 / Run 3 + final
+    3-Run parameter-space ensemble."""
     t = doc.tables[3]
+
+    # Patch baseline cells where the v15 numbers differed from the corrected
+    # set (LF-DNN F1, Graph-MFN MAE, Self-MM Acc-2, ConFEDE Corr, MGT F1).
+    baseline_patches = {
+        ("LF-DNN",     3): "77.9",   # F1 column
+        ("Graph-MFN",  4): "0.939",  # MAE column
+        ("Self-MM",    2): "82.7",   # Acc-2 column
+        ("ConFEDE",    5): "0.782",  # Corr column
+        ("MGT",        3): "86.26",  # F1 column
+    }
+    for r in range(1, 14):
+        name = t.cell(r, 0).text.strip()
+        for (target_name, col), new_val in baseline_patches.items():
+            if name == target_name:
+                cell = t.cell(r, col)
+                cell.text = ""
+                p = cell.paragraphs[0]
+                _add_text_with_subs(p, new_val, base_font_size=Pt(10))
+
     # Real per-run metrics from sacf_final_summary.json + scaf_final log series
     rows_new = [
         ("SACF — Run 1 (seed=42, std)",          "52.62", "85.13", "85.10", "0.597", "0.866", "本研究"),
