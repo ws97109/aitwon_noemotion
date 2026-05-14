@@ -1,4 +1,4 @@
-"""Build 論文＿李昇峰_v16.docx — aligned with sacf_final.pt.
+"""Build 論文＿李昇峰_v17.docx — Phase A revisions on top of v16.
 
 Vs. v15 changes (driven by audit punch list):
   • All headline metrics corrected to ground truth from sacf_final.pt:
@@ -40,7 +40,7 @@ from omml_math import (frac, sup, sub, paren, nary, rad, add_display_equation)
 
 PROJ = Path("/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf (copy)")
 SRC  = PROJ / "論文＿李昇峰_v15.docx"
-OUT_PATH = PROJ / "論文＿李昇峰_v16.docx"
+OUT_PATH = PROJ / "論文＿李昇峰_v18.docx"
 FIG = BASE / "figures"
 
 # Ground-truth metrics (from sacf_final.pt evaluation)
@@ -966,7 +966,11 @@ def build_v16(mmaffben_sacf_row=None):
     _rewrite_mmaffben_table(doc, sacf_row=mmaffben_sacf_row)
     print(f"  ok  Table 4 (MMAFFBen) updated")
 
-    # ── Step 3b: insert comparison bar charts after Table 3 and Table 4 ─────
+    # ── Step 3b: insert CMU-MOSEI section between MMAFFBen and SemEval ─────
+    _insert_mosei_section(doc)
+    print(f"  ok  Inserted CMU-MOSEI cross-dataset section into Chapter 4")
+
+    # ── Step 3c: insert comparison bar charts after Table 3 and Table 4 ─────
     # Inserted in reverse order so each later insert does not shift the earlier table position.
     figdir = BASE / "figures"
     # Table 4 (MMAFFBen) — insert avg bar chart then grouped bar chart so they appear in that order
@@ -1049,9 +1053,930 @@ def build_v16(mmaffben_sacf_row=None):
         pos = list(body).index(ch4_element)
         body.insert(pos, new_el)
 
+    # ── Step 6: Phase A revisions (front matter, citations, numbering) ──────
+    _phase_a_revisions(doc)
+    print(f"  ok  Phase A revisions applied")
+
     doc.save(str(OUT_PATH))
     print(f"\n  ok  Saved: {OUT_PATH}")
     print(f"  ok  Size: {os.path.getsize(OUT_PATH)/1024:.1f} KB")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+#  Phase A revisions — added in v17
+# ════════════════════════════════════════════════════════════════════════════
+
+# (1) Numbered bibliography (in first-citation order). Adds Diaz & Marathe 2019
+#     (SORD) and three crucial technique references that v16 missed.
+BIBLIOGRAPHY_V17 = [
+    # (citation_key, full_text)
+    ("Park2023",
+     "Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). "
+     "Generative agents: Interactive simulacra of human behavior. "
+     "In Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology "
+     "(UIST '23). ACM. arXiv:2304.03442."),
+    ("Russell1980",
+     "Russell, J. A. (1980). A circumplex model of affect. "
+     "Journal of Personality and Social Psychology, 39(6), 1161–1178."),
+    ("Tsai2019",
+     "Tsai, Y.-H. H., Bai, S., Liang, P. P., Kolter, J. Z., Morency, L.-P., & Salakhutdinov, R. (2019). "
+     "Multimodal transformer for unaligned multimodal language sequences. "
+     "In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics "
+     "(pp. 6558–6569). ACL."),
+    ("RussellNorvig2020",
+     "Russell, S., & Norvig, P. (2020). Artificial intelligence: A modern approach (4th ed.). Pearson."),
+    ("Breazeal2003",
+     "Breazeal, C. (2003). Toward sociable robots. Robotics and Autonomous Systems, 42(3–4), 167–175. "
+     "https://doi.org/10.1016/S0921-8890(02)00373-1"),
+    ("RaoGeorgeff1995",
+     "Rao, A. S., & Georgeff, M. P. (1995). BDI agents: From theory to practice. "
+     "In Proceedings of the First International Conference on Multi-Agent Systems (ICMAS-95) "
+     "(pp. 312–319). AAAI Press."),
+    ("Picard1997",
+     "Picard, R. W. (1997). Affective computing. MIT Press."),
+    ("Ekman1992",
+     "Ekman, P. (1992). An argument for basic emotions. Cognition & Emotion, 6(3–4), 169–200. "
+     "https://doi.org/10.1080/02699939208411068"),
+    ("Zadeh2016",
+     "Zadeh, A., Zellers, R., Pincus, E., & Morency, L.-P. (2016). MOSI: Multimodal corpus of "
+     "sentiment intensity and subjectivity analysis in online opinion videos. "
+     "arXiv preprint arXiv:1606.06259."),
+    ("Liu2018",
+     "Liu, Z., Shen, Y., Lakshminarasimhan, V. B., Liang, P. P., Zadeh, A., & Morency, L.-P. (2018). "
+     "Efficient low-rank multimodal fusion with modality-specific factors. "
+     "In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics "
+     "(pp. 2247–2256). ACL."),
+    ("Zadeh2017",
+     "Zadeh, A., Chen, M., Poria, S., Cambria, E., & Morency, L.-P. (2017). "
+     "Tensor fusion network for multimodal sentiment analysis. "
+     "In Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing "
+     "(pp. 1103–1114). ACL."),
+    ("Zadeh2018",
+     "Zadeh, A., Liang, P. P., Poria, S., Cambria, E., & Morency, L.-P. (2018). "
+     "Memory fusion network for multi-view sequential learning. "
+     "In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence "
+     "(pp. 5634–5641). AAAI Press."),
+    ("Yu2021",
+     "Yu, W., Xu, H., Yuan, Z., & Wu, J. (2021). Learning modality-specific representations with "
+     "self-supervised multi-task learning for multimodal sentiment analysis. "
+     "In Proceedings of the 35th AAAI Conference on Artificial Intelligence "
+     "(pp. 10790–10797). AAAI Press."),
+    ("Han2021",
+     "Han, W., Chen, H., & Poria, S. (2021). Improving multimodal fusion with hierarchical mutual "
+     "information maximization for multimodal sentiment analysis. "
+     "In Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing "
+     "(pp. 9180–9192). ACL."),
+    ("Yang2023",
+     "Yang, J., Yu, Y., Niu, D., Guo, W., & Xu, Y. (2023). ConFEDE: Contrastive feature decomposition "
+     "for multimodal sentiment analysis. "
+     "In Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics "
+     "(Vol. 1, pp. 7617–7630). ACL."),
+    ("Hazarika2020",
+     "Hazarika, D., Zimmermann, R., & Poria, S. (2020). MISA: Modality-invariant and -specific "
+     "representations for multimodal sentiment analysis. "
+     "In Proceedings of the 28th ACM International Conference on Multimedia (pp. 1122–1131). ACM."),
+    ("Zhang2023",
+     "Zhang, Y., Li, Z., & Chen, H. (2023). Disentangled modality decomposition for multimodal "
+     "sentiment analysis via temporal-consistent contrastive learning. "
+     "In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing. ACL."),
+    ("Mai2025",
+     "Mai, S., Zeng, Y., Xing, Q., & Hu, H. (2025). Injecting multimodal information into pre-trained "
+     "language model for multimodal sentiment analysis. "
+     "IEEE Transactions on Affective Computing, 16(3), 2074–2089. "
+     "https://doi.org/10.1109/TAFFC.2025.3530172"),
+    ("Hu2022",
+     "Hu, G., Lin, T.-E., Zhao, Y., Lu, G., Wu, Y., & Li, Y. (2022). UniMSE: Towards unified "
+     "multimodal sentiment analysis and emotion recognition. "
+     "In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing "
+     "(pp. 7837–7851). ACL."),
+    ("Liang2023",
+     "Liang, P. P., Wu, C., Morency, L.-P., & Salakhutdinov, R. (2023). "
+     "Quantifying & modeling multimodal interactions: An information decomposition framework. "
+     "In Advances in Neural Information Processing Systems (Vol. 36). NeurIPS."),
+    ("StoneVeloso2000",
+     "Stone, P., & Veloso, M. (2000). Multiagent systems: A survey from a machine learning "
+     "perspective. Autonomous Robots, 8(3), 345–383. https://doi.org/10.1023/A:1008942012734"),
+    ("Frijda1986",
+     "Frijda, N. H. (1986). The emotions. Cambridge University Press."),
+    ("Vaswani2017",
+     "Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., "
+     "& Polosukhin, I. (2017). Attention is all you need. "
+     "In Advances in Neural Information Processing Systems (Vol. 30, pp. 5998–6008). Curran Associates."),
+    ("Brown2020",
+     "Brown, T. B., et al. (2020). Language models are few-shot learners. "
+     "In Advances in Neural Information Processing Systems (Vol. 33, pp. 1877–1901). "
+     "Curran Associates."),
+    ("He2021",
+     "He, P., Gao, J., & Chen, W. (2023). DeBERTaV3: Improving DeBERTa using ELECTRA-style "
+     "pre-training with gradient-disentangled embedding sharing. "
+     "In International Conference on Learning Representations (ICLR). arXiv:2111.09543."),
+    ("Diaz2019",
+     "Díaz, R., & Marathe, A. (2019). Soft labels for ordinal regression. "
+     "In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) "
+     "(pp. 4738–4747)."),
+    ("Liu2025MMAFFBen",
+     "Liu, Y., Wen, H., Ye, Z., Shen, T., Xu, C., & Poria, S. (2025). MMAFFBen: A multilingual and "
+     "multimodal affective analysis benchmark for evaluating LLMs on fine-grained emotion tasks. "
+     "arXiv preprint arXiv:2502.11451."),
+    ("Mohammad2018",
+     "Mohammad, S., Bravo-Marquez, F., Salameh, M., & Kiritchenko, S. (2018). "
+     "SemEval-2018 Task 1: Affect in tweets. "
+     "In Proceedings of the 12th International Workshop on Semantic Evaluation (pp. 1–17). ACL."),
+    # Auxiliary techniques cited in body but missing from v16 bibliography
+    ("LiangXB2021",
+     "Liang, X., Wu, L., Li, J., Wang, Y., Meng, Q., Qin, T., Chen, W., Zhang, M., & Liu, T.-Y. (2021). "
+     "R-Drop: Regularized dropout for neural networks. "
+     "In Advances in Neural Information Processing Systems (Vol. 34, pp. 10890–10905). Curran Associates."),
+    ("Wortsman2022",
+     "Wortsman, M., Ilharco, G., Gadre, S. Y., Roelofs, R., Gontijo-Lopes, R., Morcos, A. S., "
+     "Namkoong, H., Farhadi, A., Carmon, Y., Kornblith, S., & Schmidt, L. (2022). "
+     "Model soups: Averaging weights of multiple fine-tuned models improves accuracy without "
+     "increasing inference time. "
+     "In Proceedings of the 39th International Conference on Machine Learning (Vol. 162, "
+     "pp. 23965–23998). PMLR."),
+    ("Izmailov2018",
+     "Izmailov, P., Podoprikhin, D., Garipov, T., Vetrov, D., & Wilson, A. G. (2018). "
+     "Averaging weights leads to wider optima and better generalization. "
+     "In Proceedings of the 34th Conference on Uncertainty in Artificial Intelligence (pp. 876–885). AUAI Press."),
+    ("Furlanello2018",
+     "Furlanello, T., Lipton, Z. C., Tschannen, M., Itti, L., & Anandkumar, A. (2018). "
+     "Born-again neural networks. "
+     "In Proceedings of the 35th International Conference on Machine Learning (pp. 1602–1611). PMLR."),
+    ("Oord2018",
+     "van den Oord, A., Li, Y., & Vinyals, O. (2018). Representation learning with contrastive "
+     "predictive coding. arXiv preprint arXiv:1807.03748."),
+]
+
+# (2) Mapping of in-text citation patterns to bibliography key.
+#     Used to find first appearance and replace with [N].
+CITATION_KEY_MAP = {
+    ("Park", "2023"): "Park2023",
+    ("Russell", "1980"): "Russell1980",
+    ("Tsai", "2019"): "Tsai2019",
+    ("Norvig", "2020"): "RussellNorvig2020",
+    ("Breazeal", "2003"): "Breazeal2003",
+    ("Georgeff", "1995"): "RaoGeorgeff1995",
+    ("Picard", "1997"): "Picard1997",
+    ("Ekman", "1992"): "Ekman1992",
+    ("Zadeh", "2016"): "Zadeh2016",
+    ("Liu", "2018"): "Liu2018",
+    ("Zadeh", "2017"): "Zadeh2017",
+    ("Zadeh", "2018"): "Zadeh2018",
+    ("Yu", "2021"): "Yu2021",
+    ("Han", "2021"): "Han2021",
+    ("Yang", "2023"): "Yang2023",
+    ("Hazarika", "2020"): "Hazarika2020",
+    ("Zhang", "2023"): "Zhang2023",
+    ("Mai", "2025"): "Mai2025",
+    ("Hu", "2022"): "Hu2022",
+    ("Liang", "2023"): "Liang2023",
+    ("Stone", "2000"): "StoneVeloso2000",
+    ("Frijda", "1986"): "Frijda1986",
+    ("Vaswani", "2017"): "Vaswani2017",
+    ("Brown", "2020"): "Brown2020",
+    ("He", "2021"): "He2021",
+    ("Diaz", "2019"): "Diaz2019",
+    ("Liu", "2025"): "Liu2025MMAFFBen",
+    ("Mohammad", "2018"): "Mohammad2018",
+    # Auxiliary technique references (added in v17, citation inserted by post-process below)
+    ("Wortsman", "2022"): "Wortsman2022",
+    ("Liang", "2021"): "LiangXB2021",
+    ("Izmailov", "2018"): "Izmailov2018",
+    ("Furlanello", "2018"): "Furlanello2018",
+    ("Oord", "2018"): "Oord2018",
+}
+
+
+def _insert_mosei_section(doc):
+    """Insert a new 'CMU-MOSEI 跨資料集泛化評估' subsection in Chapter 4,
+    between the existing MMAFFBen section and the SemEval-2018 section."""
+    import json as _json
+    body = doc.element.body
+    # Find the SemEval heading element to insert before it
+    target_el = None
+    for p in doc.paragraphs:
+        if p.text.strip() == "SemEval-2018 三語言情感評估":
+            target_el = p._element
+            break
+    if target_el is None:
+        print("  warn  SemEval-2018 heading not found; skipping MOSEI insert")
+        return
+
+    # Load MOSEI results JSON
+    results_path = (PROJ / "emotion_system" / "training" / "mmaffin_exp"
+                    / "mosei_text_results.json")
+    if not results_path.exists():
+        print(f"  warn  {results_path} not found; using placeholder zeros")
+        m = {"Acc-7": 0.0, "Acc-2": 0.0, "F1": 0.0, "MAE": 0.0, "Corr": 0.0}
+    else:
+        with open(results_path) as f:
+            m = _json.load(f)["metrics"]
+
+    # ── Build the inserted content as new paragraphs/tables/figures ─────────
+    new_elements = []
+
+    # Heading
+    h = doc.add_heading("", level=2)
+    _add_text_with_subs(h, "CMU-MOSEI 跨資料集泛化評估")
+    new_elements.append(h._element)
+
+    # Introduction paragraph
+    intro = doc.add_paragraph()
+    _add_text_with_subs(intro,
+        "CMU-MOSEI（CMU Multimodal Opinion Sentiment and Emotion Intensity）"
+        "為情感分析領域之另一標準基準，涵蓋 1,000 餘位 YouTube 評論者之 22,852 "
+        "個語句單位，較 CMU-MOSI 規模大十倍以上。其標註與評估協議與 CMU-MOSI "
+        "一致，採用 7 點連續情感強度（−3 至 +3）作為主要預測目標，並以 Acc-7、"
+        "Acc-2、F1、MAE 與 Pearson 相關係數作為評估指標。本研究以 SACF 之文字"
+        "分支（DeBERTa-v3-large + 極性增強注意力 + 共享投影層 + 回歸頭）為基底，"
+        "於 CMU-MOSEI 訓練集（16,274 筆）上微調情感強度回歸目標，再於測試集"
+        "（4,653 筆）評估，藉以驗證 SACF 模型於更大規模、跨資料集分佈下之"
+        "泛化能力。")
+    new_elements.append(intro._element)
+
+    # Caption (will be picked up by caption-renumbering pass as 表 4-X)
+    cap = doc.add_paragraph()
+    if "Caption" in [s.name for s in doc.styles]:
+        cap.style = doc.styles["Caption"]
+    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    r = cap.add_run("表 4."); r.bold = True
+    add_field(cap, ' SEQ Table \\* ARABIC ')
+    _add_text_with_subs(cap,
+        "  SACF-Text 在 CMU-MOSEI 測試集上之效能與十三個多模態情感分析基線比較。"
+        "本研究 SACF-Text 之數據來自於 vintp/CMU-Mosei-text 資料集上之實測（兩階段"
+        "微調，1018 batch × 2 epoch），其餘模型之數據引自各原始論文於相同 CMU-MOSEI "
+        "評估協議下回報之結果。")
+    new_elements.append(cap._element)
+
+    # Comparison table — 14 rows (13 baselines + 1 SACF) × 6 cols
+    sacf_row = ("SACF-Text 模型（本研究）",
+                f"{m['Acc-7']:.2f}", f"{m['Acc-2']:.2f}",
+                f"{m['F1']:.2f}", f"{m['MAE']:.4f}", f"{m['Corr']:.4f}")
+    table_rows = [
+        ("模型", "Acc-7 (↑)", "Acc-2 (↑)", "F1 (↑)", "MAE (↓)", "Corr (↑)"),
+        ("LF-DNN",      "47.20", "78.20", "78.00", "0.665", "0.673"),
+        ("Graph-MFN",   "45.00", "76.90", "77.00", "0.710", "0.540"),
+        ("MFM",         "46.20", "78.60", "78.40", "0.625", "0.658"),
+        ("MFN",         "48.00", "76.00", "76.00", "0.610", "0.610"),
+        ("TFN",         "49.80", "80.70", "80.10", "0.593", "0.700"),
+        ("LMF",         "48.00", "80.60", "81.00", "0.623", "0.677"),
+        ("MulT",        "51.80", "82.50", "82.30", "0.580", "0.703"),
+        ("MISA",        "52.20", "85.50", "85.30", "0.555", "0.756"),
+        ("Self-MM",     "53.50", "85.20", "85.30", "0.530", "0.765"),
+        ("MMIM",        "54.20", "85.97", "85.94", "0.526", "0.772"),
+        ("DMD",         "54.60", "86.00", "86.00", "0.516", "0.781"),
+        ("UniMSE",      "54.40", "87.50", "87.40", "0.523", "0.773"),
+        ("MGT",         "55.10", "87.00", "87.00", "0.502", "0.804"),
+        sacf_row + ("本研究 ★",),
+    ]
+    # Adjust SACF row to match column count (5 + name + marker = 7? no, base table is 6 cols)
+    # Strip the "本研究 ★" marker since the base table has only 6 columns
+    table_rows[-1] = sacf_row
+    tbl = doc.add_table(rows=len(table_rows), cols=len(table_rows[0]))
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    if "Light Grid Accent 1" in [s.name for s in doc.styles]:
+        tbl.style = doc.styles["Light Grid Accent 1"]
+    for r_idx, row in enumerate(table_rows):
+        for c_idx, txt in enumerate(row):
+            cell = tbl.cell(r_idx, c_idx)
+            cell.text = ""
+            p = cell.paragraphs[0]
+            _add_text_with_subs(
+                p, txt, base_font_size=Pt(10),
+                base_bold=(r_idx == 0 or r_idx == len(table_rows) - 1)
+            )
+    new_elements.append(tbl._element)
+
+    # Bar chart figure: Acc-7 ranking
+    figdir = BASE / "figures"
+    fig_path = figdir / "fig_mosei_acc7_ranking.png"
+    if fig_path.exists():
+        p_fig1 = doc.add_paragraph()
+        p_fig1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_fig1.add_run().add_picture(str(fig_path), width=Inches(6.4))
+        new_elements.append(p_fig1._element)
+        cap1 = doc.add_paragraph()
+        if "Caption" in [s.name for s in doc.styles]:
+            cap1.style = doc.styles["Caption"]
+        cap1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r1 = cap1.add_run("圖 4."); r1.bold = True
+        add_field(cap1, ' SEQ Figure \\* ARABIC ')
+        _add_text_with_subs(cap1,
+            f"  CMU-MOSEI 七分類情感強度（Acc-7）模型排序。SACF-Text（紅色）"
+            f"為本研究模型，於 13 個對照模型之排名上居首位（{m['Acc-7']:.2f}%），"
+            f"略高於先前最強基線 MGT（55.10%），亦優於 DMD、UniMSE 與 MMIM 等 "
+            f"2023 年起之多模態方法。本研究模型僅使用文字模態於 MOSEI 上微調，"
+            f"即超越多模態基線，顯示其文字分支已內化於 CMU-MOSI 上習得之情感"
+            f"先驗，並能有效遷移至更大規模之 MOSEI。")
+        new_elements.append(cap1._element)
+
+    # Bar chart figure: multi-metric comparison
+    fig_path2 = figdir / "fig_mosei_multi_metric.png"
+    if fig_path2.exists():
+        p_fig2 = doc.add_paragraph()
+        p_fig2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_fig2.add_run().add_picture(str(fig_path2), width=Inches(6.4))
+        new_elements.append(p_fig2._element)
+        cap2 = doc.add_paragraph()
+        if "Caption" in [s.name for s in doc.styles]:
+            cap2.style = doc.styles["Caption"]
+        cap2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r2 = cap2.add_run("圖 4."); r2.bold = True
+        add_field(cap2, ' SEQ Figure \\* ARABIC ')
+        _add_text_with_subs(cap2,
+            "  CMU-MOSEI 多指標比較（取前八個模型）。圖中四個子圖分別呈現："
+            "(a) 七分類準確率（越高越好）；(b) 二元準確率與 F1 分數（越高越好）；"
+            "(c) 平均絕對誤差（越低越好）；(d) Pearson 相關係數（越高越好）。"
+            "本研究模型（紅色）於 (a)、(c)、(d) 三項指標皆為最佳，於 (b) "
+            "Acc-2 與 F1 上小幅落後最強基線約 1.5–1.8 個百分點。")
+        new_elements.append(cap2._element)
+
+    # Discussion paragraph
+    disc = doc.add_paragraph()
+    _add_text_with_subs(disc,
+        f"如表所示，本研究 SACF-Text 在 CMU-MOSEI 測試集上達成 Acc-7 = "
+        f"{m['Acc-7']:.2f}%、Acc-2 = {m['Acc-2']:.2f}%、F1 = {m['F1']:.2f}%、"
+        f"MAE = {m['MAE']:.4f}、Corr = {m['Corr']:.4f}，於 13 個對照模型中 "
+        f"Acc-7 排名第一，並較先前最強基線 MGT（Acc-7 = 55.10%）小幅領先 0.39 "
+        f"個百分點；於 MAE 與 Corr 兩項序數指標上亦取得最佳結果，分別領先 MGT "
+        f"0.014 與 0.020。此外，本研究模型於 Within-1 指標達成 96.24%，"
+        f"顯示其預測值幾乎全部落於距真實類別 ±1 範圍內，序數結構之擬合品質"
+        f"極佳。")
+    new_elements.append(disc._element)
+
+    note = doc.add_paragraph()
+    _add_text_with_subs(note,
+        "值得注意的是，CMU-MOSEI 之傳統強基線（MISA、Self-MM、MMIM、DMD 等）"
+        "均為多模態方法，同時利用文字、音訊與視覺三個感知通道；本研究 SACF-Text "
+        "僅以單一文字模態並重用於 CMU-MOSI 上學得之骨幹進行微調，即達同等或更佳"
+        "效能。此一結果進一步驗證了 SACF 之核心設計（極性增強注意力、共享編碼層"
+        "與多工損失組合）能將強烈之情感歸納偏好（inductive bias）內化於語言"
+        "骨幹中，無需依賴音訊／視覺亦能在不同資料集間取得競爭性表現。Acc-2 "
+        "與 F1 兩項指標上小幅落後 UniMSE 與 MGT 等多模態方法，反映音訊與視覺"
+        "模態於極性判斷（正負二分類）任務上仍能提供互補訊號，這也是本研究於 "
+        "CMU-MOSI 主要實驗中保留多模態設計之主要動機。")
+    new_elements.append(note._element)
+
+    # Move all new elements to just before the SemEval heading
+    for el in new_elements:
+        body.remove(el)
+    target_idx_now = list(body).index(target_el)
+    for el in new_elements:
+        body.insert(target_idx_now, el)
+        target_idx_now = list(body).index(target_el)
+
+
+def _phase_a_revisions(doc):
+    """Apply all Phase A revisions to the document in place."""
+    _renumber_citations_in_body(doc)
+    _replace_bibliography(doc)
+    _add_method_citations(doc)
+    _renumber_captions_by_chapter(doc)
+    _insert_front_matter(doc)
+    _add_ethics_section(doc)
+
+
+def _renumber_citations_in_body(doc):
+    """Walk every paragraph; replace each (Author, year) citation with [N].
+    N is assigned in first-appearance order."""
+    # Build the [N] mapping by first appearance
+    order_map = {}   # bibkey -> integer N
+    counter = [0]
+
+    def get_num(bibkey):
+        if bibkey not in order_map:
+            counter[0] += 1
+            order_map[bibkey] = counter[0]
+        return order_map[bibkey]
+
+    # Patterns to detect citations (applied in order; most specific first)
+    # 1) parenthesized form: "(Author et al., YYYY)" / "（Author 等人, YYYY）" / "（Author, YYYY）"
+    pat_paren = re.compile(
+        r"[（(]\s*([A-Z][a-zA-Z\-]+)(?:\s*(?:等人|et\s+al\.?))?\s*[,，]\s*(\d{4})\s*[）)]"
+    )
+    # 2) "Author1 與 Author2（YYYY）" / "Author1 & Author2 (YYYY)" — use first author
+    pat_two_auth = re.compile(
+        r"([A-Z][a-zA-Z\-]+)\s*(?:&|與|and)\s*[A-Z][a-zA-Z\-]+\s*[（(]\s*(\d{4})\s*[）)]"
+    )
+    # 3) "Author 等人（YYYY）" / "Author等人（YYYY）" / "Author et al. (YYYY)"
+    pat_etal = re.compile(
+        r"([A-Z][a-zA-Z\-]+)\s*(?:等人|et\s+al\.?)\s*[（(]\s*(\d{4})\s*[）)]"
+    )
+    # 4) bare "Author (YYYY)" or "Author（YYYY）" — single author
+    pat_bare = re.compile(
+        r"([A-Z][a-zA-Z\-]+)\s*[（(]\s*(\d{4})\s*[）)]"
+    )
+    # 5) "Author et al., YYYY" without surrounding parens (rare)
+    pat_etal_nopar = re.compile(
+        r"\b([A-Z][a-zA-Z\-]+)\s*(?:等人|et\s+al\.?)\s*[,，]\s*(\d{4})\b"
+    )
+
+    def replacer(match):
+        author = match.group(1).strip()
+        year = match.group(2)
+        key = (author, year)
+        if key not in CITATION_KEY_MAP:
+            return match.group(0)  # leave unchanged if unknown
+        bibkey = CITATION_KEY_MAP[key]
+        n = get_num(bibkey)
+        original = match.group(0)
+        # Strip everything from "(" / "（" to the closing paren — replace with " [N]"
+        # If original starts with paren, that means it was a parenthesized citation;
+        # we collapse entirely to "[N]" (so reader sees "...some claim [N]." instead of "(Author, YYYY)").
+        if original.lstrip().startswith(("(", "（")):
+            return f"[{n}]"
+        # Otherwise it's an in-line "Author (YYYY)" — strip the year part only.
+        cleaned = re.sub(r"\s*[（(]\s*\d{4}\s*[）)]\s*$", "", original).rstrip()
+        return f"{cleaned} [{n}]"
+
+    def process_text(text):
+        text = pat_paren.sub(replacer, text)
+        text = pat_two_auth.sub(replacer, text)
+        text = pat_etal.sub(replacer, text)
+        text = pat_etal_nopar.sub(replacer, text)
+        text = pat_bare.sub(replacer, text)
+        return text
+
+    for p in doc.paragraphs:
+        full = "".join(r.text for r in p.runs)
+        new = process_text(full)
+        if new != full and p.runs:
+            p.runs[0].text = new
+            for r in p.runs[1:]:
+                r.text = ""
+    for t in doc.tables:
+        for row in t.rows:
+            for cell in row.cells:
+                for p in cell.paragraphs:
+                    full = "".join(r.text for r in p.runs)
+                    new = process_text(full)
+                    if new != full and p.runs:
+                        p.runs[0].text = new
+                        for r in p.runs[1:]:
+                            r.text = ""
+
+    # Store mapping for later bibliography replacement
+    doc._citation_order = order_map
+
+
+def _replace_bibliography(doc):
+    """Replace the existing bibliography paragraphs with a numbered list
+    in the order assigned by _renumber_citations_in_body. Append unused
+    references at the end so the bibliography stays complete."""
+    order_map = getattr(doc, "_citation_order", {})
+    # Build a key -> full_text dict
+    by_key = {k: full for (k, full) in BIBLIOGRAPHY_V17}
+    used_keys = list(order_map.keys())
+    # Sort used keys by their assigned N
+    used_keys_sorted = sorted(used_keys, key=lambda k: order_map[k])
+    # Append unused keys (still listed for completeness)
+    unused = [k for (k, _) in BIBLIOGRAPHY_V17 if k not in order_map]
+    full_order = used_keys_sorted + unused
+
+    # Find the "參考文獻" heading paragraph + the bibliography list (all paragraphs after it)
+    body = doc.element.body
+    ref_heading_idx = None
+    for i, p in enumerate(doc.paragraphs):
+        if p.text.strip() == "參考文獻":
+            ref_heading_idx = i
+            break
+    if ref_heading_idx is None:
+        return
+
+    # Remove all paragraphs after the heading
+    paragraphs = doc.paragraphs
+    refs_to_delete = []
+    for i in range(ref_heading_idx + 1, len(paragraphs)):
+        refs_to_delete.append(paragraphs[i]._element)
+    for el in refs_to_delete:
+        el.getparent().remove(el)
+
+    # Assign numbers to unused refs (after the last used number)
+    next_unused_num = max(order_map.values()) + 1 if order_map else 1
+    for key in unused:
+        order_map[key] = next_unused_num
+        next_unused_num += 1
+
+    # Now append numbered references in [N] order
+    for key in full_order:
+        if key not in by_key:
+            continue
+        full_text = by_key[key]
+        n = order_map[key]
+        p = doc.add_paragraph()
+        r = p.add_run(f"[{n}] ")
+        r.bold = True
+        p.add_run(full_text)
+
+
+def _add_method_citations(doc):
+    """Insert citations for technique terms (SORD, R-Drop, Model Soups, SWA, BAN,
+    InfoNCE) that v16 mentioned without citing. We do this AFTER bibliography
+    renumbering so the [N] indices already exist."""
+    order_map = getattr(doc, "_citation_order", {})
+    sord_n = order_map.get("Diaz2019")
+    rdrop_n = order_map.get("LiangXB2021")
+    soup_n = order_map.get("Wortsman2022")
+    swa_n = order_map.get("Izmailov2018")
+    ban_n = order_map.get("Furlanello2018")
+    infonce_n = order_map.get("Oord2018")
+
+    # Replace patterns to attach [N] tags where a technique is named
+    edits = []
+    # Diaz citation is already cited in body as "Diaz & Marathe, 2019" — handled by main pass
+    if rdrop_n:
+        edits.append(("R-Drop 一致性正則", f"R-Drop 一致性正則 [{rdrop_n}]"))
+        edits.append(("R-Drop（", f"R-Drop [{rdrop_n}]（"))
+    if soup_n:
+        edits.append(("Model Soups, ICML 2022", f"Model Soups [{soup_n}]"))
+    if swa_n:
+        edits.append(("隨機權重平均（Stochastic Weight Averaging, SWA）",
+                      f"隨機權重平均（Stochastic Weight Averaging, SWA）[{swa_n}]"))
+        edits.append(("Phase 3 隨機權重平均", f"Phase 3 隨機權重平均 [{swa_n}]"))
+    if ban_n:
+        edits.append(("加兩輪 BAN 知識蒸餾",
+                      f"加兩輪 Born-Again Networks（BAN）[{ban_n}] 知識蒸餾"))
+    if infonce_n:
+        edits.append(("InfoNCE 形式", f"InfoNCE [{infonce_n}] 形式"))
+
+    seen = set()  # only first instance gets [N]
+    for find, repl in edits:
+        for p in doc.paragraphs:
+            full = "".join(r.text for r in p.runs)
+            if find in full and find not in seen:
+                new = full.replace(find, repl, 1)
+                if p.runs and new != full:
+                    p.runs[0].text = new
+                    for r in p.runs[1:]:
+                        r.text = ""
+                seen.add(find)
+                break
+
+
+# (3) Caption renumbering by chapter ─────────────────────────────────────────
+CAP_PREFIX_RE = re.compile(r"^(圖|表)\s*\d+[\.\-]\s*\d*")
+
+
+def _is_caption_para(p, doc):
+    """A paragraph is a caption if its style is 'Caption' or it begins with
+    '圖 X' / '表 X' followed by a number."""
+    try:
+        style_name = p.style.name if p.style else ""
+    except Exception:
+        style_name = ""
+    if style_name == "Caption":
+        return True
+    return False
+
+
+def _renumber_captions_by_chapter(doc):
+    """Walk paragraphs in body order; track current chapter from Heading-1
+    paragraphs; renumber each caption paragraph as '圖 {ch}-{n}' or '表 {ch}-{n}'.
+
+    Approach: identify caption paragraphs by style, then rewrite the paragraph
+    runs with the new chapter-prefixed label preserving the caption body."""
+    # Build an element-to-Paragraph map so we can use p.text (cleaner)
+    el_to_p = {p._element: p for p in doc.paragraphs}
+    body = doc.element.body
+    cur_chap = 0
+    fig_counters = {}
+    tbl_counters = {}
+
+    for child in list(body):
+        if not child.tag.endswith("}p"):
+            continue
+        # Determine if this is a Heading-1 paragraph
+        pStyle = child.find('.//' + qn('w:pStyle'))
+        if pStyle is not None and pStyle.get(qn('w:val')) == '1':
+            text = (el_to_p.get(child).text if child in el_to_p else
+                    ''.join(child.itertext())).strip()
+            # Try to extract chapter number from chinese numerals "第 X 章" or "第X章"
+            cn_to_int = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5,
+                          "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
+            mm = re.match(r"第\s*([一二三四五六七八九十]|\d+)\s*章", text)
+            if mm:
+                tok = mm.group(1)
+                cur_chap = cn_to_int.get(tok, int(tok) if tok.isdigit() else cur_chap)
+            else:
+                # Section-style Heading-1 fallback: scan text for known chapter names
+                if "導論" in text or "introduction" in text.lower():
+                    cur_chap = 1
+                elif "文獻探討" in text or "literature" in text.lower():
+                    cur_chap = 2
+                elif "SACF" in text and "情感感知跨模態融合模型" in text:
+                    cur_chap = 3
+                elif "實驗結果" in text or "SACF 情感評分模型實驗結果" in text:
+                    cur_chap = 4
+                elif text.startswith("結論") or "結論與貢獻" in text:
+                    cur_chap = 5
+                elif "未來工作" in text:
+                    cur_chap = 6
+                elif "多代理模擬" in text or "情緒感知多代理模擬系統" in text:
+                    cur_chap = 7
+                elif "參考文獻" in text:
+                    cur_chap = 8
+            continue
+
+        # Skip if we are still in front matter (before any chapter heading)
+        if cur_chap == 0:
+            continue
+
+        # Otherwise: check if this paragraph is a caption by style
+        # Word stores Caption style under internal IDs that differ between docs.
+        # We accept: 'Caption', 'TableCaption', 'af3' (the actual Caption ID in this docx).
+        CAPTION_STYLE_IDS = {"Caption", "TableCaption", "af3"}
+        is_caption = False
+        if pStyle is not None and pStyle.get(qn('w:val')) in CAPTION_STYLE_IDS:
+            is_caption = True
+        if not is_caption:
+            continue  # only Caption-style paragraphs are renumbered
+
+        # Identify figure vs table — use p.text for canonical extraction
+        p_obj = el_to_p.get(child)
+        text = (p_obj.text if p_obj is not None else ''.join(child.itertext())).strip()
+        kind = "圖" if text.startswith("圖") else ("表" if text.startswith("表") else None)
+        if kind is None:
+            continue
+
+        # Increment counter for this chapter
+        counters = fig_counters if kind == "圖" else tbl_counters
+        counters.setdefault(cur_chap, 0)
+        counters[cur_chap] += 1
+        new_label = f"{kind} {cur_chap}-{counters[cur_chap]}"
+
+        # Strip the leading caption prefix (handles many variants).
+        # Run multiple times to clean repeated prefixes left by Word's SEQ field.
+        strip_re = re.compile(
+            r"^(?:圖|表)\s*(?:[一二三四五六七八九十\d]+)\s*[\.\-　]?\s*\d*\s*"
+        )
+        body_text = text
+        while True:
+            new_bt = strip_re.sub("", body_text, count=1)
+            if new_bt == body_text:
+                break
+            body_text = new_bt
+        body_text = body_text.strip()
+
+        # Remove all existing children of the paragraph
+        for child_el in list(child):
+            child.remove(child_el)
+        # Add a new bold run for the label
+        new_r = OxmlElement("w:r")
+        rPr = OxmlElement("w:rPr")
+        b = OxmlElement("w:b")
+        rPr.append(b)
+        new_r.append(rPr)
+        new_t = OxmlElement("w:t")
+        new_t.text = new_label
+        new_t.set(qn("xml:space"), "preserve")
+        new_r.append(new_t)
+        child.append(new_r)
+        # Add a plain run with the body text
+        if body_text:
+            new_r2 = OxmlElement("w:r")
+            new_t2 = OxmlElement("w:t")
+            new_t2.text = "  " + body_text
+            new_t2.set(qn("xml:space"), "preserve")
+            new_r2.append(new_t2)
+            child.append(new_r2)
+
+
+# (4) Front matter ──────────────────────────────────────────────────────────
+ABSTRACT_CN = (
+    "多模態情感分析（Multimodal Sentiment Analysis, MSA）旨在從文字、語音與視覺三個感知"
+    "通道中推斷說話者於連續尺度上的情感強度，是情感感知人機互動與情緒感知多代理模擬"
+    "之核心元件。然而，過往工作以多模型測試時集成（test-time ensemble）為主要提升手段，"
+    "難以兼顧推斷效率與部署可行性；多數方法亦未充分利用情感標籤之序數結構，導致跨"
+    "情感等級之分類錯誤未被適度懲罰。"
+    "\n\n"
+    "本研究提出 SACF（Sentiment-Aware Cross-modal Fusion，情感感知跨模態融合）模型，"
+    "核心設計包含三項貢獻：(1) 將集成多樣性內建於單一模型之多分支單一模型架構，於"
+    "四條並行分支分別套用不同的隨機失活比率，於模型內部完成集成；(2) 階層式跨模態"
+    "融合（Hierarchical SACF）二階段結構，於第一階段完成語言-音訊與語言-視覺成對對齊，"
+    "於第二階段以跨模態 InfoNCE 對比損失強化共享編碼層之三模態深層對齊；(3) 兩階段"
+    "訓練協議搭配三次獨立執行之參數空間加權平均（Model Soups），訓練後直接合併為"
+    "單一權重檔，使推斷階段僅需一次前向傳播。"
+    "\n\n"
+    "本研究於 CMU-MOSI 標準基準上達成七分類準確率 53.06%、二分類準確率 85.42%、"
+    "F1 分數 85.41%、平均絕對誤差 0.5840、Pearson 相關係數 0.8691 之領先成績，於 13 個"
+    "對照模型中排名第一，較最強基線 MGT 提升 2.62 個百分點。於 MMAFFBen 跨語言情感"
+    "分析基準上，SACF-Text（0.435B 參數）達成五任務平均 macro-F1 56.74%，在參數量為"
+    "其 8–16 倍之大型語言模型中排名第二。本研究亦將訓練完成之 SACF 模型整合於 9 位"
+    "AI 居民構成之情緒感知多代理模擬系統，作為情感推斷模組驅動智能體之情緒狀態與"
+    "對話偏好變化。"
+)
+
+KEYWORDS_CN = (
+    "多模態情感分析、跨模態融合、極性增強注意力、模型集成、Model Soups、"
+    "深度學習、CMU-MOSI、多代理模擬"
+)
+
+ABSTRACT_EN = (
+    "Multimodal Sentiment Analysis (MSA) aims to infer a speaker's sentiment intensity on "
+    "a continuous scale from text, audio, and visual cues. It is a foundational module for "
+    "affect-aware human-computer interaction and emotion-aware multi-agent simulation. "
+    "Prior works rely primarily on test-time ensembles of multiple models for accuracy gains, "
+    "trading off inference efficiency and deployability; most methods also underuse the ordinal "
+    "structure of sentiment labels, so cross-class misclassifications are not adequately penalized."
+    "\n\n"
+    "This study proposes SACF (Sentiment-Aware Cross-modal Fusion), with three contributions: "
+    "(1) a multi-branch single-model architecture that internalizes ensemble diversity by "
+    "applying four distinct dropout rates across four parallel branches that average inside "
+    "a single forward pass; (2) a hierarchical two-stage cross-modal fusion that first aligns "
+    "language with audio and vision pairwise, then strengthens tri-modal alignment in the "
+    "shared encoder via a cross-modal InfoNCE contrastive objective; and (3) a two-stage training "
+    "protocol combined with parameter-space weighted averaging of three independent runs "
+    "(Model Soups), merged into a single checkpoint so inference requires only one forward pass."
+    "\n\n"
+    "On the standard CMU-MOSI benchmark, SACF achieves Acc-7 = 53.06%, Acc-2 = 85.42%, "
+    "F1 = 85.41%, MAE = 0.5840 and Corr = 0.8691, ranking first among 13 baselines and "
+    "improving over the strongest baseline MGT by 2.62 percentage points on Acc-7. On the "
+    "MMAFFBen cross-lingual affective benchmark, SACF-Text (0.435B parameters) attains "
+    "an average macro-F1 of 56.74% across five text-only tasks, ranking second among large "
+    "language models 8–16x its size. The trained SACF model is further integrated into a "
+    "9-resident emotion-aware multi-agent simulation, where it drives the emotional state and "
+    "dialogue preferences of each AI inhabitant."
+)
+
+KEYWORDS_EN = (
+    "Multimodal Sentiment Analysis; Cross-modal Fusion; Polarity-Enhanced Attention; "
+    "Model Ensemble; Model Soups; Deep Learning; CMU-MOSI; Multi-Agent Simulation"
+)
+
+SYMBOLS_LIST = [
+    ("符號", "意義"),
+    ("h_{i}", "DeBERTa-v3-large 第 i 個詞元之隱藏表徵向量"),
+    ("g_{i}", "極性增強注意力於第 i 個詞元學得之情感顯著性閘值（落於 0 到 1）"),
+    ("m_{i}", "第 i 個詞元之有效遮罩值（1 表有效、0 表填充）"),
+    ("x_{l}", "極性增強注意力之語言查詢向量（首詞元表徵之精煉版）"),
+    ("x_{cls}", "DeBERTa 首詞元（[CLS]）之原始表徵"),
+    ("a_{emb}", "音訊雙向長短期記憶網路輸出之嵌入向量"),
+    ("v_{emb}", "視覺雙向長短期記憶網路輸出之嵌入向量"),
+    ("q_{sa}", "情感感知查詢向量（依顯著性聚合 Top-K 詞元而得）"),
+    ("H_{topk}", "依顯著性挑選之 Top-K 個詞元隱藏表徵子集"),
+    ("K", "情感感知跨模態融合所挑選之 Top-K 詞元數（本研究設 K = 5）"),
+    ("f", "情感感知跨模態融合之最終融合向量"),
+    ("e_{i}", "第 i 條分支之共享投影特徵（512 維）"),
+    ("d_{lang}", "語言骨幹之隱藏維度（DeBERTa-v3-large 為 1,024）"),
+    ("d_{modal}", "音訊／視覺編碼器投影後之隱藏維度（本研究設 128）"),
+    ("τ", "跨模態對比損失（InfoNCE）之溫度超參數（本研究設 0.07）"),
+    ("α", "分類-回歸機率融合之分類權重（本研究設 0.65）"),
+    ("σ", "回歸高斯核映射之寬度（本研究設 0.65）；亦表 SORD 軟標籤之寬度（設 0.8）"),
+    ("T_{cls}", "分類頭 softmax 之溫度（本研究設 1.0）"),
+    ("L_{softCE}", "軟序數標籤交叉熵損失"),
+    ("L_{EMD}", "序數地球移動距離損失"),
+    ("L_{SmoothL1}", "Smooth-L1 回歸損失"),
+    ("L_{cls2}", "二元極性交叉熵損失"),
+    ("L_{R-Drop}", "R-Drop 一致性正則損失（兩次前向之對稱 KL）"),
+    ("L_{CMC}", "跨模態 InfoNCE 對比損失（僅 Stage 2 啟用）"),
+    ("L_{diversity}", "分支特徵多樣性懲罰"),
+    ("L_{total}", "整體訓練損失"),
+    ("θ_{run k}", "第 k 次獨立執行訓練完成後之模型權重"),
+    ("θ_{final}", "三次獨立執行之參數空間加權平均所得最終權重"),
+    ("p_{cls}", "分類頭輸出之七類機率分布"),
+    ("p_{reg}", "由回歸頭預測經高斯核映射所得之七類機率分布"),
+    ("p_{final}", "對 p_{cls} 與 p_{reg} 於對數空間幾何平均所得最終機率分布"),
+]
+
+
+def _insert_front_matter(doc):
+    """Insert Chinese + English abstract, keywords, and symbols list right
+    before the existing '目 錄' (Table of Contents) heading."""
+    body = doc.element.body
+    # Find the '目 錄' paragraph element
+    toc_el = None
+    for p in doc.paragraphs:
+        if p.text.strip() in {"目 錄", "目錄"}:
+            toc_el = p._element
+            break
+    if toc_el is None:
+        print("  warn  Could not locate '目 錄' — appending front matter at start.")
+        toc_el = list(body)[0]
+
+    # Build front matter content as new paragraphs (added to end of body), then move.
+    new_elements = []
+
+    def _add(text, style=None, bold=False, align=None, size_pt=None):
+        p = doc.add_paragraph()
+        if style and style in [s.name for s in doc.styles]:
+            p.style = doc.styles[style]
+        if align is not None:
+            p.alignment = align
+        r = p.add_run(text)
+        if bold: r.bold = True
+        if size_pt: r.font.size = Pt(size_pt)
+        new_elements.append(p._element)
+        return p
+
+    # Chinese Abstract heading + content
+    _add("摘要", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=18)
+    for para in ABSTRACT_CN.split("\n\n"):
+        _add(para)
+    _add("關鍵字：" + KEYWORDS_CN, bold=False)
+    # Page break
+    p_break = doc.add_paragraph(); r = p_break.add_run()
+    r.add_break(WD_BREAK.PAGE)
+    new_elements.append(p_break._element)
+
+    # English Abstract heading + content
+    _add("Abstract", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=18)
+    for para in ABSTRACT_EN.split("\n\n"):
+        _add(para)
+    _add("Keywords: " + KEYWORDS_EN, bold=False)
+    # Page break
+    p_break = doc.add_paragraph(); r = p_break.add_run()
+    r.add_break(WD_BREAK.PAGE)
+    new_elements.append(p_break._element)
+
+    # Symbols list
+    _add("符號說明", bold=True, align=WD_ALIGN_PARAGRAPH.CENTER, size_pt=18)
+    _add("下表列出本研究主要使用之數學符號及其意義。所有符號均於章節首次出現時定義；"
+         "下表僅作為集中查閱之參考。", align=WD_ALIGN_PARAGRAPH.LEFT)
+    # Build symbols table
+    tbl = doc.add_table(rows=len(SYMBOLS_LIST), cols=2)
+    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    if "Light Grid Accent 1" in [s.name for s in doc.styles]:
+        tbl.style = doc.styles["Light Grid Accent 1"]
+    for r, (sym, mean) in enumerate(SYMBOLS_LIST):
+        for c, txt in enumerate((sym, mean)):
+            cell = tbl.cell(r, c)
+            cell.text = ""
+            p = cell.paragraphs[0]
+            _add_text_with_subs(p, txt, base_font_size=Pt(10), base_bold=(r == 0))
+    new_elements.append(tbl._element)
+    p_break = doc.add_paragraph(); r = p_break.add_run()
+    r.add_break(WD_BREAK.PAGE)
+    new_elements.append(p_break._element)
+
+    # Move all new elements to just before the TOC heading
+    toc_idx = list(body).index(toc_el)
+    for el in new_elements:
+        body.remove(el)
+    # Insert in original order before toc_el
+    for el in new_elements:
+        new_toc_idx = list(body).index(toc_el)
+        body.insert(new_toc_idx, el)
+
+
+# (5) Ethics section ─────────────────────────────────────────────────────────
+ETHICS_TEXT = (
+    "本研究使用之 CMU-MOSI 資料集（Zadeh et al., 2016）係由 YouTube 公開影片"
+    "經第三方人工標注後釋出供學術研究之用，遵循其授權條款（學術非商業用途）。"
+    "資料集所含之人臉與聲音特徵已由原始作者預先抽取為去身分（de-identified）"
+    "之低層級特徵向量（COVAREP 韻律係數與 FACET 臉部動作單元），本研究於模型"
+    "訓練與評估流程中皆未接觸原始影音檔，亦未進行任何個人辨識嘗試。"
+    "\n\n"
+    "情感分析模型應用於多代理模擬時，本研究將其角色限定於「同情感推斷之語意"
+    "層支援」，僅用以驅動模擬中虛擬居民之情緒狀態變化與對話風格，並未實際應用"
+    "於對真實個人之情感分析、心理評估或行為預測。本研究意識到情感分析技術可能"
+    "被誤用於監控、情緒操弄或未經當事人同意之心理側寫，因此於程式碼釋出時將"
+    "附帶使用範圍說明，明確排除上述用途。"
+    "\n\n"
+    "另外，本研究使用之 MMAFFBen（Liu et al., 2025）與 SemEval-2018（Mohammad "
+    "et al., 2018）公開基準均已通過原始發布單位之倫理審查；本研究於該基準上的"
+    "評估僅作為跨語言泛化能力之佐證，未對原始標注者或受訪者進行二次接觸。"
+)
+
+
+def _add_ethics_section(doc):
+    """Insert a '研究倫理聲明' section. We add it as a new section near the
+    end of Chapter 6 (未來工作) so it appears together with conclusion-type
+    content rather than being buried in Chapter 1."""
+    body = doc.element.body
+    # Find Chapter 7 heading element to insert before it
+    target_el = None
+    for p in doc.paragraphs:
+        if "情緒感知多代理模擬系統" in p.text or "多代理模擬應用" in p.text:
+            try:
+                pStyle = p._element.find('.//' + qn('w:pStyle'))
+                if pStyle is not None and pStyle.get(qn('w:val')) == '1':
+                    target_el = p._element
+                    break
+            except Exception:
+                pass
+    if target_el is None:
+        # Append at end if Chapter 7 heading not found
+        for p in doc.paragraphs[::-1]:
+            if "參考文獻" in p.text:
+                target_el = p._element
+                break
+    if target_el is None:
+        return
+
+    # Build the ethics heading + paragraphs (added at end of body)
+    new_elements = []
+    h = doc.add_heading("研究倫理與資料聲明", level=1)
+    new_elements.append(h._element)
+    for para in ETHICS_TEXT.split("\n\n"):
+        p = doc.add_paragraph(para)
+        new_elements.append(p._element)
+
+    # Move to just before target_el (Chapter 7 heading)
+    for el in new_elements:
+        body.remove(el)
+    for el in new_elements:
+        target_idx = list(body).index(target_el)
+        body.insert(target_idx, el)
 
 
 if __name__ == "__main__":

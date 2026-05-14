@@ -1,0 +1,28 @@
+{
+  "config": {
+    "lang_model": "microsoft/deberta-v3-large",
+    "lang_lr": 5e-06,
+    "head_lr": 5e-05,
+    "weight_decay": 0.01,
+    "epochs": 2,
+    "batch_size": 16,
+    "max_len": 128,
+    "max_train": null,
+    "seed": 42,
+    "no_pretrain": false,
+    "zero_shot": false,
+    "output": "/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf (copy)/emotion_system/training/mmaffin_exp/mosei_text_results.json"
+  },
+  "device": "cuda",
+  "metrics": {
+    "Acc-7": 55.491081022995914,
+    "Acc-2": 85.64367075005373,
+    "F1": 85.87440602620649,
+    "MAE": 0.48812395334243774,
+    "Corr": 0.8243072032928467,
+    "Within-1": 96.23898560068773
+  },
+  "n_train": 16274,
+  "n_val": 1861,
+  "n_test": 4653
+}
