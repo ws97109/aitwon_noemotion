@@ -21,29 +21,34 @@ OUTDIR.mkdir(exist_ok=True)
 # ── CMU-MOSI scores: [Acc-7, Acc-2, F1, MAE, Corr] ──────────────────────────
 #   SACF row is from this study's evaluation of sacf_final.pt (3-Run merged).
 #   All other rows come from previously published values (Table 3 in thesis).
+#   Acc-7 = None  → model has no reported Acc-7 (e.g. MCL-MCF) and is excluded
+#                   from both the Acc-7 ranking and the Top-8 multi-metric chart.
 data = [
     ("SACF (Ours)",  53.06, 85.42, 85.41, 0.5840, 0.8691, True),
-    ("MGT",          50.44, 86.30, 86.28, 0.659,  0.822,  False),
-    ("ITHP",         47.70, 86.10, 86.10, 0.663,  0.856,  False),
+    ("MGT",          50.44, 86.30, 86.26, 0.659,  0.822,  False),
     ("UniMSE",       48.68, 85.85, 85.83, 0.691,  0.809,  False),
     ("CLGSI",        47.96, 83.97, 83.63, 0.703,  0.790,  False),
+    ("ITHP",         47.70, 86.10, 86.10, 0.663,  0.856,  False),
     ("DMD",          46.40, 84.20, 84.10, 0.709,  0.796,  False),
+    ("Self-MM",      45.80, 82.70, 82.60, 0.731,  0.785,  False),
     ("MMIM",         45.00, 83.00, 82.90, 0.738,  0.781,  False),
-    ("Self-MM",      45.80, 82.50, 82.60, 0.731,  0.785,  False),
+    ("MCL-MCF",      None,  84.90, 84.70, 0.692,  0.799,  False),
     ("MISA",         43.50, 81.80, 81.70, 0.752,  0.784,  False),
-    ("ConFEDE",      42.27, 84.17, 84.13, 0.742,  0.790,  False),
-    ("Graph-MFN",    34.40, 77.90, 77.80, 0.989,  0.656,  False),
-    ("LF-DNN",       33.60, 78.00, 77.50, 0.978,  0.658,  False),
+    ("ConFEDE",      42.27, 84.17, 84.13, 0.742,  0.782,  False),
+    ("Graph-MFN",    34.40, 77.90, 77.80, 0.939,  0.656,  False),
+    ("LF-DNN",       33.60, 78.00, 77.90, 0.978,  0.658,  False),
     ("MFM",          33.30, 77.70, 77.70, 0.948,  0.664,  False),
 ]
 
-names = [d[0] for d in data]
-acc7  = np.array([d[1] for d in data])
-acc2  = np.array([d[2] for d in data])
-f1    = np.array([d[3] for d in data])
-mae   = np.array([d[4] for d in data])
-corr  = np.array([d[5] for d in data])
-is_ours = np.array([d[6] for d in data])
+# Filter out rows whose Acc-7 is missing — used by both figures, which depend on Acc-7.
+_data_with_acc7 = [d for d in data if d[1] is not None]
+names = [d[0] for d in _data_with_acc7]
+acc7  = np.array([d[1] for d in _data_with_acc7])
+acc2  = np.array([d[2] for d in _data_with_acc7])
+f1    = np.array([d[3] for d in _data_with_acc7])
+mae   = np.array([d[4] for d in _data_with_acc7])
+corr  = np.array([d[5] for d in _data_with_acc7])
+is_ours = np.array([d[6] for d in _data_with_acc7])
 
 C = dict(
     ours="#DC2626", primary="#1D4ED8", accent="#F59E0B",

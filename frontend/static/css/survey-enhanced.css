@@ -559,6 +559,27 @@ label {
     100% { transform: translateX(100%); }
 }
 
+/* ============== Tab 內容區（BS3/BS4 雙相容） ============== */
+.tab-content > .tab-pane {
+    display: none;
+}
+
+.tab-content > .tab-pane.active {
+    display: block;
+}
+
+.tab-pane.fade {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+/* BS3 用 .in、BS4 用 .show — 都當作顯示 */
+.tab-pane.fade.in,
+.tab-pane.fade.show,
+.tab-pane.fade.active {
+    opacity: 1;
+}
+
 /* ============== 標籤頁 (Tabs) ============== */
 .nav-tabs {
     border-bottom: 2px solid var(--border);

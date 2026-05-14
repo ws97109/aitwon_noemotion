@@ -102,8 +102,9 @@ def fig_arch():
 
     # Row 1: Inputs
     bg(ax, 0.4, 13.30, 13.2, 1.2, "#FEF3C7", C["accent"])
-    ax.text(7, 14.25, "(i)   Multimodal Inputs",
-            ha="center", fontsize=11, color=C["accent"], fontweight="bold")
+    ax.text(0.7, 14.30, "(i)  Multimodal Inputs",
+            ha="left", va="center", fontsize=11,
+            color=C["accent"], fontweight="bold")
     rbox(ax, 2.5, 13.70, 3.6, 0.55, C["primary"],
          "Text  (transcript + prompt)", fs=9.5, bold=True)
     rbox(ax, 7.0, 13.70, 3.6, 0.55, C["accent"],
@@ -112,9 +113,10 @@ def fig_arch():
          "Vision  (facial features, 20-dim)", fs=9.5, bold=True)
 
     # Row 2: Shared encoders
-    bg(ax, 0.4, 11.30, 13.2, 1.55, "#DBEAFE", C["primary"])
-    ax.text(7, 12.65, "(ii)   Shared Encoders",
-            ha="center", fontsize=11, color=C["primary"], fontweight="bold")
+    bg(ax, 0.4, 11.40, 13.2, 1.45, "#DBEAFE", C["primary"])
+    ax.text(0.7, 12.70, "(ii)  Shared Encoders",
+            ha="left", va="center", fontsize=11,
+            color=C["primary"], fontweight="bold")
     rbox(ax, 2.5, 11.90, 3.6, 0.8, C["primary"],
          "DeBERTa-v3-large\n(24-layer Transformer)", fs=9, bold=True)
     rbox(ax, 7.0, 11.90, 3.6, 0.8, C["accent"],
@@ -122,23 +124,21 @@ def fig_arch():
     rbox(ax, 11.5, 11.90, 3.6, 0.8, C["success"],
          "Bidirectional LSTM\nfor vision sequence", fs=9, bold=True)
     for cx in (2.5, 7.0, 11.5):
-        arr(ax, cx, 13.40, cx, 12.33)
+        arr(ax, cx, 13.20, cx, 12.60)
 
     # Row 3: 4 branches (Hierarchical SACF)
-    branch_top = 10.70
+    branch_top = 10.85
     branch_bottom = 6.85
     bg(ax, 0.4, branch_bottom, 13.2, branch_top - branch_bottom + 0.30, "#EDE9FE", C["purple"])
-    ax.text(7, branch_top + 0.05,
-            "(iii)   Four Parallel Branches with Hierarchical Cross-Modal Fusion",
-            ha="center", fontsize=10.5, color=C["purple"], fontweight="bold")
-    ax.text(7, branch_top - 0.30,
-            "Independent dropout rates: 0.10 / 0.20 / 0.30 / 0.40",
-            ha="center", fontsize=8.5, color=C["muted"], style="italic")
+    ax.text(0.7, branch_top + 0.10,
+            "(iii)  Hierarchical SACF",
+            ha="left", va="center", fontsize=10.5,
+            color=C["purple"], fontweight="bold")
 
     for cx in (2.0, 5.0, 8.0, 11.0):
-        arr(ax, 2.5, 11.50, cx, 10.30, color=C["primary"], lw=0.5, hw=0.10)
-        arr(ax, 7.0, 11.50, cx, 10.30, color=C["accent"], lw=0.5, hw=0.10)
-        arr(ax, 11.5, 11.50, cx, 10.30, color=C["success"], lw=0.5, hw=0.10)
+        arr(ax, 2.5, 11.30, cx, 10.45, color=C["primary"], lw=0.5, hw=0.10)
+        arr(ax, 7.0, 11.30, cx, 10.45, color=C["accent"], lw=0.5, hw=0.10)
+        arr(ax, 11.5, 11.30, cx, 10.45, color=C["success"], lw=0.5, hw=0.10)
 
     branch_colors = [C["primary"], C["accent"], C["success"], C["rose"]]
     branch_dp = [0.10, 0.20, 0.30, 0.40]
@@ -164,24 +164,25 @@ def fig_arch():
          fs=10, bold=True)
     for i in range(4):
         cx = 2.0 + i * 3.0
-        arr(ax, cx, 7.00, 7.0, 6.35, color=branch_colors[i], lw=0.8, hw=0.10)
+        arr(ax, cx, 6.55, 7.0, 6.48, color=branch_colors[i], lw=0.8, hw=0.10)
 
     # Row 5: Inference
     bg(ax, 0.4, 2.85, 13.2, 2.2, "#DCFCE7", C["success"])
-    ax.text(7, 4.90,
-            "(iv)   Zero-Leakage Inference",
-            ha="center", fontsize=11, color=C["success"], fontweight="bold")
-    rbox(ax, 3.0, 4.15, 3.6, 0.7, C["primary"],
+    ax.text(0.7, 4.90,
+            "(iv)  Zero-Leakage Inference",
+            ha="left", va="center", fontsize=11,
+            color=C["success"], fontweight="bold")
+    rbox(ax, 3.0, 4.15, 3.0, 0.7, C["primary"],
          "Test-time augmentation\n(five stochastic passes)", fs=8.5, bold=True)
-    rbox(ax, 7.0, 4.15, 3.6, 0.7, C["accent"],
+    rbox(ax, 7.0, 4.15, 3.0, 0.7, C["accent"],
          "Three-run weights\nalready merged in checkpoint", fs=8.5, bold=True)
-    rbox(ax, 11.0, 4.15, 3.6, 0.7, C["success"],
+    rbox(ax, 11.0, 4.15, 3.0, 0.7, C["success"],
          "Classification + Regression\nprobability fusion",
          fs=8.5, bold=True)
-    arr(ax, 7.0, 5.50, 7.0, 4.55)
-    arr(ax, 4.85, 4.15, 5.15, 4.15, lw=1.6)
-    arr(ax, 8.85, 4.15, 9.15, 4.15, lw=1.6)
-    arr(ax, 7.0, 3.75, 7.0, 3.30)
+    arr(ax, 7.0, 5.30, 7.0, 4.80)
+    arr(ax, 4.70, 4.15, 5.30, 4.15, lw=1.4, hw=0.10)
+    arr(ax, 8.70, 4.15, 9.30, 4.15, lw=1.4, hw=0.10)
+    arr(ax, 7.0, 3.55, 7.0, 2.95)
 
     rbox(ax, 7.0, 2.45, 5.6, 0.75, C["danger"],
          f"Final prediction              Acc-7 = {ACC7_FUSED:.2f}%",
