@@ -53,9 +53,13 @@ CORR = 0.8691
 W1   = 91.55
 
 # ── v7 English figures (corrected protocol + metrics) ───────────────────────
+# Each entry: (path, short_name, description)
+#   short_name → goes into the caption ("圖 X-Y  <short_name>")
+#   description → inserted into the body as a paragraph above the figure
 FIGS = {
     "arch": (FIG / "v7_fig_arch.png",
-             "整體架構由四個橫向區塊組成。最上方為三個原始輸入：純文字句子、語音音訊"
+             "SACF 整體架構",
+             "如下圖所示，整體架構由四個橫向區塊組成。最上方為三個原始輸入：純文字句子、語音音訊"
              "以及人臉視覺序列。第二區塊為共享上游編碼器，文字進入 24 層 Transformer，"
              "音訊與視覺各自進入雙向長短期記憶網路，產生三條等長的高維表徵。第三區塊"
              "是模型的核心：四條結構同形但參數獨立的並行分支，每條分支內部依序執行"
@@ -64,37 +68,43 @@ FIGS = {
              "0.30、0.40）以強化彼此差異。第四區塊將四條分支算術平均，並於推斷階段"
              "再套用測試時間擴增、預先合併的三次訓練權重與機率融合，輸出最終預測。"),
     "dist": (FIG / "v7_fig_distribution.png",
-             "CMU-MOSI 七類情感分布。本研究將原始訓練集與驗證集合併為單一訓練集"
+             "CMU-MOSI 七類情感分布",
+             "下圖比較 CMU-MOSI 訓練集與測試集之七類情感分布。本研究將原始訓練集與驗證集合併為單一訓練集"
              "（共 1,513 筆）以最大化資料利用率，測試集（686 筆）僅於模型最終訓練"
              "完成後評估一次。圖示可見測試集顯著偏向負面端，類 −3 之比例約為訓練集"
              "之三倍，是本任務之主要挑戰之一。"),
     "pea": (FIG / "v7_fig_pea.png",
-            "極性增強注意力模組。對每個文字詞元學習一個介於 0 到 1 之情感顯著性分數，"
+            "極性增強注意力（PEA）模組",
+            "下圖呈現極性增強注意力模組之計算流程。對每個文字詞元學習一個介於 0 到 1 之情感顯著性分數，"
             "再以該分數作為權重對所有詞元表徵做加權平均，得到一條集中於情感詞之"
             "句子向量。該向量隨後送入下游各分支的共享投影層；同時，個別詞元之顯著性"
             "分數提供下游融合模組挑選 Top-K 情感詞之依據。"),
     "sacf": (FIG / "v7_fig_sacf_steps.png",
-             "情感感知跨模態融合分為四個步驟。步驟一依顯著性分數挑選 K 個最具情感"
+             "情感感知跨模態融合四步驟",
+             "下圖將情感感知跨模態融合拆解為四個步驟。步驟一依顯著性分數挑選 K 個最具情感"
              "意義之詞元，濾除中性連接詞與停用詞之干擾。步驟二對挑出之詞元向量做"
              "注意力加權彙整，得到一條集中情感資訊之查詢向量。步驟三將音訊與視覺"
              "嵌入投影至語言空間做為鍵與值，並以前一步之查詢向量做縮放點積注意力，"
              "提取跨模態之證據。步驟四以兩層前向網路、sigmoid 閘控與層正規化將跨"
              "模態證據與原始句子表徵結合，輸出最終融合向量。"),
     "branches": (FIG / "v7_fig_branches.png",
-                 "四條並行分支之多樣性來源與內部集成結果。圖中標示三項使分支彼此"
+                 "四條並行分支之多樣性來源與內部集成",
+                 "下圖總結四條並行分支之多樣性來源與內部集成結果。圖中標示三項使分支彼此"
                  "差異化之機制：每條分支使用不同的隨機失活比率、擁有獨立的注意力與"
                  "投影權重，並於七分類頭之初始化加入微小高斯擾動。在 CMU-MOSI 測試集"
                  "上各分支單獨之 Acc-7 介於 49.56% 至 50.29%；四條分支內部平均後 "
                  "Acc-7 約為 50.00%；經三次獨立訓練之參數空間平均與分類-回歸機率"
                  "融合後，最終 Acc-7 提升至 53.06%。"),
     "loss": (FIG / "v7_fig_loss_comp.png",
-             "多工損失之結構分為三層。Layer 1 為單一分支內之四項任務組合損失："
+             "多工損失組成結構",
+             "下圖將整體訓練損失拆解為三層。Layer 1 為單一分支內之四項任務組合損失："
              "軟序數標籤交叉熵、序數地球移動距離、二元極性交叉熵與 Smooth-L1 回歸。"
              "Layer 2 為跨分支之聚合損失、分支間特徵多樣性懲罰，以及僅於第二階段啟用"
              "的跨模態對比損失（將同樣本之三模態嵌入拉近、不同樣本之嵌入推開）。"
              "Layer 3 為兩次前向之 R-Drop 一致性正則與最終加權總損失。"),
     "timeline": (FIG / "v7_fig_train_timeline.png",
-                 "訓練分為兩個階段並執行三次。第一階段共 60 個 epoch，包含三個內部"
+                 "兩階段訓練協議全景",
+                 "下圖呈現訓練全程之兩階段協議。第一階段共 60 個 epoch，包含三個內部"
                  "相位：前 20 個 epoch 凍結文字骨幹下層、接著 22 個 epoch 全模型微調、"
                  "最後 18 個 epoch 進行每兩個 epoch 一次之隨機權重平均；過程中同步維護"
                  "指數移動平均影子模型。第二階段以較低之學習率續訓 20 個 epoch，並加入"
@@ -102,14 +112,16 @@ FIGS = {
                  "獨立執行（標準協議、第二階段延長、加入兩輪 BAN 知識蒸餾）各自完成"
                  "兩階段訓練，最終於參數空間以 0.25、0.45、0.30 之權重合併為單一檔案。"),
     "inference": (FIG / "v7_fig_inference.png",
-                  "零洩漏推斷流程。由於三次訓練之權重已於訓練後預先合併為單一檔案，"
+                  "零洩漏推斷流程",
+                  "下圖呈現零洩漏推斷之三層方差降低設計。由於三次訓練之權重已於訓練後預先合併為單一檔案，"
                   "推斷階段每個樣本僅需執行一次模型載入。對每個測試樣本以保留隨機"
                   "失活之方式進行五次前向取算術平均（測試時間擴增），再將分類頭輸出之"
                   "機率分布與回歸頭預測經高斯核映射得到之機率分布於對數空間以幾何平均"
                   "融合，最後取最大值為預測類別。所有融合超參數均為先驗設定，不依賴"
                   "測試集統計。"),
     "regcls": (FIG / "v7_fig_regcls.png",
-               "分類-回歸機率融合示意（取自一個測試樣本，索引 316）。"
+               "分類-回歸機率融合示意",
+               "下圖以一個測試樣本（索引 316）說明分類-回歸機率融合之效果："
                "(a) 分類頭輸出之七類機率分布；"
                "(b) 回歸頭預測值經高斯核轉換得到之七類機率分布；"
                "(c) 於對數空間以幾何平均合併之最終機率分布，"
@@ -178,30 +190,52 @@ def add_caption(doc, prefix_text, seq_name, body_text):
 
 
 def add_figure(doc, key, width_in=6.0):
-    path, caption = FIGS[key]
+    """Insert a figure with a SHORT caption ('圖 3-N  <short_name>').
+    The detailed description (third element of FIGS tuple) is inserted as
+    a body paragraph BEFORE the figure."""
+    entry = FIGS[key]
+    if len(entry) == 3:
+        path, short_name, description = entry
+        # Description as body paragraph (above the figure)
+        if description:
+            add_para(doc, description)
+    else:
+        # Backwards compat: 2-tuple (path, caption)
+        path, short_name = entry[0], entry[1]
     p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p.add_run().add_picture(str(path), width=Inches(width_in))
-    add_caption(doc, "圖 3.", "Figure", caption)
+    add_caption(doc, "圖 3.", "Figure", short_name)
 
 
 def insert_figure_after_table(doc, table_idx, fig_path, caption_text,
-                              chapter_prefix="圖 4.", width_in=6.4):
-    """Insert a centered figure (with caption) immediately after a given table."""
+                              chapter_prefix="圖 4.", width_in=6.4,
+                              description=None):
+    """Insert a centered figure (with SHORT caption) immediately after a given table.
+    If `description` is provided, it is inserted as a body paragraph BEFORE the
+    figure; `caption_text` is the short figure name only."""
     target_table = doc.tables[table_idx]
     target_table_el = target_table._element
     body = target_table_el.getparent()
 
-    # 1. Spacer paragraph (small blank line between table and figure)
+    elements = []
+
+    # 0. Description paragraph (above figure)
+    if description:
+        p_desc = doc.add_paragraph()
+        _add_text_with_subs(p_desc, description)
+        elements.append(p_desc._element)
+
+    # 1. Spacer paragraph
     p_spacer = doc.add_paragraph()
-    p_spacer_el = p_spacer._element
+    elements.append(p_spacer._element)
 
     # 2. Figure paragraph
     p_fig = doc.add_paragraph()
     p_fig.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_fig.add_run().add_picture(str(fig_path), width=Inches(width_in))
-    p_fig_el = p_fig._element
+    elements.append(p_fig._element)
 
-    # 3. Caption paragraph
+    # 3. Caption paragraph (short)
     p_cap = doc.add_paragraph()
     if "Caption" in [s.name for s in doc.styles]:
         p_cap.style = doc.styles["Caption"]
@@ -209,16 +243,15 @@ def insert_figure_after_table(doc, table_idx, fig_path, caption_text,
     r = p_cap.add_run(chapter_prefix); r.bold = True
     add_field(p_cap, ' SEQ Figure \\* ARABIC ')
     _add_text_with_subs(p_cap, "  " + caption_text)
-    p_cap_el = p_cap._element
+    elements.append(p_cap._element)
 
-    # Move the three newly-added elements from end of body to just after table
-    for el in (p_spacer_el, p_fig_el, p_cap_el):
+    # Move the newly-added elements from end of body to just after table
+    for el in elements:
         body.remove(el)
     children = list(body)
     target_idx = children.index(target_table_el)
-    body.insert(target_idx + 1, p_spacer_el)
-    body.insert(target_idx + 2, p_fig_el)
-    body.insert(target_idx + 3, p_cap_el)
+    for offset, el in enumerate(elements, start=1):
+        body.insert(target_idx + offset, el)
 
 
 def add_table_with_caption(doc, caption_body, rows):
@@ -976,24 +1009,27 @@ def build_v16(mmaffben_sacf_row=None):
     # Table 4 (MMAFFBen) — insert avg bar chart then grouped bar chart so they appear in that order
     insert_figure_after_table(
         doc, table_idx=4, fig_path=figdir / "fig_mmaffben_text_avg.png",
-        caption_text=(
-            "SACF-Text 與其他四個語言模型在 MMAFFBen 五個純文字任務上之平均 macro-F1 "
-            "排序。SACF-Text 之數據來自本研究對最終權重檔之實測；其餘模型之數據"
-            "取自 Liu et al. 2025（MMAFFBen 論文）。本研究模型以 0.435B 之參數量"
-            "達成 56.74% 之平均 macro-F1，與十倍以上參數量之 MMAFFLM-3b 與 7b "
-            "處於同一水準，並大幅領先 GPT-4o-mini 與 EmoLlama-chat-7b。"),
+        caption_text="SACF-Text 與其他四個語言模型在 MMAFFBen 五任務之平均 macro-F1 排序",
+        description=(
+            "下圖將 SACF-Text 與其他四個語言模型在 MMAFFBen 五個純文字任務上之"
+            "平均 macro-F1 由高至低排序。SACF-Text 之數據來自本研究對最終權重檔之"
+            "實測；其餘模型之數據取自 Liu et al. 2025（MMAFFBen 論文）。本研究"
+            "模型以 0.435B 之參數量達成 56.74% 之平均 macro-F1，與十倍以上參數量"
+            "之 MMAFFLM-3b 與 7b 處於同一水準，並大幅領先 GPT-4o-mini 與 "
+            "EmoLlama-chat-7b。"),
         width_in=5.6,
     )
     insert_figure_after_table(
         doc, table_idx=4, fig_path=figdir / "fig_mmaffben_text_bar.png",
-        caption_text=(
-            "SACF-Text 與其他四個語言模型在 MMAFFBen 五個純文字任務上之 macro-F1 "
-            "分組比較。每組之五根長條依序為本研究 SACF-Text、MMAFFLM-7b、"
-            "MMAFFLM-3b、GPT-4o-mini 與 EmoLlama-chat-7b。SACF-Text 之數據來自"
-            "本研究對最終權重檔之實測；其餘模型之數據取自 Liu et al. 2025。"
-            "可見本研究於 Onlineshopping 任務取得 92.82% 之顯著領先；於 EWECT、"
-            "MMS 等中文情緒任務與大型語言模型差距在 6 個百分點以內；於 XED 多"
-            "標籤任務上仍有提升空間。"),
+        caption_text="SACF-Text 與四個語言模型在 MMAFFBen 五任務 macro-F1 分組比較",
+        description=(
+            "下圖將 SACF-Text 與其他四個語言模型在 MMAFFBen 五個純文字任務上之 "
+            "macro-F1 以分組長條呈現。每組之五根長條依序為本研究 SACF-Text、"
+            "MMAFFLM-7b、MMAFFLM-3b、GPT-4o-mini 與 EmoLlama-chat-7b。SACF-Text "
+            "之數據來自本研究對最終權重檔之實測；其餘模型之數據取自 Liu et al. "
+            "2025。可見本研究於 Onlineshopping 任務取得 92.82% 之顯著領先；於 "
+            "EWECT、MMS 等中文情緒任務與大型語言模型差距在 6 個百分點以內；於 "
+            "XED 多標籤任務上仍有提升空間。"),
         width_in=6.4,
     )
     print(f"  ok  Inserted MMAFFBen comparison bar charts after Table 4")
@@ -1001,8 +1037,9 @@ def build_v16(mmaffben_sacf_row=None):
     # Table 3 (CMU-MOSI) — insert multi-metric chart then Acc-7 ranking chart
     insert_figure_after_table(
         doc, table_idx=3, fig_path=figdir / "fig_mosi_multi_metric.png",
-        caption_text=(
-            "CMU-MOSI 多指標比較（取前八個模型）。圖中四個子圖分別呈現："
+        caption_text="CMU-MOSI 多指標比較（取前八個模型）",
+        description=(
+            "下圖將 CMU-MOSI 上排名前八個模型之四項主要指標以四個子圖呈現："
             "(a) 七分類準確率（越高越好）；(b) 二元準確率與 F1 分數（越高越好）；"
             "(c) 平均絕對誤差（越低越好）；(d) Pearson 相關係數（越高越好）。"
             "本研究模型（紅色）於 (a)、(c)、(d) 三項指標皆為最佳，於 (b) 兩項"
@@ -1011,12 +1048,13 @@ def build_v16(mmaffben_sacf_row=None):
     )
     insert_figure_after_table(
         doc, table_idx=3, fig_path=figdir / "fig_mosi_acc7_ranking.png",
-        caption_text=(
-            "CMU-MOSI 七分類準確率（Acc-7）模型排序。SACF（紅色）為本研究模型，"
-            "其餘為公開文獻中相同評估協議下之主流多模態方法。橙色虛線為當前"
-            "最強基線 MGT 之 50.44%，綠色點線為本研究預設之 53% 研究目標。"
-            "本研究模型於 13 個對照模型中排名第一，且為唯一達成 Acc-7 ≥ 53% "
-            "之模型。"),
+        caption_text="CMU-MOSI 七分類準確率（Acc-7）模型排序",
+        description=(
+            "下圖將 CMU-MOSI 上十四個模型之 Acc-7 由高至低排序。SACF（紅色）"
+            "為本研究模型，其餘為公開文獻中相同評估協議下之主流多模態方法。"
+            "橙色虛線為當前最強基線 MGT 之 50.44%，綠色點線為本研究預設之 53% "
+            "研究目標。本研究模型於 13 個對照模型中排名第一，且為唯一達成 "
+            "Acc-7 ≥ 53% 之模型。"),
         width_in=6.4,
     )
     print(f"  ok  Inserted CMU-MOSI comparison bar charts after Table 3")
@@ -1294,7 +1332,16 @@ def _insert_mosei_section(doc):
         "泛化能力。")
     new_elements.append(intro._element)
 
-    # Caption (will be picked up by caption-renumbering pass as 表 4-X)
+    # Body paragraph describing what the table shows
+    table_desc = doc.add_paragraph()
+    _add_text_with_subs(table_desc,
+        "下表將 SACF-Text 在 CMU-MOSEI 測試集上之五項效能指標與十三個多模態情感"
+        "分析基線進行比較。本研究 SACF-Text 之數據來自於 vintp/CMU-Mosei-text "
+        "資料集上之實測（兩階段微調，1018 batch × 2 epoch）；其餘模型之數據引自"
+        "各原始論文於相同 CMU-MOSEI 評估協議下回報之結果。")
+    new_elements.append(table_desc._element)
+
+    # Short caption (will be picked up by caption-renumbering pass as 表 4-X)
     cap = doc.add_paragraph()
     if "Caption" in [s.name for s in doc.styles]:
         cap.style = doc.styles["Caption"]
@@ -1302,10 +1349,7 @@ def _insert_mosei_section(doc):
     r = cap.add_run("表 4."); r.bold = True
     add_field(cap, ' SEQ Table \\* ARABIC ')
     _add_text_with_subs(cap,
-        "  SACF-Text 在 CMU-MOSEI 測試集上之效能與十三個多模態情感分析基線比較。"
-        "本研究 SACF-Text 之數據來自於 vintp/CMU-Mosei-text 資料集上之實測（兩階段"
-        "微調，1018 batch × 2 epoch），其餘模型之數據引自各原始論文於相同 CMU-MOSEI "
-        "評估協議下回報之結果。")
+        "  SACF-Text 在 CMU-MOSEI 測試集之效能與十三個基線比較")
     new_elements.append(cap._element)
 
     # Comparison table — 14 rows (13 baselines + 1 SACF) × 6 cols
@@ -1347,10 +1391,19 @@ def _insert_mosei_section(doc):
             )
     new_elements.append(tbl._element)
 
-    # Bar chart figure: Acc-7 ranking
+    # Bar chart figure: Acc-7 ranking — body description + short caption
     figdir = BASE / "figures"
     fig_path = figdir / "fig_mosei_acc7_ranking.png"
     if fig_path.exists():
+        desc1 = doc.add_paragraph()
+        _add_text_with_subs(desc1,
+            f"下圖將 CMU-MOSEI 上十四個模型之 Acc-7 由高至低排序。SACF-Text"
+            f"（紅色）為本研究模型，於 13 個對照模型之排名上居首位（"
+            f"{m['Acc-7']:.2f}%），略高於先前最強基線 MGT（55.10%），亦優於 DMD、"
+            f"UniMSE 與 MMIM 等 2023 年起之多模態方法。本研究模型僅使用文字"
+            f"模態於 MOSEI 上微調，即超越多模態基線，顯示其文字分支已內化於 "
+            f"CMU-MOSI 上習得之情感先驗，並能有效遷移至更大規模之 MOSEI。")
+        new_elements.append(desc1._element)
         p_fig1 = doc.add_paragraph()
         p_fig1.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p_fig1.add_run().add_picture(str(fig_path), width=Inches(6.4))
@@ -1361,18 +1414,20 @@ def _insert_mosei_section(doc):
         cap1.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r1 = cap1.add_run("圖 4."); r1.bold = True
         add_field(cap1, ' SEQ Figure \\* ARABIC ')
-        _add_text_with_subs(cap1,
-            f"  CMU-MOSEI 七分類情感強度（Acc-7）模型排序。SACF-Text（紅色）"
-            f"為本研究模型，於 13 個對照模型之排名上居首位（{m['Acc-7']:.2f}%），"
-            f"略高於先前最強基線 MGT（55.10%），亦優於 DMD、UniMSE 與 MMIM 等 "
-            f"2023 年起之多模態方法。本研究模型僅使用文字模態於 MOSEI 上微調，"
-            f"即超越多模態基線，顯示其文字分支已內化於 CMU-MOSI 上習得之情感"
-            f"先驗，並能有效遷移至更大規模之 MOSEI。")
+        _add_text_with_subs(cap1, "  CMU-MOSEI 七分類準確率模型排序")
         new_elements.append(cap1._element)
 
     # Bar chart figure: multi-metric comparison
     fig_path2 = figdir / "fig_mosei_multi_metric.png"
     if fig_path2.exists():
+        desc2 = doc.add_paragraph()
+        _add_text_with_subs(desc2,
+            "下圖將 CMU-MOSEI 上排名前八個模型之四項主要指標以四個子圖呈現："
+            "(a) 七分類準確率（越高越好）；(b) 二元準確率與 F1 分數（越高越好）；"
+            "(c) 平均絕對誤差（越低越好）；(d) Pearson 相關係數（越高越好）。"
+            "本研究模型（紅色）於 (a)、(c)、(d) 三項指標皆為最佳，於 (b) "
+            "Acc-2 與 F1 上小幅落後最強基線約 1.5–1.8 個百分點。")
+        new_elements.append(desc2._element)
         p_fig2 = doc.add_paragraph()
         p_fig2.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p_fig2.add_run().add_picture(str(fig_path2), width=Inches(6.4))
@@ -1383,12 +1438,7 @@ def _insert_mosei_section(doc):
         cap2.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r2 = cap2.add_run("圖 4."); r2.bold = True
         add_field(cap2, ' SEQ Figure \\* ARABIC ')
-        _add_text_with_subs(cap2,
-            "  CMU-MOSEI 多指標比較（取前八個模型）。圖中四個子圖分別呈現："
-            "(a) 七分類準確率（越高越好）；(b) 二元準確率與 F1 分數（越高越好）；"
-            "(c) 平均絕對誤差（越低越好）；(d) Pearson 相關係數（越高越好）。"
-            "本研究模型（紅色）於 (a)、(c)、(d) 三項指標皆為最佳，於 (b) "
-            "Acc-2 與 F1 上小幅落後最強基線約 1.5–1.8 個百分點。")
+        _add_text_with_subs(cap2, "  CMU-MOSEI 多指標比較（前八個模型）")
         new_elements.append(cap2._element)
 
     # Discussion paragraph
