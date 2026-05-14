@@ -23,18 +23,19 @@ OUTDIR.mkdir(exist_ok=True)
 #   All other rows come from previously published values (Table 3 in thesis).
 data = [
     ("SACF (Ours)",  53.06, 85.42, 85.41, 0.5840, 0.8691, True),
-    ("MGT",          50.44, 86.30, 86.28, 0.659,  0.822,  False),
+    ("MGT",          50.44, 86.30, 86.26, 0.659,  0.822,  False),
     ("ITHP",         47.70, 86.10, 86.10, 0.663,  0.856,  False),
     ("UniMSE",       48.68, 85.85, 85.83, 0.691,  0.809,  False),
     ("CLGSI",        47.96, 83.97, 83.63, 0.703,  0.790,  False),
     ("DMD",          46.40, 84.20, 84.10, 0.709,  0.796,  False),
     ("MMIM",         45.00, 83.00, 82.90, 0.738,  0.781,  False),
-    ("Self-MM",      45.80, 82.50, 82.60, 0.731,  0.785,  False),
+    ("Self-MM",      45.80, 82.70, 82.60, 0.731,  0.785,  False),
     ("MISA",         43.50, 81.80, 81.70, 0.752,  0.784,  False),
-    ("ConFEDE",      42.27, 84.17, 84.13, 0.742,  0.790,  False),
-    ("Graph-MFN",    34.40, 77.90, 77.80, 0.989,  0.656,  False),
-    ("LF-DNN",       33.60, 78.00, 77.50, 0.978,  0.658,  False),
+    ("ConFEDE",      42.27, 84.17, 84.13, 0.742,  0.782,  False),
+    ("Graph-MFN",    34.40, 77.90, 77.80, 0.939,  0.656,  False),
+    ("LF-DNN",       33.60, 78.00, 77.90, 0.978,  0.658,  False),
     ("MFM",          33.30, 77.70, 77.70, 0.948,  0.664,  False),
+    # MCL-MCF has no Acc-7 reported, omit from Acc-7-ranked figures
 ]
 
 names = [d[0] for d in data]
