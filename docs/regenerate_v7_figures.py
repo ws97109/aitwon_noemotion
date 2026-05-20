@@ -113,8 +113,8 @@ def fig_arch():
          "Vision  (facial features, 20-dim)", fs=9.5, bold=True)
 
     # Row 2: Shared encoders
-    bg(ax, 0.4, 11.40, 13.2, 1.45, "#DBEAFE", C["primary"])
-    ax.text(0.7, 12.70, "(ii)  Shared Encoders",
+    bg(ax, 0.4, 11.40, 13.2, 1.25, "#DBEAFE", C["primary"])
+    ax.text(0.7, 12.50, "(ii)  Shared Encoders",
             ha="left", va="center", fontsize=11,
             color=C["primary"], fontweight="bold")
     rbox(ax, 2.5, 11.90, 3.6, 0.8, C["primary"],
@@ -124,21 +124,21 @@ def fig_arch():
     rbox(ax, 11.5, 11.90, 3.6, 0.8, C["success"],
          "Bidirectional LSTM\nfor vision sequence", fs=9, bold=True)
     for cx in (2.5, 7.0, 11.5):
-        arr(ax, cx, 13.20, cx, 12.60)
+        arr(ax, cx, 13.20, cx, 12.75)
 
     # Row 3: 4 branches (Hierarchical SACF)
     branch_top = 10.85
     branch_bottom = 6.85
-    bg(ax, 0.4, branch_bottom, 13.2, branch_top - branch_bottom + 0.30, "#EDE9FE", C["purple"])
-    ax.text(0.7, branch_top + 0.10,
+    bg(ax, 0.4, branch_bottom, 13.2, branch_top - branch_bottom - 0.15, "#EDE9FE", C["purple"])
+    ax.text(0.7, 10.50,
             "(iii)  Hierarchical SACF",
             ha="left", va="center", fontsize=10.5,
             color=C["purple"], fontweight="bold")
 
     for cx in (2.0, 5.0, 8.0, 11.0):
-        arr(ax, 2.5, 11.30, cx, 10.45, color=C["primary"], lw=0.5, hw=0.10)
-        arr(ax, 7.0, 11.30, cx, 10.45, color=C["accent"], lw=0.5, hw=0.10)
-        arr(ax, 11.5, 11.30, cx, 10.45, color=C["success"], lw=0.5, hw=0.10)
+        arr(ax, 2.5, 11.30, cx, 10.85, color=C["primary"], lw=0.9, hw=0.14)
+        arr(ax, 7.0, 11.30, cx, 10.85, color=C["accent"], lw=0.9, hw=0.14)
+        arr(ax, 11.5, 11.30, cx, 10.85, color=C["success"], lw=0.9, hw=0.14)
 
     branch_colors = [C["primary"], C["accent"], C["success"], C["rose"]]
     branch_dp = [0.10, 0.20, 0.30, 0.40]
