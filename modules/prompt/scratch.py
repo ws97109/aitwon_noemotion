@@ -1065,19 +1065,16 @@ class Scratch:
             # 只有當近5次全是常見情緒，且當前也不是罕見情緒時才強制
             if (all(l in common_emotions for l in recent5_all)
                     and emotion.label not in rare_emotions):
-                # 動態計算：排除歷史中已出現過多次的「罕見」情緒
-                # 這防止 LLM 每次 force-rare 都只挑最容易的（如驚訝）
-                all_hist_labels = [h["label"] for h in emotion._history]
-                from collections import Counter as _Counter
-                hist_counts = _Counter(all_hist_labels)
-                # 罕見情緒候選池，排除歷史中出現 ≥2 次的
-                available_rare = [
-                    e for e in ["悲傷", "興奮", "驚訝", "憤怒", "恐懼"]
-                    if hist_counts.get(e, 0) < 2
-                ]
-                # 若全部都已出現過，退回完整列表（避免空列表）
-                if not available_rare:
-                    available_rare = ["悲傷", "憤怒", "恐懼"]
+                # 隨機輪換：每次只提供 2 個罕見情緒選項
+                # 用 agent 名稱 + 當前時間做 seed，確保同一時刻不同 agent 得到不同選項
+                import hashlib as _hashlib
+                _seed_str = f"{self.name}_{current_hour}_{len(emotion._history)}"
+                _hash_val = int(_hashlib.md5(_seed_str.encode()).hexdigest(), 16)
+                all_rare = ["悲傷", "興奮", "驚訝", "憤怒", "恐懼"]
+                import random as _rnd
+                _rng = _rnd.Random(_hash_val)
+                _rng.shuffle(all_rare)
+                available_rare = all_rare[:2]
 
                 # 構建情緒描述對照
                 # 注意：厭惡不在候選池（太容易合理化導致波動），靠自然出現
