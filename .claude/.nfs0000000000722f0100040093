@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nvidia-smi --query-gpu=index,memory.free,utilization.gpu --format=csv,noheader)",
+      "Bash(CUDA_VISIBLE_DEVICES=0 python3 /tmp/extract_paper_data.py)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}

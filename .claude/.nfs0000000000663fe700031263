@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(ollama list:*)",
+      "Bash(echo:*)",
+      "Bash(unset:*)",
+      "Bash(git remote set-url origin https://github.com/ws97109/aitwon_noemotion.git)",
+      "Bash(git ls-tree *)",
+      "Bash(mv \".claude/.nfs00000000004144e40002bdd7\" \"/tmp/nfs_backup_4144e40002bdd7\")",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(/mnt/nfs/maokao_2/miniconda3/envs/aitown/bin/python -c ' *)",
+      "Bash(ps -p 1091493 -o pid,etime --no-headers)",
+      "Bash(PYTHONPATH= /mnt/nfs/maokao_2/miniconda3/envs/aitown/bin/python /tmp/regen_methodology_figures.py)"
+    ],
+    "deny": [],
+    "additionalDirectories": [
+      "/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf (copy)/.claude"
+    ]
+  }
+}

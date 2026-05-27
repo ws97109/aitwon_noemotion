@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "Bash(kill -9 2228083 2228084)",
+      "Bash(pkill -9 -P 2228083)",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/v61_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/v62_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/v63_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/v64_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/v65_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/scaf_final_run.log\")",
+      "Bash(stdbuf -oL -eL tail -F -n 0 \"/mnt/nfs/maokao_2/Desktop/lee/aitown_addsacf \\(copy\\)/emotion_system/logs/integration_eval.log\")",
+      "Bash(grep -v --line-buffered -E \"Train:|^[0-9 %\\\\|]+$\")"
+    ],
+    "deny": []
+  }
+}

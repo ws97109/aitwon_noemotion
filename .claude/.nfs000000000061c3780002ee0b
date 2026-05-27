@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task",
+      "Bash(kill -9 2228083 2228084)",
+      "Bash(pkill -9 -P 2228083)"
+    ],
+    "deny": []
+  }
+}
