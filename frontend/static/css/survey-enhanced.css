@@ -392,6 +392,94 @@ label {
 
 .badge-sm { font-size: 0.7rem; padding: 0.25em 0.6em; }
 
+/* ============== 數據分析頁專屬 .stat-card ============== */
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    color: white !important;
+    border-radius: var(--radius-lg, 16px);
+    padding: 1.5rem 1.4rem;
+    box-shadow:
+        var(--shadow-md),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35);   /* 內描邊：白色亮邊 */
+    border: 2px solid rgba(255, 255, 255, 0.9);       /* 外框：明顯白色邊框 */
+    transition: var(--transition);
+    min-height: 110px;
+    isolation: isolate;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.22) 0%, transparent 55%),
+        radial-gradient(circle at bottom left, rgba(0,0,0,0.10) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -30%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    transition: transform 0.6s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: white;
+    box-shadow:
+        var(--shadow-lg),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.stat-card:hover::after {
+    transform: rotate(45deg) scale(1.2);
+}
+
+.stat-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card .stat-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.35rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: white !important;
+}
+
+.stat-card .stat-label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88) !important;
+    letter-spacing: 0.05em;
+    text-transform: none;
+}
+
+.stat-card .stat-icon {
+    font-size: 2.7rem;
+    opacity: 0.35;
+    color: white;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.stat-card:hover .stat-icon {
+    opacity: 0.55;
+    transform: scale(1.1) rotate(-5deg);
+}
+
 /* ============== 統計卡片（detail.html / analytics.html 頂部） ============== */
 
 /* 帶背景色的統計卡片：漸層 + 白字 + 大數字 */
@@ -766,6 +854,82 @@ label {
     }
 }
 
+/* ============== 文字題答案列表（左人名右答案） ============== */
+.text-answers-table {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-top: 1rem;
+}
+
+.text-answer-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+    transition: var(--transition-fast);
+}
+
+.text-answer-row:last-child {
+    border-bottom: none;
+}
+
+.text-answer-row:hover {
+    background: var(--bg-canvas);
+}
+
+.text-answer-row:nth-child(odd) {
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.text-answer-row:nth-child(odd):hover {
+    background: var(--bg-muted);
+}
+
+.text-answer-name {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.text-answer-name .resident-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.text-answer-content {
+    color: var(--text-primary);
+    line-height: 1.65;
+    font-size: 0.92rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--border-strong);
+    transition: var(--transition-fast);
+}
+
+.text-answer-row:hover .text-answer-content {
+    border-left-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+    .text-answer-row {
+        grid-template-columns: 1fr;
+        gap: 0.6rem;
+    }
+    .text-answer-content {
+        padding-left: 0.75rem;
+    }
+}
+
 /* ============== 圖表容器 ============== */
 .chart-container {
     background: var(--bg-card);
@@ -774,7 +938,40 @@ label {
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
     margin: 1rem 0;
+    position: relative;        /* Chart.js responsive 必需 */
+    overflow: hidden;          /* 防止 canvas 溢出 */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
 }
+
+/* Chart.js 渲染的 canvas 一律限制在容器內 */
+.chart-container > canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;             /* flex 子項可被壓縮 */
+}
+
+/* 容器內的標題列（不擠壓 canvas） */
+.chart-container > .chart-header {
+    flex: 0 0 auto;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.chart-container > .chart-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* 包含標題的 chart-container 需要額外高度補償 — 由 inline style 控制總高度，
+   flex layout 會自動把 canvas 撐滿剩餘空間 */
 
 /* ============== 評分星星 ============== */
 .rating-stars {

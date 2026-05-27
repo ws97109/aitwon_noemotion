@@ -402,12 +402,14 @@ class SurveyManager:
         for question in survey.questions:
             question_id = str(question["id"])
             question_type = question["type"]
-            
+
             question_responses = []
+            named_responses = []  # 文字題用：[(respondent_name, answer), ...]
             for response in completed_responses:
                 if question_id in response.responses:
                     question_responses.append(response.responses[question_id])
-            
+                    named_responses.append((response.respondent_name, response.responses[question_id]))
+
             if question_type == "single_choice":
                 analytics["question_analytics"][question_id] = self._analyze_choice_question(
                     question_responses, question.get("options", [])
@@ -422,7 +424,7 @@ class SurveyManager:
                 )
             elif question_type == "text":
                 analytics["question_analytics"][question_id] = self._analyze_text_question(
-                    question_responses
+                    question_responses, named_responses
                 )
         
         return analytics
@@ -503,7 +505,7 @@ class SurveyManager:
             }
         
         distribution = {}
-        for i in range(1, 6):  # 1-5分
+        for i in range(1, 11):  # 1-10分
             distribution[str(i)] = numeric_responses.count(i)
         
         return {
@@ -515,19 +517,25 @@ class SurveyManager:
             "distribution": distribution
         }
     
-    def _analyze_text_question(self, responses: List[str]) -> Dict:
-        """分析文字題回應"""
+    def _analyze_text_question(self, responses: List[str], named_responses=None) -> Dict:
+        """分析文字題回應
+
+        Args:
+            responses: 答案字串列表
+            named_responses: [(respondent_name, answer), ...] — 供前端按人列出
+        """
         if not responses:
             return {
                 "type": "text",
                 "total_responses": 0,
                 "average_length": 0,
-                "common_words": []
+                "common_words": [],
+                "answers_by_person": []
             }
-        
+
         total_length = sum(len(str(response)) for response in responses)
         average_length = total_length / len(responses)
-        
+
         # 簡單的詞頻分析
         word_counts = {}
         for response in responses:
@@ -536,13 +544,22 @@ class SurveyManager:
                 word = word.lower().strip('.,!?')
                 if len(word) > 2:  # 只統計長度大於2的詞
                     word_counts[word] = word_counts.get(word, 0) + 1
-        
+
         # 取前10個最常見的詞
         common_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-        
+
+        # 每人對應的回答（按姓名排序維持穩定）
+        answers_by_person = []
+        if named_responses:
+            answers_by_person = [
+                {"name": name, "answer": str(answer)}
+                for name, answer in named_responses
+            ]
+
         return {
             "type": "text",
             "total_responses": len(responses),
             "average_length": average_length,
-            "common_words": common_words
+            "common_words": common_words,
+            "answers_by_person": answers_by_person
         }

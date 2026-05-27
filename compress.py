@@ -77,21 +77,25 @@ def extract_interaction_data(checkpoints_folder):
             
         for agent_name, agent_data in data.get("agents", {}).items():
             action = agent_data.get("action", {})
-            
-            # AI與物品交互
-            if "event" in action:
-                event = action["event"]
-                obj = event.get("object", "")
-                if obj and obj != "空閒" and obj != "idle":
-                    object_interactions[(agent_name, obj)] += 1
-            
-            # AI與地區交互  
-            if "event" in action:
-                event = action["event"]
-                address = event.get("address", [])
-                if len(address) >= 2:
-                    location = address[-1]  # 取最後一級地址（具體地點）
-                    location_interactions[(agent_name, location)] += 1
+
+            if "event" not in action:
+                continue
+            event = action["event"]
+            address = event.get("address", [])
+
+            # 地址層次：['the Ville', '建築', '場所/區域', '物品']
+            # 物品 = 最深層；地區 = 倒數第二層
+            if isinstance(address, list) and len(address) >= 3:
+                obj = address[-1]
+                loc = address[-2]
+                if obj and obj.strip():
+                    object_interactions[(agent_name, obj.strip())] += 1
+                if loc and loc.strip():
+                    location_interactions[(agent_name, loc.strip())] += 1
+            elif isinstance(address, list) and len(address) == 2:
+                loc = address[-1]
+                if loc and loc.strip():
+                    location_interactions[(agent_name, loc.strip())] += 1
     
     return object_interactions, location_interactions
 

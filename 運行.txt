@@ -20,7 +20,7 @@ stride - 每一步迭代在虚擬小鎮中對應的時間（分鐘）。假如�
 
 生成回放數據
 python compress.py --name <simulation-name>
-python compress.py --name scafv10
+python compress.py --name scafv11b
 運行結束後將在results/compressed/<simulation-name>目錄下生成回放數據文件movement.json。同時還將生成simulation.md，以時間线方式呈現每個智能體的狀態及對話内容。
 
 回放

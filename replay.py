@@ -144,42 +144,30 @@ def extract_interaction_data(checkpoints_folder):
                     continue
                 
                 address = event["address"]
-                
+
                 # 確保 address 是列表
                 if not isinstance(address, list):
                     continue
-                
-                # 處理地區交互
-                if len(address) >= 1:
-                    # 取最後一個地址作為地區
-                    location = address[-1]
-                    if location and location.strip():
-                        location_key = (agent_name, location)
-                        location_interactions[location_key] += 1
-                        print(f"地區交互：{agent_name} -> {location}")
-                
-                # 處理物品交互
-                if len(address) >= 2:
-                    # 如果有多層地址，最後一層可能是物品
-                    potential_object = address[-1]
-                    
-                    # 排除通用地區名稱
-                    general_locations = [
-                        "客廳", "廚房", "臥室", "浴室", "辦公室", "餐廳", 
-                        "大廳", "走廊", "陽台", "房間", "家", "屋子",
-                        "living room", "kitchen", "bedroom", "bathroom",
-                        "咖啡廳", "圖書館", "公園", "學校", "醫院",
-                        "商店", "市場", "銀行", "郵局", "車站", "教室",
-                        "會議室", "休息室", "洗手間", "樓梯", "電梯"
-                    ]
-                    
-                    if (potential_object and 
-                        potential_object.strip() and 
-                        potential_object not in general_locations and 
-                        len(potential_object) > 0):
-                        object_key = (agent_name, potential_object)
-                        object_interactions[object_key] += 1
-                        print(f"物品交互：{agent_name} -> {potential_object}")
+
+                # 地址層次：['the Ville', '建築', '場所/區域', '物品/設施']
+                # 例：['the Ville', '柳樹市場和藥店', '商店', '藥店櫃檯']
+
+                # 處理「物品交互」= 最深層（address[-1]），具體設施
+                if len(address) >= 3:
+                    obj = address[-1]
+                    if obj and obj.strip():
+                        object_interactions[(agent_name, obj.strip())] += 1
+
+                # 處理「地區交互」= 倒數第二層（address[-2]），場所/房間
+                if len(address) >= 3:
+                    loc = address[-2]
+                    if loc and loc.strip():
+                        location_interactions[(agent_name, loc.strip())] += 1
+                elif len(address) == 2:
+                    # 只有兩層時，倒數第二層其實是「建築」，當作地區
+                    loc = address[-1]
+                    if loc and loc.strip():
+                        location_interactions[(agent_name, loc.strip())] += 1
         
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             print(f"錯誤：讀取檔案 {checkpoint_file} 時發生錯誤：{e}")

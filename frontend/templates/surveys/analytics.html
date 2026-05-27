@@ -27,7 +27,7 @@
         <!-- 統計摘要卡片 -->
         <div class="row mb-4">
             <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <div class="stat-value">{{ analytics.response_summary.total_responses }}</div>
@@ -41,7 +41,7 @@
             </div>
 
             <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #5cb85c, #4cae4c);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <div class="stat-value">{{ analytics.response_summary.completed_responses }}</div>
@@ -55,7 +55,7 @@
             </div>
 
             <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #f0ad4e, #ec971f);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <div class="stat-value">{{ "%.1f"|format(analytics.response_summary.completion_rate) }}%</div>
@@ -69,7 +69,7 @@
             </div>
 
             <div class="col-md-3 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #5bc0de, #46b8da);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <div class="stat-value">{{ analytics.survey_info.question_count }}</div>
@@ -201,12 +201,15 @@
                     <div class="col-md-4">
                         <div class="text-center p-4">
                             <h3 class="text-muted mb-2">平均評分</h3>
-                            <div style="font-size: 4rem; font-weight: bold; color: #f0ad4e;">
+                            <div style="font-size: 4rem; font-weight: bold; color: #f0ad4e; line-height:1;">
                                 {{ "%.2f"|format(question_analytics.average) }}
+                                <span style="font-size: 1.5rem; color: #94a3b8;">/ 10</span>
                             </div>
-                            <div class="rating-stars my-3">
+                            <div class="rating-stars my-3" style="color:#f59e0b; font-size:1.5rem;">
+                                {# 把 1-10 評分映射成 5 顆星 #}
+                                {% set five_score = question_analytics.average / 2 %}
                                 {% for i in range(1, 6) %}
-                                    {% if i <= question_analytics.average %}
+                                    {% if i <= five_score %}
                                         <span class="star">★</span>
                                     {% else %}
                                         <span class="star" style="color: #ddd;">★</span>
@@ -223,7 +226,7 @@
                 </div>
 
                 {% elif question.type == 'text' %}
-                <!-- 文字題 - 統計分析 -->
+                <!-- 文字題 - 各居民答案列表 -->
                 <div class="row">
                     <div class="col-md-12">
                         <div class="alert alert-info">
@@ -233,20 +236,18 @@
                             平均長度為 <strong>{{ "%.1f"|format(question_analytics.average_length) }}</strong> 個字元
                         </div>
 
-                        {% if question_analytics.common_words %}
-                        <div class="chart-container" style="height: 300px;">
-                            <div class="chart-header">
-                                <h4>高頻詞彙分析</h4>
+                        {% if question_analytics.answers_by_person %}
+                        <div class="text-answers-table">
+                            {% for item in question_analytics.answers_by_person %}
+                            <div class="text-answer-row">
+                                <div class="text-answer-name">
+                                    <span class="resident-avatar" data-color="{{ loop.index0 % 9 }}">
+                                        {{ item.name[0] }}
+                                    </span>
+                                    <span>{{ item.name }}</span>
+                                </div>
+                                <div class="text-answer-content">{{ item.answer }}</div>
                             </div>
-                            <canvas id="chart-{{ question_id }}-words"></canvas>
-                        </div>
-
-                        <div class="tag-cloud mt-4">
-                            <h6 class="w-100 mb-3">詞彙雲：</h6>
-                            {% for word, count in question_analytics.common_words %}
-                            <span class="tag-item" style="font-size: {{ 0.8 + (count / 10) }}rem;">
-                                {{ word }} ({{ count }})
-                            </span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -419,29 +420,38 @@ const colorPalette = [
 }
 
 {% elif question.type == 'rating' %}
-// 評分題 - 分數分布
+// 評分題 - 分數分布（1-10 分）
 {
     const ctx = document.getElementById('chart-{{ question_id }}-rating');
     const distribution = {{ question_analytics.distribution|tojson }};
 
+    const labels = [];
+    const counts = [];
+    for (let i = 1; i <= 10; i++) {
+        labels.push(i + '分');
+        counts.push(distribution[String(i)] || 0);
+    }
+
+    // 1→紅、10→紫，做漸層著色
+    const palette = [
+        'rgba(239, 68, 68, 0.75)',
+        'rgba(245, 101, 39, 0.75)',
+        'rgba(245, 158, 11, 0.75)',
+        'rgba(250, 204, 21, 0.75)',
+        'rgba(132, 204, 22, 0.75)',
+        'rgba(16, 185, 129, 0.75)',
+        'rgba(6, 182, 212, 0.75)',
+        'rgba(59, 130, 246, 0.75)',
+        'rgba(102, 126, 234, 0.75)',
+        'rgba(139, 92, 246, 0.75)'
+    ];
+
     const data = {
-        labels: ['1分', '2分', '3分', '4分', '5分'],
+        labels: labels,
         datasets: [{
             label: '評分人數',
-            data: [
-                distribution['1'] || 0,
-                distribution['2'] || 0,
-                distribution['3'] || 0,
-                distribution['4'] || 0,
-                distribution['5'] || 0
-            ],
-            backgroundColor: [
-                'rgba(217, 83, 79, 0.7)',
-                'rgba(240, 173, 78, 0.7)',
-                'rgba(91, 192, 222, 0.7)',
-                'rgba(92, 184, 92, 0.7)',
-                'rgba(102, 126, 234, 0.7)'
-            ],
+            data: counts,
+            backgroundColor: palette,
             borderWidth: 2,
             borderColor: '#fff'
         }]
@@ -471,41 +481,6 @@ const colorPalette = [
     });
 }
 
-{% elif question.type == 'text' and question_analytics.common_words %}
-// 文字題 - 高頻詞彙
-{
-    const ctx = document.getElementById('chart-{{ question_id }}-words');
-    const commonWords = {{ question_analytics.common_words|tojson }};
-
-    const data = {
-        labels: commonWords.map(item => item[0]),
-        datasets: [{
-            label: '出現次數',
-            data: commonWords.map(item => item[1]),
-            backgroundColor: 'rgba(91, 192, 222, 0.7)',
-            borderColor: 'rgba(91, 192, 222, 1)',
-            borderWidth: 2
-        }]
-    };
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                }
-            }
-        }
-    });
-}
 {% endif %}
 
 {% endfor %}
