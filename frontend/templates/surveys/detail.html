@@ -460,6 +460,9 @@
                         <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap:8px;">
                             <h5 class="mb-0">問卷結構</h5>
                             <div class="d-flex align-items-center flex-wrap" style="gap:8px;">
+                                <select id="simSelect" class="form-control form-control-sm" style="width:auto;min-width:160px;">
+                                    <option value="">-- 選擇模擬 --</option>
+                                </select>
                                 <button class="btn btn-success btn-sm" onclick="fillSurvey('{{ survey.survey_id }}')">
                                     <i class="fas fa-robot"></i> 讓AI居民填寫
                                 </button>
@@ -753,7 +756,32 @@ function toggleResponse(index) {
     }
 }
 
+// 頁面載入時取得可用模擬列表
+(function loadSimulations() {
+    fetch('/surveys/simulations')
+        .then(r => r.json())
+        .then(data => {
+            const sel = document.getElementById('simSelect');
+            (data.simulations || []).forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.name;
+                opt.textContent = s.name;
+                sel.appendChild(opt);
+            });
+            // 若只有一個模擬，自動選取
+            if ((data.simulations || []).length === 1) {
+                sel.value = data.simulations[0].name;
+            }
+        });
+})();
+
 function fillSurvey(surveyId) {
+    const simName = document.getElementById('simSelect').value;
+    if (!simName) {
+        alert('請先選擇一個模擬（Simulation），才能讓居民根據經歷回答。');
+        return;
+    }
+
     // 顯示進度模態框
     $('#fillProgressModal').modal('show');
 
@@ -768,12 +796,12 @@ function fillSurvey(surveyId) {
         }
     }, 300);
 
-    // 後端會自動使用當前綁定的模擬（不需前端指定）
     fetch(`/surveys/${surveyId}/fill`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        }
+        },
+        body: JSON.stringify({ simulation_name: simName })
     })
     .then(response => response.json())
     .then(data => {

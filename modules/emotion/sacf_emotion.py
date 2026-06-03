@@ -187,7 +187,7 @@ class SACFEmotionBackend:
                     dropout      = dropout,
                     num_branches = num_branches,
                 )
-                model.load_state_dict(state_dict)
+                model.load_state_dict(state_dict, strict=False)
                 model.to(self._device)
                 model.eval()
                 self._models.append(model)

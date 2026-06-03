@@ -671,7 +671,10 @@ def survey_fill(survey_id):
     """讓AI居民填寫問卷（自動綁定當前 simulation）"""
     from survey_system import SurveyManager, AIResidentSurveyFiller
 
-    simulation_name = _resolve_active_simulation()
+    # 優先使用前端傳入的 simulation_name，其次用 CLI --name
+    payload = request.get_json(silent=True) or {}
+    simulation_name = payload.get("simulation_name") or _resolve_active_simulation()
+    print(f"[survey_fill] payload={payload}, simulation_name={simulation_name!r}")
 
     manager = SurveyManager()
     try:

@@ -13,6 +13,7 @@ SimulationContext — 模擬世界資料的統一存取層
 import os
 import sys
 import json
+import warnings
 import requests
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -96,14 +97,74 @@ class SimulationContext:
         history: Dict[str, List[str]] = {}
         current = None
         for line in content.splitlines():
+            stripped = line.strip()
             if line.startswith("### "):
-                current = line.replace("### ", "").strip()
+                header = line.replace("### ", "").strip()
+                # 跳過對話標題（含 " -> "），由下方第二個迴圈處理
+                if " -> " in header:
+                    current = None
+                    continue
+                current = header
                 history.setdefault(current, [])
-            elif current and (line.startswith("位置：") or line.startswith("活動：")):
-                history[current].append(line)
+            elif line.startswith("## ") or line.startswith("# "):
+                # 時間戳或大標題
+                current = None
+            elif current and stripped:
+                history[current].append(stripped)
 
-        # 只保留最後 100 條
-        return {name: "\n".join(lines[-100:]) for name, lines in history.items() if lines}
+        # 也解析對話紀錄：「### A -> B @ location」格式
+        # 將對話內容歸給雙方
+        in_conversation = False
+        conv_participants: list = []
+        conv_lines: list = []
+        for line in content.splitlines():
+            stripped = line.strip()
+            if line.startswith("### ") and " -> " in line:
+                # 儲存上一段對話
+                if conv_participants and conv_lines:
+                    conv_text = "\n".join(conv_lines)
+                    for p in conv_participants:
+                        history.setdefault(p, [])
+                        history[p].append(conv_text)
+                # 解析新對話參與者
+                header = line.replace("### ", "").strip()
+                parts = header.split(" @ ")[0]
+                conv_participants = [p.strip() for p in parts.split(" -> ")]
+                conv_lines = [f"[對話] {header}"]
+                in_conversation = True
+            elif in_conversation and stripped:
+                if line.startswith("### ") or line.startswith("## ") or line.startswith("# "):
+                    # 對話結束
+                    if conv_participants and conv_lines:
+                        conv_text = "\n".join(conv_lines)
+                        for p in conv_participants:
+                            history.setdefault(p, [])
+                            history[p].append(conv_text)
+                    conv_participants = []
+                    conv_lines = []
+                    in_conversation = False
+                else:
+                    conv_lines.append(stripped)
+        # 最後一段對話
+        if conv_participants and conv_lines:
+            conv_text = "\n".join(conv_lines)
+            for p in conv_participants:
+                history.setdefault(p, [])
+                history[p].append(conv_text)
+
+        # 去重並只保留最後 200 條
+        result: Dict[str, str] = {}
+        for name, lines in history.items():
+            if lines:
+                # 去重但保持順序
+                seen: set = set()
+                unique: list = []
+                for ln in lines:
+                    if ln not in seen:
+                        seen.add(ln)
+                        unique.append(ln)
+                result[name] = "\n".join(unique[-200:])
+        return result
 
     def get_activity_history(self, agent_name: str, limit_chars: int = 1000) -> str:
         text = self._activity_history.get(agent_name, "")
@@ -239,7 +300,9 @@ class SimulationContext:
         # LlamaIndex.retrieve 內部有無限重試迴圈，這裡用較小的 timeout 包一層保護。
         # 為簡化實作，仍直接呼叫；在外部已確認服務可用。
         try:
-            nodes = index.retrieve(query, similarity_top_k=top_k)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                nodes = index.retrieve(query, similarity_top_k=top_k)
         except Exception as e:
             print(f"[SimulationContext] {agent_name} 記憶檢索失敗: {e}")
             return []

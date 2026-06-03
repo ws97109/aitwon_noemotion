@@ -116,6 +116,15 @@ class OllamaSurveyGenerator:
             return ""
         return "\n".join(f"{i}. {opt}" for i, opt in enumerate(options, 1))
 
+    @staticmethod
+    def _extract_rating_scale(question_text: str):
+        """從問題文字中提取評分範圍，例如「1-5分」→ (1, 5)。預設 (1, 5)。"""
+        import re
+        m = re.search(r"(\d+)\s*[-~到至]\s*(\d+)\s*分", question_text)
+        if m:
+            return int(m.group(1)), int(m.group(2))
+        return 1, 5
+
     def _build_prompt(
         self,
         agent_name: str,
@@ -132,13 +141,16 @@ class OllamaSurveyGenerator:
         ctx = self.simulation_context
 
         if ctx:
-            activity_history = ctx.get_activity_history(agent_name, limit_chars=1000)
+            activity_history = ctx.get_activity_history(agent_name, limit_chars=3000)
             emotion_state = ctx.format_emotion_state(agent_name)
             memories = ctx.format_memories(agent_name, question_text, top_k=5)
         else:
             activity_history = "無活動記錄"
             emotion_state = "無情緒記錄"
             memories = "（無相關記憶）"
+
+        # 評分題：從問題文字提取範圍
+        rating_min, rating_max = self._extract_rating_scale(question_text)
 
         template_vars = {
             "agent_name": agent_name,
@@ -154,6 +166,8 @@ class OllamaSurveyGenerator:
             "emotion_state": emotion_state,
             "memories": memories,
             "options": self._format_options(options) if options and question_type in ("single_choice", "multiple_choice") else "",
+            "rating_min": str(rating_min),
+            "rating_max": str(rating_max),
         }
 
         try:
@@ -223,7 +237,7 @@ class OllamaSurveyGenerator:
                         "num_predict": 500,
                     },
                 },
-                timeout=120,
+                timeout=300,
             )
 
             if response.status_code == 200:
@@ -235,7 +249,7 @@ class OllamaSurveyGenerator:
             return self._fallback_response(question_type)
 
         except requests.Timeout:
-            print(f"⏱️  [{resident_name}] Ollama 請求逾時（120s）— 模型可能太慢或還在 load")
+            print(f"⏱️  [{resident_name}] Ollama 請求逾時（300s）— 模型可能太慢或還在 load")
             return self._fallback_response(question_type)
         except Exception as e:
             print(f"❌ [{resident_name}] 調用 Ollama API 時發生錯誤: {type(e).__name__}: {e}")

@@ -172,6 +172,10 @@ class AIResidentSurveyFiller:
         question_text = question["text"]
         options = question.get("options", [])
 
+        # 「不能填寫自己」：將自己從選項中移除
+        if "不能填寫自己" in question_text and resident_name in options:
+            options = [o for o in options if o != resident_name]
+
         llm_response = self.ollama_generator.generate_response(
             resident_name=resident_name,
             resident_info={},
@@ -179,9 +183,18 @@ class AIResidentSurveyFiller:
             question_type=question_type,
             options=options,
         )
-        return self._process_llm_response(llm_response, question_type, options)
 
-    def _process_llm_response(self, llm_response: str, question_type: str, options: List[str]) -> Any:
+        # 評分題：提取實際範圍用於驗證
+        rating_min, rating_max = 1, 5
+        if question_type == "rating":
+            from .ollama_generator import OllamaSurveyGenerator
+            rating_min, rating_max = OllamaSurveyGenerator._extract_rating_scale(question_text)
+
+        return self._process_llm_response(llm_response, question_type, options,
+                                          rating_min=rating_min, rating_max=rating_max)
+
+    def _process_llm_response(self, llm_response: str, question_type: str, options: List[str],
+                              rating_min: int = 1, rating_max: int = 5) -> Any:
         if not llm_response:
             return self._get_error_fallback_answer(question_type)
 
@@ -203,9 +216,10 @@ class AIResidentSurveyFiller:
             match = re.search(r"(\d+)", llm_response)
             if match:
                 rating = int(match.group(1))
-                return rating if 1 <= rating <= 10 else max(1, min(10, rating))
-            print("         ⚠️  無法提取評分，使用預設值 5")
-            return 5
+                return max(rating_min, min(rating_max, rating))
+            mid = (rating_min + rating_max) // 2
+            print(f"         ⚠️  無法提取評分，使用預設值 {mid}")
+            return mid
 
         elif question_type == "text":
             return llm_response
