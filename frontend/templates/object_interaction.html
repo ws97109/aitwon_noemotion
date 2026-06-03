@@ -10,6 +10,17 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
     }
+
+    /* 節點名稱（姓名、地區、物品）加黑邊 */
+    svg .ai-node text,
+    svg .object-node text,
+    svg .location-node text {
+      paint-order: stroke fill;
+      stroke: #000;
+      stroke-width: 3px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
     
     .main-container {
       background: rgba(255, 255, 255, 0.95);
@@ -310,13 +321,14 @@
     function createCircularObjectChart() {
       debugLog('開始創建AI與物品圓環圖...');
       d3.select("#object-chart").html("");
-      
+
       const width = document.querySelector("#object-chart").clientWidth;
-      const height = 700;
+      const nodeCount = (interactionData.object_interactions || []).length;
+      const height = Math.max(900, 700 + nodeCount * 2);
       const centerX = width / 2;
       const centerY = height / 2;
-      const outerRadius = Math.min(width, height) / 2 - 120;
-      const innerRadius = outerRadius - 120;
+      const outerRadius = Math.min(width, height) / 2 - 150;
+      const innerRadius = outerRadius - 140;
       
       const svg = d3.select("#object-chart")
         .append("svg")
@@ -353,14 +365,20 @@
         return;
       }
       
-      // 調整過濾條件，降低最小交互次數
-      const minInteractions = 1; // 降低門檻
+      // 過濾：只保留有人互動的物品，並按總交互量排序取 Top N
+      const minInteractions = 2;
       const filteredData = data.filter(d => d.count >= minInteractions);
-      const filteredObjects = [...new Set(filteredData.map(d => d.object))];
-      
-      debugLog(`過濾後物品數據：${filteredData.length} 筆，${filteredObjects.length} 個物品`);
-      
-      if (filteredData.length === 0) {
+      const objectTotals = {};
+      filteredData.forEach(d => { objectTotals[d.object] = (objectTotals[d.object] || 0) + d.count; });
+      // 只保留互動量前 30 的物品，避免太擠
+      const sortedObjects = Object.entries(objectTotals).sort((a,b) => b[1]-a[1]);
+      const topObjects = new Set(sortedObjects.slice(0, 30).map(e => e[0]));
+      const finalData = filteredData.filter(d => topObjects.has(d.object));
+      const filteredObjects = [...topObjects];
+
+      debugLog(`過濾後物品數據：${finalData.length} 筆，${filteredObjects.length} 個物品`);
+
+      if (finalData.length === 0) {
         debugLog('過濾後沒有數據，顯示提示信息');
         g.append("text")
           .attr("x", centerX)
@@ -371,34 +389,36 @@
           .text("沒有符合條件的物品交互數據");
         return;
       }
-      
+
       const aiAngleStep = (2 * Math.PI) / personaNames.length;
       const objectAngleStep = (2 * Math.PI) / filteredObjects.length;
-      
+      // 讓外圈和內圈起始角度錯開，減少重疊
+      const angleOffset = objectAngleStep / 2;
+
       // 創建AI節點（內圈）
       const aiNodes = personaNames.map((name, i) => ({
         id: name,
         type: 'ai',
         name: name,
         angle: i * aiAngleStep,
-        x: centerX + innerRadius * Math.cos(i * aiAngleStep),
-        y: centerY + innerRadius * Math.sin(i * aiAngleStep),
+        x: centerX + innerRadius * Math.cos(i * aiAngleStep - Math.PI / 2),
+        y: centerY + innerRadius * Math.sin(i * aiAngleStep - Math.PI / 2),
         color: colors.ai[i % colors.ai.length]
       }));
-      
-      // 創建物品節點（外圈）
+
+      // 創建物品節點（外圈）— 加大間距
       const objectNodes = filteredObjects.map((obj, i) => ({
         id: obj,
         type: 'object',
         name: obj,
-        angle: i * objectAngleStep,
-        x: centerX + (outerRadius + 40) * Math.cos(i * objectAngleStep),
-        y: centerY + (outerRadius + 40) * Math.sin(i * objectAngleStep),
+        angle: i * objectAngleStep + angleOffset,
+        x: centerX + (outerRadius + 60) * Math.cos(i * objectAngleStep + angleOffset - Math.PI / 2),
+        y: centerY + (outerRadius + 60) * Math.sin(i * objectAngleStep + angleOffset - Math.PI / 2),
         color: colors.object[i % colors.object.length]
       }));
       
       // 創建連接線
-      const connections = filteredData.map(d => {
+      const connections = finalData.map(d => {
         const aiNode = aiNodes.find(n => n.name === d.agent);
         const objectNode = objectNodes.find(n => n.name === d.object);
         if (!aiNode || !objectNode) return null;
@@ -410,7 +430,7 @@
           object: d.object
         };
       }).filter(d => d !== null);
-      
+
       debugLog(`創建了 ${connections.length} 個連接`);
       
       // 繪製連接線
@@ -542,16 +562,16 @@
         .text("🔧 互動物品");
       
       // 添加過濾提示
-      if (data.length > filteredData.length) {
+      if (data.length > finalData.length) {
         g.append("text")
           .attr("x", centerX)
           .attr("y", 30)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
           .attr("fill", "#666")
-          .text(`顯示 ${minInteractions} 次以上交互 (${filteredData.length}/${data.length})`);
+          .text(`顯示 Top ${filteredObjects.length} 物品（${minInteractions}次以上，共 ${finalData.length}/${data.length} 筆）`);
       }
-      
+
       // 高亮連接函數
       function highlightConnections(name, type) {
         lines.style("stroke-opacity", d => {
@@ -579,13 +599,13 @@
     function createCircularLocationChart() {
       debugLog('開始創建AI與地區圓環圖...');
       d3.select("#location-chart").html("");
-      
+
       const width = document.querySelector("#location-chart").clientWidth;
-      const height = 700;
+      const height = Math.max(900, 700);
       const centerX = width / 2;
       const centerY = height / 2;
-      const outerRadius = Math.min(width, height) / 2 - 120;
-      const innerRadius = outerRadius - 120;
+      const outerRadius = Math.min(width, height) / 2 - 150;
+      const innerRadius = outerRadius - 140;
       
       const svg = d3.select("#location-chart")
         .append("svg")
@@ -622,14 +642,28 @@
         return;
       }
       
-      // 調整過濾條件，降低最小交互次數
-      const minInteractions = 1; // 降低門檻
+      // 過濾：只保留有人去過的地區（至少 2 個 agent 去過），並按互動量排序
+      const minInteractions = 2;
       const filteredData = data.filter(d => d.count >= minInteractions);
-      const filteredLocations = [...new Set(filteredData.map(d => d.location))];
-      
-      debugLog(`過濾後地區數據：${filteredData.length} 筆，${filteredLocations.length} 個地區`);
-      
-      if (filteredData.length === 0) {
+      // 計算每個地區被多少不同 agent 使用
+      const locAgents = {};
+      const locTotals = {};
+      filteredData.forEach(d => {
+        locAgents[d.location] = locAgents[d.location] || new Set();
+        locAgents[d.location].add(d.agent);
+        locTotals[d.location] = (locTotals[d.location] || 0) + d.count;
+      });
+      // 只保留至少 2 個 agent 到過的地區（排除沒人的房間）
+      const activeLocations = Object.entries(locTotals)
+        .filter(([loc, _]) => (locAgents[loc] || new Set()).size >= 2)
+        .sort((a,b) => b[1]-a[1]);
+      const topLocations = new Set(activeLocations.slice(0, 25).map(e => e[0]));
+      const finalData = filteredData.filter(d => topLocations.has(d.location));
+      const filteredLocations = [...topLocations];
+
+      debugLog(`過濾後地區數據：${finalData.length} 筆，${filteredLocations.length} 個地區`);
+
+      if (finalData.length === 0) {
         debugLog('過濾後沒有數據，顯示提示信息');
         g.append("text")
           .attr("x", centerX)
@@ -640,34 +674,35 @@
           .text("沒有符合條件的地區交互數據");
         return;
       }
-      
+
       const aiAngleStep = (2 * Math.PI) / personaNames.length;
       const locationAngleStep = (2 * Math.PI) / filteredLocations.length;
-      
+      const angleOffset = locationAngleStep / 2;
+
       // 創建AI節點（內圈）
       const aiNodes = personaNames.map((name, i) => ({
         id: name,
         type: 'ai',
         name: name,
         angle: i * aiAngleStep,
-        x: centerX + innerRadius * Math.cos(i * aiAngleStep),
-        y: centerY + innerRadius * Math.sin(i * aiAngleStep),
+        x: centerX + innerRadius * Math.cos(i * aiAngleStep - Math.PI / 2),
+        y: centerY + innerRadius * Math.sin(i * aiAngleStep - Math.PI / 2),
         color: colors.ai[i % colors.ai.length]
       }));
-      
-      // 創建地區節點（外圈）
+
+      // 創建地區節點（外圈）— 加大間距
       const locationNodes = filteredLocations.map((loc, i) => ({
         id: loc,
         type: 'location',
         name: loc,
-        angle: i * locationAngleStep,
-        x: centerX + (outerRadius + 40) * Math.cos(i * locationAngleStep),
-        y: centerY + (outerRadius + 40) * Math.sin(i * locationAngleStep),
+        angle: i * locationAngleStep + angleOffset,
+        x: centerX + (outerRadius + 60) * Math.cos(i * locationAngleStep + angleOffset - Math.PI / 2),
+        y: centerY + (outerRadius + 60) * Math.sin(i * locationAngleStep + angleOffset - Math.PI / 2),
         color: colors.location[i % colors.location.length]
       }));
-      
+
       // 創建連接線
-      const connections = filteredData.map(d => {
+      const connections = finalData.map(d => {
         const aiNode = aiNodes.find(n => n.name === d.agent);
         const locationNode = locationNodes.find(n => n.name === d.location);
         if (!aiNode || !locationNode) return null;
@@ -679,7 +714,7 @@
           location: d.location
         };
       }).filter(d => d !== null);
-      
+
       debugLog(`創建了 ${connections.length} 個地區連接`);
       
       // 繪製背景圓環
@@ -855,14 +890,14 @@
         .text("🏠 活動地區");
       
       // 添加過濾提示
-      if (data.length > filteredData.length) {
+      if (data.length > finalData.length) {
         g.append("text")
           .attr("x", centerX)
           .attr("y", 30)
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
           .attr("fill", "#666")
-          .text(`顯示 ${minInteractions} 次以上活動 (${filteredData.length}/${data.length})`);
+          .text(`顯示 ${filteredLocations.length} 個活躍地區（至少2人到訪，共 ${finalData.length}/${data.length} 筆）`);
       }
       
       // 高亮連接函數

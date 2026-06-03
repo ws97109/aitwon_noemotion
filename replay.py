@@ -803,6 +803,11 @@ def survey_analytics(survey_id):
     )
 
 
+@app.route("/interaction-matrix")
+def interaction_matrix():
+    return render_template("interaction_matrix.html")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Replay server for the simulated village")
     parser.add_argument("--name", type=str, default="",

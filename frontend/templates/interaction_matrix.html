@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>角色互動關係矩陣 - scafv11b</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; }
+h1 { text-align: center; margin-bottom: 8px; font-size: 1.6rem; color: #f1f5f9; }
+.subtitle { text-align: center; color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+.controls { text-align: center; margin-bottom: 20px; }
+.controls button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.controls button.active { background: #6366f1; border-color: #6366f1; }
+.controls button:hover { background: #334155; }
+.controls button.active:hover { background: #4f46e5; }
+
+.section { max-width: 1000px; margin: 0 auto 32px; }
+.section h2 { font-size: 1.1rem; margin-bottom: 12px; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+
+/* Matrix */
+.matrix-wrap { overflow-x: auto; }
+table.matrix { border-collapse: collapse; margin: 0 auto; }
+table.matrix th, table.matrix td { width: 72px; height: 40px; text-align: center; font-size: 0.78rem; border: 1px solid #1e293b; }
+table.matrix th { background: #1e293b; color: #94a3b8; font-weight: 600; }
+table.matrix th.corner { background: transparent; border: none; }
+table.matrix td.self { background: #1e293b; color: #475569; }
+table.matrix td { color: #f1f5f9; font-weight: 500; }
+
+/* Rank list */
+.rank-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rank-item { display: flex; align-items: center; background: #1e293b; border-radius: 8px; padding: 10px 14px; gap: 12px; }
+.rank-num { font-size: 1.2rem; font-weight: 700; color: #6366f1; min-width: 28px; }
+.rank-num.gold { color: #fbbf24; }
+.rank-num.silver { color: #94a3b8; }
+.rank-num.bronze { color: #d97706; }
+.rank-info { flex: 1; }
+.rank-names { font-weight: 600; font-size: 0.9rem; }
+.rank-stats { color: #94a3b8; font-size: 0.78rem; margin-top: 2px; }
+.rank-bar { height: 4px; background: #334155; border-radius: 2px; margin-top: 4px; }
+.rank-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #6366f1, #a78bfa); }
+
+/* Agent rank */
+.agent-rank { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.agent-card { background: #1e293b; border-radius: 10px; padding: 14px; text-align: center; }
+.agent-card .name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.agent-card .stat { color: #94a3b8; font-size: 0.8rem; }
+.agent-card .bar { height: 6px; background: #334155; border-radius: 3px; margin-top: 8px; }
+.agent-card .bar-fill { height: 100%; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>角色互動關係視覺化</h1>
+<p class="subtitle">scafv11b 模擬 | 對話長度矩陣 | 按互動量排序</p>
+
+<div class="controls">
+  <button class="active" onclick="showMode('chars')">按字數</button>
+  <button onclick="showMode('count')">按次數</button>
+</div>
+
+<div class="section">
+  <h2>對話矩陣（熱力圖）</h2>
+  <div class="matrix-wrap">
+    <table class="matrix" id="matrixTable"></table>
+  </div>
+</div>
+
+<div class="section">
+  <h2>角色對互動排序</h2>
+  <div class="rank-list" id="pairRank"></div>
+</div>
+
+<div class="section">
+  <h2>角色總互動量排序</h2>
+  <div class="agent-rank" id="agentRank"></div>
+</div>
+
+<script>
+const agents = ['盧品蓉','鄭傑丞','莊于萱','施宇鴻','游庭瑄','李昇峰','魏祺紘','陳冠佑','蔡宗陞'];
+
+const charData = {
+  '盧品蓉,鄭傑丞':17412,'盧品蓉,莊于萱':8794,'盧品蓉,施宇鴻':21190,'盧品蓉,游庭瑄':8485,
+  '盧品蓉,李昇峰':9542,'盧品蓉,魏祺紘':20436,'盧品蓉,陳冠佑':36939,'盧品蓉,蔡宗陞':13711,
+  '鄭傑丞,莊于萱':13696,'鄭傑丞,施宇鴻':9135,'鄭傑丞,游庭瑄':6568,'鄭傑丞,李昇峰':5758,
+  '鄭傑丞,魏祺紘':51197,'鄭傑丞,陳冠佑':14066,'鄭傑丞,蔡宗陞':28902,
+  '莊于萱,施宇鴻':6836,'莊于萱,游庭瑄':3409,'莊于萱,李昇峰':2928,'莊于萱,魏祺紘':24326,
+  '莊于萱,陳冠佑':4097,'莊于萱,蔡宗陞':39350,
+  '施宇鴻,游庭瑄':3137,'施宇鴻,李昇峰':7653,'施宇鴻,魏祺紘':10139,'施宇鴻,陳冠佑':8125,'施宇鴻,蔡宗陞':6366,
+  '游庭瑄,李昇峰':8343,'游庭瑄,魏祺紘':7453,'游庭瑄,陳冠佑':7557,'游庭瑄,蔡宗陞':4884,
+  '李昇峰,魏祺紘':9550,'李昇峰,陳冠佑':3729,'李昇峰,蔡宗陞':4259,
+  '魏祺紘,陳冠佑':32094,'魏祺紘,蔡宗陞':65175,
+  '陳冠佑,蔡宗陞':4857
+};
+
+const countData = {
+  '盧品蓉,鄭傑丞':34,'盧品蓉,莊于萱':22,'盧品蓉,施宇鴻':42,'盧品蓉,游庭瑄':19,
+  '盧品蓉,李昇峰':21,'盧品蓉,魏祺紘':24,'盧品蓉,陳冠佑':39,'盧品蓉,蔡宗陞':25,
+  '鄭傑丞,莊于萱':26,'鄭傑丞,施宇鴻':23,'鄭傑丞,游庭瑄':11,'鄭傑丞,李昇峰':15,
+  '鄭傑丞,魏祺紘':58,'鄭傑丞,陳冠佑':14,'鄭傑丞,蔡宗陞':49,
+  '莊于萱,施宇鴻':17,'莊于萱,游庭瑄':7,'莊于萱,李昇峰':8,'莊于萱,魏祺紘':33,
+  '莊于萱,陳冠佑':12,'莊于萱,蔡宗陞':78,
+  '施宇鴻,游庭瑄':11,'施宇鴻,李昇峰':21,'施宇鴻,魏祺紘':20,'施宇鴻,陳冠佑':22,'施宇鴻,蔡宗陞':13,
+  '游庭瑄,李昇峰':26,'游庭瑄,魏祺紘':10,'游庭瑄,陳冠佑':16,'游庭瑄,蔡宗陞':10,
+  '李昇峰,魏祺紘':12,'李昇峰,陳冠佑':9,'李昇峰,蔡宗陞':5,
+  '魏祺紘,陳冠佑':28,'魏祺紘,蔡宗陞':88,
+  '陳冠佑,蔡宗陞':6
+};
+
+let mode = 'chars';
+
+function getVal(a, b, data) {
+  const key = [a,b].sort().join(',');
+  return data[key] || 0;
+}
+
+function heatColor(val, max) {
+  if (val === 0) return '#1e293b';
+  const ratio = Math.pow(val / max, 0.6);
+  const r = Math.round(99 + ratio * 56);
+  const g = Math.round(102 - ratio * 60);
+  const b = Math.round(241 - ratio * 100);
+  return `rgb(${r},${g},${b})`;
+}
+
+function showMode(m) {
+  mode = m;
+  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  render();
+}
+
+function render() {
+  const data = mode === 'chars' ? charData : countData;
+  const unit = mode === 'chars' ? '字' : '次';
+  const allVals = Object.values(data);
+  const maxVal = Math.max(...allVals);
+
+  // 按總互動量排序 agents（多→少）
+  const agentSortTotals = {};
+  agents.forEach(a => { agentSortTotals[a] = 0; });
+  Object.entries(data).forEach(([key, val]) => {
+    const [a,b] = key.split(',');
+    agentSortTotals[a] += val; agentSortTotals[b] += val;
+  });
+  const sorted = agents.slice().sort((a,b) => agentSortTotals[b] - agentSortTotals[a]);
+
+  // Matrix — 行列都按排序後的順序
+  let html = '<tr><th class="corner"></th>';
+  sorted.forEach(a => html += `<th>${a.substring(0,3)}</th>`);
+  html += '</tr>';
+  sorted.forEach(a => {
+    html += `<tr><th>${a.substring(0,3)}</th>`;
+    sorted.forEach(b => {
+      if (a === b) {
+        html += '<td class="self">-</td>';
+      } else {
+        const v = getVal(a, b, data);
+        const bg = heatColor(v, maxVal);
+        const display = mode === 'chars' ? (v >= 1000 ? (v/1000).toFixed(1)+'k' : v) : v;
+        html += `<td style="background:${bg}" title="${a} ↔ ${b}: ${v.toLocaleString()}${unit}">${display}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+  document.getElementById('matrixTable').innerHTML = html;
+
+  // Pair rank
+  const pairs = Object.entries(data).sort((a,b) => b[1]-a[1]);
+  let pairHtml = '';
+  pairs.forEach(([key, val], i) => {
+    const [a,b] = key.split(',');
+    const cnt = countData[key] || 0;
+    const chars = charData[key] || 0;
+    const numClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const pct = (val / maxVal * 100).toFixed(0);
+    pairHtml += `<div class="rank-item">
+      <div class="rank-num ${numClass}">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-names">${a} ↔ ${b}</div>
+        <div class="rank-stats">${cnt} 次對話 | ${chars.toLocaleString()} 字</div>
+        <div class="rank-bar"><div class="rank-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('pairRank').innerHTML = pairHtml;
+
+  // Agent rank
+  const agentTotals = {};
+  const agentCounts = {};
+  agents.forEach(a => { agentTotals[a] = 0; agentCounts[a] = 0; });
+  Object.entries(charData).forEach(([key, val]) => {
+    const [a,b] = key.split(',');
+    agentTotals[a] += val; agentTotals[b] += val;
+  });
+  Object.entries(countData).forEach(([key, val]) => {
+    const [a,b] = key.split(',');
+    agentCounts[a] += val; agentCounts[b] += val;
+  });
+  const sorted = agents.slice().sort((a,b) => mode==='chars' ? agentTotals[b]-agentTotals[a] : agentCounts[b]-agentCounts[a]);
+  const maxAgent = mode==='chars' ? agentTotals[sorted[0]] : agentCounts[sorted[0]];
+  const colors = ['#fbbf24','#94a3b8','#d97706','#6366f1','#8b5cf6','#a78bfa','#6366f1','#818cf8','#a5b4fc'];
+
+  let agentHtml = '';
+  sorted.forEach((name, i) => {
+    const total = agentTotals[name];
+    const count = agentCounts[name];
+    const val = mode==='chars' ? total : count;
+    const pct = (val / maxAgent * 100).toFixed(0);
+    agentHtml += `<div class="agent-card">
+      <div class="name" style="color:${colors[i]}">#${i+1} ${name}</div>
+      <div class="stat">${count} 次對話</div>
+      <div class="stat">${total.toLocaleString()} 總字數</div>
+      <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${colors[i]}"></div></div>
+    </div>`;
+  });
+  document.getElementById('agentRank').innerHTML = agentHtml;
+}
+
+render();
+</script>
+</body>
+</html>
