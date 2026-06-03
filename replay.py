@@ -97,6 +97,65 @@ persona_profiles = {
 }
 
 
+def _load_resident_buildings():
+    """從 agent.json 載入 9 位居民各自的住宅建築（living_area[1]）。"""
+    buildings = set()
+    base = os.path.join("frontend", "static", "assets", "village", "agents")
+    for name in personas:
+        path = os.path.join(base, name, "agent.json")
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            la = data.get("spatial", {}).get("address", {}).get("living_area", [])
+            if len(la) > 1 and la[1]:
+                buildings.add(la[1].strip())
+        except (json.JSONDecodeError, KeyError, TypeError):
+            continue
+    return buildings
+
+
+# 我的 9 位居民的住宅建築（用於過濾「主人房」）
+RESIDENT_BUILDINGS = _load_resident_buildings()
+
+
+def _resolve_location(address):
+    """取得地區標籤；只對「主人房」加建築前綴並過濾非本社區居民的。
+
+    回傳 None 表示該筆不顯示（例：NPC 家的主人房）。
+    """
+    if not isinstance(address, list):
+        return None
+    if len(address) >= 3:
+        room = address[-2]
+    elif len(address) == 2:
+        room = address[-1]
+    else:
+        return None
+    room = room.strip() if room else ""
+    if not room:
+        return None
+
+    # 移除「塔瑪拉的房間」
+    if "塔瑪拉" in room:
+        return None
+
+    # 合併男/女衛生間為「衛生間」
+    if room in ("男衛生間", "女衛生間"):
+        return "衛生間"
+
+    # 只特殊處理「主人房」：加建築前綴，且僅保留我居民的住宅
+    if room == "主人房":
+        building = address[1].strip() if len(address) > 1 and address[1] else ""
+        if building in RESIDENT_BUILDINGS:
+            return f"{building}·主人房"
+        return None  # NPC 家的主人房 → 不顯示
+
+    # 其他房間維持原樣
+    return room
+
+
 def extract_interaction_data(checkpoints_folder):
     """提取AI與物品/地區的交互數據"""
     object_interactions = collections.defaultdict(int)
@@ -153,21 +212,15 @@ def extract_interaction_data(checkpoints_folder):
                 # 例：['the Ville', '柳樹市場和藥店', '商店', '藥店櫃檯']
 
                 # 處理「物品交互」= 最深層（address[-1]），具體設施
-                if len(address) >= 3:
+                if len(address) >= 4:
                     obj = address[-1]
                     if obj and obj.strip():
                         object_interactions[(agent_name, obj.strip())] += 1
 
-                # 處理「地區交互」= 倒數第二層（address[-2]），場所/房間
-                if len(address) >= 3:
-                    loc = address[-2]
-                    if loc and loc.strip():
-                        location_interactions[(agent_name, loc.strip())] += 1
-                elif len(address) == 2:
-                    # 只有兩層時，倒數第二層其實是「建築」，當作地區
-                    loc = address[-1]
-                    if loc and loc.strip():
-                        location_interactions[(agent_name, loc.strip())] += 1
+                # 處理「地區交互」：只把「主人房」加建築前綴並過濾 NPC，其他維持原樣
+                loc = _resolve_location(address)
+                if loc:
+                    location_interactions[(agent_name, loc)] += 1
         
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             print(f"錯誤：讀取檔案 {checkpoint_file} 時發生錯誤：{e}")

@@ -1,0 +1,2301 @@
+{
+  "object_interactions": [
+    {
+      "agent": "施宇鴻",
+      "object": "公園花園",
+      "count": 62
+    },
+    {
+      "agent": "李昇峰",
+      "object": "藥店櫃檯",
+      "count": 38
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "供應店櫃檯後面",
+      "count": 8
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "架子",
+      "count": 57
+    },
+    {
+      "agent": "莊于萱",
+      "object": "床",
+      "count": 418
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "咖啡館櫃檯後面",
+      "count": 235
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "公園花園",
+      "count": 25
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "冰箱",
+      "count": 58
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "書桌",
+      "count": 92
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "架子",
+      "count": 26
+    },
+    {
+      "agent": "李昇峰",
+      "object": "藥店貨架",
+      "count": 70
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "咖啡館顧客座位",
+      "count": 83
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "供應店櫃檯後面",
+      "count": 23
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "供應店櫃檯後面",
+      "count": 13
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "麥克風",
+      "count": 8
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "公共休息室沙發",
+      "count": 9
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "藥店櫃檯後面",
+      "count": 9
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "咖啡館櫃檯後面",
+      "count": 102
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "麥克風",
+      "count": 7
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "麥克風",
+      "count": 8
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "鋼琴",
+      "count": 17
+    },
+    {
+      "agent": "李昇峰",
+      "object": "藥店櫃檯後面",
+      "count": 136
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "教室講台",
+      "count": 80
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "圖書館桌子",
+      "count": 50
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "吧台後面",
+      "count": 331
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "教室學生座位",
+      "count": 31
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "麥克風",
+      "count": 35
+    },
+    {
+      "agent": "莊于萱",
+      "object": "吧台後面",
+      "count": 17
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "書架",
+      "count": 53
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "公園花園",
+      "count": 11
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "宿舍花園",
+      "count": 13
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "供應店產品貨架",
+      "count": 4
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "架子",
+      "count": 33
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "鋼琴",
+      "count": 177
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "供應店櫃檯後面",
+      "count": 26
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "麥克風",
+      "count": 2
+    },
+    {
+      "agent": "莊于萱",
+      "object": "冰箱",
+      "count": 56
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "供應店櫃檯",
+      "count": 5
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "公共休息室桌子",
+      "count": 9
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "架子",
+      "count": 15
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "供應店產品貨架",
+      "count": 43
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "藥店櫃檯",
+      "count": 7
+    },
+    {
+      "agent": "莊于萱",
+      "object": "公園花園",
+      "count": 28
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "咖啡館櫃檯後面",
+      "count": 26
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "咖啡館顧客座位",
+      "count": 26
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "書桌",
+      "count": 88
+    },
+    {
+      "agent": "莊于萱",
+      "object": "走廊",
+      "count": 11
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "教室講台",
+      "count": 12
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "教室講台",
+      "count": 5
+    },
+    {
+      "agent": "莊于萱",
+      "object": "供應店櫃檯後面",
+      "count": 17
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "鋼琴",
+      "count": 21
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "藥店櫃檯後面",
+      "count": 5
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "宿舍花園",
+      "count": 4
+    },
+    {
+      "agent": "莊于萱",
+      "object": "咖啡館櫃檯後面",
+      "count": 62
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "公共休息室桌子",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "冰箱",
+      "count": 65
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "公園花園",
+      "count": 12
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "咖啡館櫃檯後面",
+      "count": 37
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "咖啡館顧客座位",
+      "count": 26
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "供應店產品貨架",
+      "count": 6
+    },
+    {
+      "agent": "李昇峰",
+      "object": "公園花園",
+      "count": 14
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "供應店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "雜貨店貨架",
+      "count": 6
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "電腦桌",
+      "count": 16
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "壁櫥",
+      "count": 6
+    },
+    {
+      "agent": "莊于萱",
+      "object": "咖啡館顧客座位",
+      "count": 27
+    },
+    {
+      "agent": "李昇峰",
+      "object": "冰箱",
+      "count": 29
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "供應店櫃檯",
+      "count": 3
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "公園花園",
+      "count": 46
+    },
+    {
+      "agent": "莊于萱",
+      "object": "書桌",
+      "count": 141
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "書桌",
+      "count": 29
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "藥店櫃檯後面",
+      "count": 10
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "書桌",
+      "count": 151
+    },
+    {
+      "agent": "莊于萱",
+      "object": "藥店貨架",
+      "count": 11
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "烹飪區",
+      "count": 35
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "圖書館桌子",
+      "count": 44
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "供應店櫃檯後面",
+      "count": 45
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "冰箱",
+      "count": 40
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "咖啡館櫃檯後面",
+      "count": 94
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "書桌",
+      "count": 138
+    },
+    {
+      "agent": "李昇峰",
+      "object": "雜貨店櫃檯",
+      "count": 37
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "公共休息室桌子",
+      "count": 10
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "公共休息室桌子",
+      "count": 138
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "書桌",
+      "count": 117
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "雜貨店貨架",
+      "count": 2
+    },
+    {
+      "agent": "莊于萱",
+      "object": "烹飪區",
+      "count": 18
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "烹飪區",
+      "count": 53
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "冰箱",
+      "count": 31
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "烹飪區",
+      "count": 36
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "圖書館桌子",
+      "count": 15
+    },
+    {
+      "agent": "莊于萱",
+      "object": "架子",
+      "count": 11
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "公共休息室桌子",
+      "count": 4
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "電腦桌",
+      "count": 37
+    },
+    {
+      "agent": "李昇峰",
+      "object": "供應店櫃檯後面",
+      "count": 21
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "浴室洗手池",
+      "count": 15
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "冰箱",
+      "count": 37
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "書架",
+      "count": 27
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "浴室洗手池",
+      "count": 24
+    },
+    {
+      "agent": "李昇峰",
+      "object": "雜貨店貨架",
+      "count": 30
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "供應店產品貨架",
+      "count": 11
+    },
+    {
+      "agent": "莊于萱",
+      "object": "宿舍花園",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "咖啡館顧客座位",
+      "count": 6
+    },
+    {
+      "agent": "李昇峰",
+      "object": "書桌",
+      "count": 36
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "宿舍花園",
+      "count": 10
+    },
+    {
+      "agent": "李昇峰",
+      "object": "公共休息室桌子",
+      "count": 27
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "走廊",
+      "count": 11
+    },
+    {
+      "agent": "李昇峰",
+      "object": "咖啡館櫃檯後面",
+      "count": 4
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "雜貨店櫃檯",
+      "count": 5
+    },
+    {
+      "agent": "莊于萱",
+      "object": "花灑",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "冰箱",
+      "count": 61
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "書桌",
+      "count": 13
+    },
+    {
+      "agent": "李昇峰",
+      "object": "床",
+      "count": 362
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "藥店貨架",
+      "count": 11
+    },
+    {
+      "agent": "李昇峰",
+      "object": "供應店產品貨架",
+      "count": 23
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "走廊",
+      "count": 6
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "台球桌",
+      "count": 3
+    },
+    {
+      "agent": "莊于萱",
+      "object": "圖書館沙發",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "電腦桌",
+      "count": 6
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "舉重器械",
+      "count": 3
+    },
+    {
+      "agent": "莊于萱",
+      "object": "供應店產品貨架",
+      "count": 3
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "廁所",
+      "count": 5
+    },
+    {
+      "agent": "李昇峰",
+      "object": "走廊",
+      "count": 12
+    },
+    {
+      "agent": "李昇峰",
+      "object": "麥克風",
+      "count": 5
+    },
+    {
+      "agent": "莊于萱",
+      "object": "雜貨店櫃檯後面",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "花灑",
+      "count": 13
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "花灑",
+      "count": 8
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "供應店櫃檯後面",
+      "count": 3
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "浴室洗手池",
+      "count": 30
+    },
+    {
+      "agent": "莊于萱",
+      "object": "鋼琴",
+      "count": 7
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "廚房水槽",
+      "count": 23
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "公園花園",
+      "count": 5
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "酒吧顧客座位",
+      "count": 53
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "雜貨店櫃檯後面",
+      "count": 8
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "供應店產品貨架",
+      "count": 11
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "烹飪區",
+      "count": 8
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "浴室洗手池",
+      "count": 28
+    },
+    {
+      "agent": "李昇峰",
+      "object": "浴室洗手池",
+      "count": 11
+    },
+    {
+      "agent": "莊于萱",
+      "object": "圖書館桌子",
+      "count": 17
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "供應店櫃檯後面",
+      "count": 8
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "廚房水槽",
+      "count": 15
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "公園花園",
+      "count": 11
+    },
+    {
+      "agent": "李昇峰",
+      "object": "架子",
+      "count": 15
+    },
+    {
+      "agent": "李昇峰",
+      "object": "電腦桌",
+      "count": 3
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "雜貨店貨架",
+      "count": 5
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "床",
+      "count": 316
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "公共休息室沙發",
+      "count": 10
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "電腦桌",
+      "count": 13
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "床",
+      "count": 330
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "花灑",
+      "count": 3
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "床",
+      "count": 350
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "浴室洗手池",
+      "count": 24
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "供應店櫃檯",
+      "count": 7
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "花灑",
+      "count": 22
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "花灑",
+      "count": 16
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "黑板",
+      "count": 1
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "床",
+      "count": 317
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "廚房水槽",
+      "count": 21
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "床",
+      "count": 350
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "床",
+      "count": 308
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "電腦桌",
+      "count": 13
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "廚房水槽",
+      "count": 13
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "電腦桌",
+      "count": 25
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "架子",
+      "count": 13
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "花灑",
+      "count": 7
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "公共休息室桌子",
+      "count": 12
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "吧台後面",
+      "count": 13
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "床",
+      "count": 229
+    },
+    {
+      "agent": "李昇峰",
+      "object": "花灑",
+      "count": 4
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "壁櫥",
+      "count": 15
+    },
+    {
+      "agent": "李昇峰",
+      "object": "廁所",
+      "count": 4
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "烹飪區",
+      "count": 33
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "浴室洗手池",
+      "count": 3
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "廚房水槽",
+      "count": 22
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "浴室洗手池",
+      "count": 27
+    },
+    {
+      "agent": "李昇峰",
+      "object": "吉他",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "壁櫥",
+      "count": 6
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "雜貨店貨架",
+      "count": 4
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "圖書館桌子",
+      "count": 23
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "藥店櫃檯後面",
+      "count": 3
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "冰箱",
+      "count": 23
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "烹飪區",
+      "count": 14
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "咖啡館櫃檯後面",
+      "count": 5
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "架子",
+      "count": 28
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "雜貨店櫃檯後面",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "台球桌",
+      "count": 2
+    },
+    {
+      "agent": "莊于萱",
+      "object": "浴室洗手池",
+      "count": 15
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "酒吧顧客座位",
+      "count": 3
+    },
+    {
+      "agent": "李昇峰",
+      "object": "烹飪區",
+      "count": 33
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "吧台後面",
+      "count": 13
+    },
+    {
+      "agent": "莊于萱",
+      "object": "電腦桌",
+      "count": 43
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "藥店貨架",
+      "count": 14
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "教室學生座位",
+      "count": 6
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "電腦",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "object": "壁櫥",
+      "count": 6
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "雜貨店貨架",
+      "count": 4
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "廁所",
+      "count": 10
+    },
+    {
+      "agent": "莊于萱",
+      "object": "廚房水槽",
+      "count": 16
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "供應店",
+      "count": 1
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "住宅花園",
+      "count": 5
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "廁所",
+      "count": 6
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "架子",
+      "count": 9
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "廚房水槽",
+      "count": 12
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "烹飪區",
+      "count": 31
+    },
+    {
+      "agent": "李昇峰",
+      "object": "供應店櫃檯",
+      "count": 7
+    },
+    {
+      "agent": "莊于萱",
+      "object": "麥克風",
+      "count": 9
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "吧台後面",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "吉他",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "住宅花園",
+      "count": 4
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "藥店貨架",
+      "count": 22
+    },
+    {
+      "agent": "莊于萱",
+      "object": "教室學生座位",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "烤箱",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "麥克風",
+      "count": 1
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "書架",
+      "count": 8
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "鋼琴",
+      "count": 3
+    },
+    {
+      "agent": "李昇峰",
+      "object": "廚房水槽",
+      "count": 2
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "廚房水槽",
+      "count": 1
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "供應店櫃檯",
+      "count": 4
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "公共休息室沙發",
+      "count": 4
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "圖書館桌子",
+      "count": 22
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "吉他",
+      "count": 7
+    },
+    {
+      "agent": "李昇峰",
+      "object": "雜貨店櫃檯後面",
+      "count": 10
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "雜貨店貨架",
+      "count": 6
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "供應店產品貨架",
+      "count": 4
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "麥克風",
+      "count": 6
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "藥店貨架",
+      "count": 3
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "廁所",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "教室講台",
+      "count": 6
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "走廊",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "壁櫥",
+      "count": 2
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "壁櫥",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "object": "竖琴",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "黑板",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "公共休息室沙發",
+      "count": 3
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "公共休息室桌子",
+      "count": 7
+    },
+    {
+      "agent": "莊于萱",
+      "object": "供應店櫃檯",
+      "count": 8
+    },
+    {
+      "agent": "莊于萱",
+      "object": "雜貨店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "鋼琴",
+      "count": 5
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "教室學生座位",
+      "count": 1
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "電腦",
+      "count": 3
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "書架",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "雜貨店櫃檯後面",
+      "count": 1
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "雜貨店櫃檯",
+      "count": 4
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "雜貨店櫃檯",
+      "count": 3
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "走廊",
+      "count": 3
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "酒吧顧客座位",
+      "count": 2
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "咖啡館顧客座位",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "object": "公共休息室沙發",
+      "count": 3
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "壁櫥",
+      "count": 3
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "圖書館沙發",
+      "count": 3
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "電腦",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "雜貨店櫃檯後面",
+      "count": 3
+    },
+    {
+      "agent": "李昇峰",
+      "object": "酒吧顧客座位",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "黑板",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "咖啡館顧客座位",
+      "count": 9
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "咖啡館櫃檯後面",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "吧台後面",
+      "count": 5
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "遊戲機",
+      "count": 1
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "藥店櫃檯",
+      "count": 7
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "吧台後面",
+      "count": 3
+    },
+    {
+      "agent": "莊于萱",
+      "object": "廁所",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "雜貨店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "書架",
+      "count": 2
+    },
+    {
+      "agent": "蔡宗陞",
+      "object": "酒吧顧客座位",
+      "count": 2
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "藥店櫃檯後面",
+      "count": 1
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "吧台後面",
+      "count": 4
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "雜貨店貨架",
+      "count": 6
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "圖書館沙發",
+      "count": 2
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "圖書館沙發",
+      "count": 4
+    },
+    {
+      "agent": "李昇峰",
+      "object": "鋼琴",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "雜貨店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "圖書館桌子",
+      "count": 2
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "花園座椅",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "住宅花園",
+      "count": 3
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "酒吧顧客座位",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "object": "公共休息室桌子",
+      "count": 2
+    },
+    {
+      "agent": "莊于萱",
+      "object": "教室講台",
+      "count": 1
+    },
+    {
+      "agent": "李昇峰",
+      "object": "烤箱",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "藥店櫃檯",
+      "count": 1
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "電腦",
+      "count": 2
+    },
+    {
+      "agent": "游庭瑄",
+      "object": "藥店櫃檯",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "黑板",
+      "count": 3
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "黑板",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "object": "藥店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "咖啡館顧客座位",
+      "count": 1
+    },
+    {
+      "agent": "魏祺紘",
+      "object": "教室學生座位",
+      "count": 2
+    },
+    {
+      "agent": "莊于萱",
+      "object": "吉他",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "object": "書架",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "object": "供應店櫃檯",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "object": "台球桌",
+      "count": 1
+    },
+    {
+      "agent": "李昇峰",
+      "object": "吧台後面",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "object": "圖書館沙發",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "object": "雜貨店貨架",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "object": "藥店櫃檯後面",
+      "count": 1
+    }
+  ],
+  "location_interactions": [
+    {
+      "agent": "施宇鴻",
+      "location": "公園",
+      "count": 62
+    },
+    {
+      "agent": "李昇峰",
+      "location": "商店",
+      "count": 321
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "供應店",
+      "count": 17
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "酒吧",
+      "count": 90
+    },
+    {
+      "agent": "莊于萱",
+      "location": "莊于萱的房間",
+      "count": 413
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "咖啡館",
+      "count": 393
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "公園",
+      "count": 25
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "陳冠佑的房間",
+      "count": 353
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "魏祺紘的臥室",
+      "count": 341
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "盧品蓉的房間",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "供應店",
+      "count": 36
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "供應店",
+      "count": 15
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "酒吧",
+      "count": 34
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "公共休息室",
+      "count": 171
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "商店",
+      "count": 45
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "咖啡館",
+      "count": 174
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "酒吧",
+      "count": 459
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "酒吧",
+      "count": 25
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "咖啡館",
+      "count": 68
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "教室",
+      "count": 111
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "圖書館",
+      "count": 81
+    },
+    {
+      "agent": "莊于萱",
+      "location": "酒吧",
+      "count": 37
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "圖書館",
+      "count": 100
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "公園",
+      "count": 11
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "花園",
+      "count": 19
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "供應店",
+      "count": 7
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "咖啡館",
+      "count": 309
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "供應店",
+      "count": 35
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "酒吧",
+      "count": 6
+    },
+    {
+      "agent": "莊于萱",
+      "location": "咖啡館",
+      "count": 140
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "公共休息室",
+      "count": 9
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "酒吧",
+      "count": 25
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "供應店",
+      "count": 55
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "商店",
+      "count": 47
+    },
+    {
+      "agent": "莊于萱",
+      "location": "公園",
+      "count": 28
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "陳冠佑的房間",
+      "count": 10
+    },
+    {
+      "agent": "莊于萱",
+      "location": "奥克山學院",
+      "count": 11
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "教室",
+      "count": 14
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "教室",
+      "count": 14
+    },
+    {
+      "agent": "莊于萱",
+      "location": "供應店",
+      "count": 28
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "商店",
+      "count": 29
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "花園",
+      "count": 7
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "公共休息室",
+      "count": 7
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "主人房",
+      "count": 175
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "公園",
+      "count": 12
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "咖啡館",
+      "count": 65
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "主人房",
+      "count": 58
+    },
+    {
+      "agent": "李昇峰",
+      "location": "公園",
+      "count": 14
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "主人房",
+      "count": 105
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "施宇鴻的房間",
+      "count": 9
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "蔡宗陞的房間",
+      "count": 21
+    },
+    {
+      "agent": "李昇峰",
+      "location": "酒吧",
+      "count": 17
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "公園",
+      "count": 46
+    },
+    {
+      "agent": "莊于萱",
+      "location": "陳冠佑的房間",
+      "count": 31
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "主人房",
+      "count": 59
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "廚房",
+      "count": 7
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "盧品蓉的房間",
+      "count": 237
+    },
+    {
+      "agent": "莊于萱",
+      "location": "商店",
+      "count": 16
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "蔡宗陞的房間",
+      "count": 59
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "供應店",
+      "count": 63
+    },
+    {
+      "agent": "莊于萱",
+      "location": "蔡宗陞的房間",
+      "count": 49
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "主人房",
+      "count": 119
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "公共休息室",
+      "count": 13
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "蔡宗陞的房間",
+      "count": 37
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "商店",
+      "count": 5
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "主人房",
+      "count": 128
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "廚房",
+      "count": 59
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "圖書館",
+      "count": 19
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "公共休息室",
+      "count": 4
+    },
+    {
+      "agent": "李昇峰",
+      "location": "供應店",
+      "count": 51
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "浴室",
+      "count": 27
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "陳冠佑的房間",
+      "count": 48
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "魏祺紘的臥室",
+      "count": 13
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "浴室",
+      "count": 42
+    },
+    {
+      "agent": "莊于萱",
+      "location": "花園",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "陳冠佑的房間",
+      "count": 6
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "花園",
+      "count": 10
+    },
+    {
+      "agent": "李昇峰",
+      "location": "公共休息室",
+      "count": 40
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "游庭瑄和李昇峰的臥室",
+      "count": 350
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "奥克山學院",
+      "count": 11
+    },
+    {
+      "agent": "莊于萱",
+      "location": "主人房",
+      "count": 149
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "蔡宗陞的房間",
+      "count": 56
+    },
+    {
+      "agent": "李昇峰",
+      "location": "咖啡館",
+      "count": 10
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "商店",
+      "count": 12
+    },
+    {
+      "agent": "李昇峰",
+      "location": "廚房",
+      "count": 31
+    },
+    {
+      "agent": "莊于萱",
+      "location": "浴室",
+      "count": 9
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "塔瑪拉的房間",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "主人房",
+      "count": 46
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "奥克山學院",
+      "count": 6
+    },
+    {
+      "agent": "李昇峰",
+      "location": "蔡宗陞的房間",
+      "count": 14
+    },
+    {
+      "agent": "莊于萱",
+      "location": "圖書館",
+      "count": 20
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "施宇鴻的房間",
+      "count": 321
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "浴室",
+      "count": 11
+    },
+    {
+      "agent": "李昇峰",
+      "location": "emo學院",
+      "count": 12
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "蔡宗陞的房間",
+      "count": 383
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "浴室",
+      "count": 39
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "公園",
+      "count": 5
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "主人房",
+      "count": 14
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "浴室",
+      "count": 30
+    },
+    {
+      "agent": "李昇峰",
+      "location": "浴室",
+      "count": 17
+    },
+    {
+      "agent": "李昇峰",
+      "location": "游庭瑄和李昇峰的臥室",
+      "count": 361
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "公園",
+      "count": 11
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "商店",
+      "count": 7
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "陳冠佑的房間",
+      "count": 47
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "鄭傑丞的房間",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "公共休息室",
+      "count": 21
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "浴室",
+      "count": 38
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "公共休息室",
+      "count": 19
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "浴室",
+      "count": 34
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "鄭傑丞的房間",
+      "count": 303
+    },
+    {
+      "agent": "李昇峰",
+      "location": "空臥室",
+      "count": 1
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "陳冠佑的房間",
+      "count": 39
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "廚房",
+      "count": 30
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "圖書館",
+      "count": 31
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "咖啡館",
+      "count": 12
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "陳冠佑的房間",
+      "count": 27
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "商店",
+      "count": 13
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "湯姆和簡的臥室",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "鄭傑丞的房間",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "廚房",
+      "count": 8
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "蔡宗陞的房間",
+      "count": 8
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "莊于萱的房間",
+      "count": 2
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "塔瑪拉的房間",
+      "count": 1
+    },
+    {
+      "agent": "李昇峰",
+      "location": "阿比蓋爾的房間",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "海莉的浴室",
+      "count": 4
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "哈维奥克供應店",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "廚房",
+      "count": 13
+    },
+    {
+      "agent": "李昇峰",
+      "location": "男衛生間",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "廚房",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "酒吧",
+      "count": 11
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "空臥室",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "花園",
+      "count": 4
+    },
+    {
+      "agent": "莊于萱",
+      "location": "教室",
+      "count": 2
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "廚房",
+      "count": 10
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "圖書館",
+      "count": 23
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "蔡宗陞的房間",
+      "count": 2
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "教室",
+      "count": 7
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "奥克山學院",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "location": "廚房",
+      "count": 7
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "教室",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "男衛生間",
+      "count": 3
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "莊于萱的房間",
+      "count": 6
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "圖書館",
+      "count": 3
+    },
+    {
+      "agent": "游庭瑄",
+      "location": "emo學院",
+      "count": 3
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "莊于萱的房間",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "男衛生間",
+      "count": 2
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "咖啡館",
+      "count": 3
+    },
+    {
+      "agent": "莊于萱",
+      "location": "女衛生間",
+      "count": 8
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "女衛生間",
+      "count": 2
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "拉吉夫的浴室",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "卡门的房間",
+      "count": 1
+    },
+    {
+      "agent": "莊于萱",
+      "location": "公共休息室",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "施宇鴻的房間",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "拉托亞的房間",
+      "count": 1
+    },
+    {
+      "agent": "李昇峰",
+      "location": "施宇鴻的房間",
+      "count": 2
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "陳冠佑的房間",
+      "count": 3
+    },
+    {
+      "agent": "施宇鴻",
+      "location": "莊于萱的房間",
+      "count": 3
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "游庭瑄和李昇峰的臥室",
+      "count": 1
+    },
+    {
+      "agent": "陳冠佑",
+      "location": "教室",
+      "count": 1
+    },
+    {
+      "agent": "盧品蓉",
+      "location": "女衛生間",
+      "count": 2
+    },
+    {
+      "agent": "魏祺紘",
+      "location": "男衛生間",
+      "count": 2
+    },
+    {
+      "agent": "鄭傑丞",
+      "location": "女衛生間",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "鄭傑丞的房間",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "魏祺紘的臥室",
+      "count": 1
+    },
+    {
+      "agent": "蔡宗陞",
+      "location": "拉托亞的浴室",
+      "count": 2
+    },
+    {
+      "agent": "李昇峰",
+      "location": "塔瑪拉的房間",
+      "count": 2
+    }
+  ]
+}

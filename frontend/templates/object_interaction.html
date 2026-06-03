@@ -406,6 +406,27 @@
         color: colors.ai[i % colors.ai.length]
       }));
 
+      // === 重心排序（barycenter）：減少連線交叉 ===
+      // 每個物品放到「它主要連接的 AI 角色」附近的角度
+      const aiAngleByName = {};
+      aiNodes.forEach(n => { aiAngleByName[n.name] = n.angle; });
+      const objBaryAngle = {};
+      filteredObjects.forEach(obj => {
+        let sx = 0, sy = 0;
+        finalData.forEach(d => {
+          if (d.object !== obj) return;
+          const a = aiAngleByName[d.agent];
+          if (a === undefined) return;
+          const w = d.count;
+          sx += w * Math.cos(a);
+          sy += w * Math.sin(a);
+        });
+        let ang = Math.atan2(sy, sx);
+        if (ang < 0) ang += 2 * Math.PI;
+        objBaryAngle[obj] = ang;
+      });
+      filteredObjects.sort((a, b) => objBaryAngle[a] - objBaryAngle[b]);
+
       // 創建物品節點（外圈）— 加大間距
       const objectNodes = filteredObjects.map((obj, i) => ({
         id: obj,
@@ -569,7 +590,7 @@
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
           .attr("fill", "#666")
-          .text(`顯示 Top ${filteredObjects.length} 物品（${minInteractions}次以上，共 ${finalData.length}/${data.length} 筆）`);
+          .text(`顯示 Top ${filteredObjects.length} 物品`);
       }
 
       // 高亮連接函數
@@ -689,6 +710,29 @@
         y: centerY + innerRadius * Math.sin(i * aiAngleStep - Math.PI / 2),
         color: colors.ai[i % colors.ai.length]
       }));
+
+      // === 重心排序（barycenter）：減少連線交叉 ===
+      // 每個地區放到「它主要連接的 AI 角色」附近的角度，用加權向量重心計算
+      const aiAngleByName = {};
+      aiNodes.forEach(n => { aiAngleByName[n.name] = n.angle; });
+      const locBaryAngle = {};
+      filteredLocations.forEach(loc => {
+        let sx = 0, sy = 0;
+        finalData.forEach(d => {
+          if (d.location !== loc) return;
+          const a = aiAngleByName[d.agent];
+          if (a === undefined) return;
+          const w = d.count;               // 以互動次數為權重
+          sx += w * Math.cos(a);
+          sy += w * Math.sin(a);
+        });
+        // atan2 回傳 [-PI, PI]，轉成 [0, 2PI) 方便排序
+        let ang = Math.atan2(sy, sx);
+        if (ang < 0) ang += 2 * Math.PI;
+        locBaryAngle[loc] = ang;
+      });
+      // 依重心角度排序地區節點
+      filteredLocations.sort((a, b) => locBaryAngle[a] - locBaryAngle[b]);
 
       // 創建地區節點（外圈）— 加大間距
       const locationNodes = filteredLocations.map((loc, i) => ({
@@ -897,7 +941,7 @@
           .attr("text-anchor", "middle")
           .attr("font-size", "12px")
           .attr("fill", "#666")
-          .text(`顯示 ${filteredLocations.length} 個活躍地區（至少2人到訪，共 ${finalData.length}/${data.length} 筆）`);
+          .text(`顯示 ${filteredLocations.length} 個活躍地區`);
       }
       
       // 高亮連接函數

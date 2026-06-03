@@ -2559,14 +2559,14 @@
           },
           {
             "idx": 8,
-            "describe": "准備前往奧克山學院圖書館",
+            "describe": "准備前往emo學院圖書館",
             "start": 480,
             "duration": 60,
             "decompose": {}
           },
           {
             "idx": 9,
-            "describe": "到達奧克山學院圖書館",
+            "describe": "到達emo學院圖書館",
             "start": 540,
             "duration": 60,
             "decompose": [
@@ -5248,13 +5248,13 @@
           },
           {
             "idx": 9,
-            "describe": "前往奧克山學院的圖書館開始寫作論文",
+            "describe": "前往emo學院的圖書館開始寫作論文",
             "start": 540,
             "duration": 60,
             "decompose": [
               {
                 "idx": 0,
-                "describe": "出發前往奧克山學院的圖書館",
+                "describe": "出發前往emo學院的圖書館",
                 "start": 540,
                 "duration": 5
               },
@@ -6949,7 +6949,7 @@
           },
           {
             "idx": 9,
-            "describe": "准備前往奧克山學院",
+            "describe": "准備前往emo學院",
             "start": 540,
             "duration": 60,
             "decompose": [

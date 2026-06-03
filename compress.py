@@ -61,20 +61,69 @@ def insert_frame0(init_pos, movement, agent_name):
         "currently": json_data["currently"],
         "scratch": json_data["scratch"],
     }
+def _load_resident_buildings():
+    """從 agent.json 載入 9 位居民各自的住宅建築（living_area[1]）。"""
+    buildings = set()
+    base = os.path.join("frontend", "static", "assets", "village", "agents")
+    for name in personas:
+        path = os.path.join(base, name, "agent.json")
+        if not os.path.exists(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            la = data.get("spatial", {}).get("address", {}).get("living_area", [])
+            if len(la) > 1 and la[1]:
+                buildings.add(la[1].strip())
+        except (json.JSONDecodeError, KeyError, TypeError):
+            continue
+    return buildings
+
+
+_RESIDENT_BUILDINGS = _load_resident_buildings()
+
+
+def _resolve_location(address):
+    """取得地區標籤；只對「主人房」加建築前綴並過濾非本社區居民的。"""
+    if not isinstance(address, list):
+        return None
+    if len(address) >= 3:
+        room = address[-2]
+    elif len(address) == 2:
+        room = address[-1]
+    else:
+        return None
+    room = room.strip() if room else ""
+    if not room:
+        return None
+    # 移除「塔瑪拉的房間」
+    if "塔瑪拉" in room:
+        return None
+    # 合併男/女衛生間為「衛生間」
+    if room in ("男衛生間", "女衛生間"):
+        return "衛生間"
+    if room == "主人房":
+        building = address[1].strip() if len(address) > 1 and address[1] else ""
+        if building in _RESIDENT_BUILDINGS:
+            return f"{building}·主人房"
+        return None
+    return room
+
+
 def extract_interaction_data(checkpoints_folder):
     """提取AI與物品/地區的交互數據"""
     object_interactions = collections.defaultdict(int)
     location_interactions = collections.defaultdict(int)
-    
+
     conversation_file = "conversation.json"
     files = sorted(os.listdir(checkpoints_folder))
     json_files = [f for f in files if f.endswith(".json") and f != conversation_file]
-    
+
     for file_name in json_files:
         file_path = os.path.join(checkpoints_folder, file_name)
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            
+
         for agent_name, agent_data in data.get("agents", {}).items():
             action = agent_data.get("action", {})
 
@@ -83,20 +132,16 @@ def extract_interaction_data(checkpoints_folder):
             event = action["event"]
             address = event.get("address", [])
 
-            # 地址層次：['the Ville', '建築', '場所/區域', '物品']
-            # 物品 = 最深層；地區 = 倒數第二層
-            if isinstance(address, list) and len(address) >= 3:
+            # 物品 = 最深層
+            if isinstance(address, list) and len(address) >= 4:
                 obj = address[-1]
-                loc = address[-2]
                 if obj and obj.strip():
                     object_interactions[(agent_name, obj.strip())] += 1
-                if loc and loc.strip():
-                    location_interactions[(agent_name, loc.strip())] += 1
-            elif isinstance(address, list) and len(address) == 2:
-                loc = address[-1]
-                if loc and loc.strip():
-                    location_interactions[(agent_name, loc.strip())] += 1
-    
+
+            loc = _resolve_location(address)
+            if loc:
+                location_interactions[(agent_name, loc)] += 1
+
     return object_interactions, location_interactions
 
 

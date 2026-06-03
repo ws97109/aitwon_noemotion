@@ -704,13 +704,23 @@
         .force("center", d3.forceCenter(width / 2, height / 2))
         .force("collision", d3.forceCollide().radius(50));
 
+      // 連線粗細：根據實際資料範圍動態映射，避免高頻交互全部撞頂
+      const linkValues = data.links.map(l => l.value);
+      const minVal = d3.min(linkValues) || 1;
+      const maxVal = d3.max(linkValues) || 1;
+      // 用 scaleSqrt：大數值不會壓縮太多，小數值差異也明顯
+      const widthScale = d3.scaleSqrt()
+        .domain([minVal, maxVal])
+        .range(minVal === maxVal ? [3, 3] : [1.5, 8])
+        .clamp(true);
+
       // 繪製連線
       const link = g.append("g")
         .selectAll("line")
         .data(data.links)
         .enter()
         .append("line")
-        .attr("stroke-width", d => Math.min(Math.sqrt(d.value) * 3, 10))
+        .attr("stroke-width", d => widthScale(d.value))
         .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6);
 
@@ -889,7 +899,18 @@
       if (!personas || personas.length === 0) {
         throw new Error("沒有角色數據");
       }
-      
+
+      // 先計算每個角色的「總對話長度」，再由多到少重新排序行列順序
+      const totalByPerson = {};
+      personas.forEach(p => { totalByPerson[p] = 0; });
+      (data.links || []).forEach(link => {
+        const v = link.length || 0;
+        if (totalByPerson[link.source] !== undefined) totalByPerson[link.source] += v;
+        if (totalByPerson[link.target] !== undefined) totalByPerson[link.target] += v;
+      });
+      // 重新排序：對話總量多 → 少
+      personas = personas.slice().sort((a, b) => totalByPerson[b] - totalByPerson[a]);
+
       // 創建矩陣
       let matrix = [];
       for (let i = 0; i < personas.length; i++) {
