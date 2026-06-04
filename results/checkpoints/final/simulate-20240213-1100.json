@@ -46,24 +46,20 @@
     "施宇鴻": {
       "config_path": "assets/village/agents/施宇鴻/agent.json",
       "status": {
-        "poignancy": 50,
+        "poignancy": 69,
         "emotion": {
           "label": "焦慮",
           "intensity": 4,
-          "reason": "考試壓力大",
+          "reason": "考試壓力",
           "prev_label": null,
           "history": [
             {
               "label": "焦慮",
-              "intensity": 4
-            },
-            {
-              "label": "焦慮",
-              "intensity": 4
+              "intensity": 2
             },
             {
               "label": "興奮",
-              "intensity": 3
+              "intensity": 2
             },
             {
               "label": "焦慮",
@@ -72,6 +68,10 @@
             {
               "label": "焦慮",
               "intensity": 3
+            },
+            {
+              "label": "焦慮",
+              "intensity": 4
             }
           ]
         }
@@ -164,16 +164,22 @@
                 "idx": 2,
                 "describe": "檢視筆記摘要",
                 "start": 575,
-                "duration": 10
+                "duration": 5
               },
               {
                 "idx": 3,
+                "describe": "{",
+                "start": 580,
+                "duration": 5
+              },
+              {
+                "idx": 4,
                 "describe": "與同學線上討論疑難",
                 "start": 585,
                 "duration": 10
               },
               {
-                "idx": 4,
+                "idx": 5,
                 "describe": "縮寫重點便籤",
                 "start": 595,
                 "duration": 5
@@ -190,29 +196,35 @@
                 "idx": 0,
                 "describe": "查閱課本重點",
                 "start": 600,
-                "duration": 20
+                "duration": 0
               },
               {
                 "idx": 1,
-                "describe": "習題練習",
-                "start": 620,
-                "duration": 10
+                "describe": "{",
+                "start": 600,
+                "duration": 25
               },
               {
                 "idx": 2,
-                "describe": "{",
-                "start": 630,
+                "describe": "習題練習",
+                "start": 625,
                 "duration": 15
               },
               {
                 "idx": 3,
                 "describe": "與同學線上討論疑難問題",
-                "start": 645,
+                "start": 640,
                 "duration": 10
               },
               {
                 "idx": 4,
-                "describe": "縮寫重點摘要",
+                "describe": "回顧筆記重點",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "縮寫簡要筆記",
                 "start": 655,
                 "duration": 5
               }
@@ -351,21 +363,29 @@
       "associate": {
         "memory": {
           "event": [
+            "node_32",
+            "node_31",
+            "node_30",
+            "node_29",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
             "node_23",
             "node_22",
             "node_21",
             "node_20",
             "node_19",
-            "node_18",
-            "node_13",
-            "node_12",
+            "node_17",
+            "node_16",
+            "node_14",
             "node_11",
             "node_10",
             "node_9",
             "node_8",
+            "node_7",
             "node_6",
             "node_5",
-            "node_4",
             "node_3",
             "node_2"
           ],
@@ -373,30 +393,47 @@
             "node_0"
           ],
           "chat": [
-            "node_16"
+            "node_15",
+            "node_4"
           ],
           "emotion": [
-            "node_24",
-            "node_17",
-            "node_15",
-            "node_14",
-            "node_7",
+            "node_33",
+            "node_28",
+            "node_18",
+            "node_13",
+            "node_12",
             "node_1"
           ]
         }
       },
       "chats": [
         [
-          "魏祺紘",
-          "嗨，施宇鴻，今天上課有什麼新的重點嗎？我昨晚在準備音樂合成的項目，有點分心了。"
+          "盧品蓉",
+          "早安，施宇鴻，今天看起來也很忙碌啊。你正在看什麼筆記？"
         ],
         [
           "施宇鴻",
-          "嗨，魏祺紘，今天化學課的重點是關於酸鹼平衡，老師強調了很多計算題。你昨晚忙到多晚啊？音樂合成項目進度如何了？"
+          "早安，盧品蓉，今天確實挺忙碌的。我正在看一些化學考試的筆記，準備得還不錯，但還是有些焦慮。你呢？有什麼新的研究進展嗎？"
         ],
         [
-          "魏祺紘",
-          "還好啦，大概忙到快 midnight。不過現在進度差不多了，應該可以如期完成。對了，你最近有去公園花園嗎？那邊的花都開了，看起來很漂亮。"
+          "盧品蓉",
+          "嗯，我正在整理莎士比亞戲劇中的語言運用的研究資料。這部分真的蠻複雜的，不過也挺有趣的。對了，你有沒有注意到最近天氣變得很暖和？春天快到了吧。"
+        ],
+        [
+          "鄭傑丞",
+          "嘿，施宇鴻，你今天看起來好像在查什麼重點啊？找到有用的信息了嗎？"
+        ],
+        [
+          "施宇鴻",
+          "嘿，鄭傑丞，是啊，我在查一些考試重點。今天天氣不錯，你有沒有注意到？公園裡的花都開始綻放了，春天真的快到了。"
+        ],
+        [
+          "鄭傑丞",
+          "嗯，天氣確實不錯，春天的感覺很舒服。不過我今天主要在整理論文的大綱，有點忙。你考試準備得怎麼樣了？需要幫忙嗎？"
+        ],
+        [
+          "施宇鴻",
+          "還好啦，考試壓力有點大，但總得一步步來。對了，你有沒有想過畢業後要去哪裡？我最近在考慮要不要去讀研究所，不過還沒決定是留在國內還是去國外。"
         ]
       ],
       "currently": "施宇鴻正在為下一場比賽進行訓練，並為考試做準備。他也在尋找提高學習效率的方法。",
@@ -408,22 +445,22 @@
           "describe": "查閱課本重點",
           "address": [
             "the Ville",
-            "霍布斯咖啡館",
-            "咖啡館",
-            "咖啡館櫃檯後面"
+            "柳樹市場和藥店",
+            "商店",
+            "藥店貨架"
           ],
           "emoji": "查閱課本重點"
         },
         "obj_event": {
-          "subject": "咖啡館櫃檯後面",
+          "subject": "藥店貨架",
           "predicate": "此時",
-          "object": "正在整理書本重點",
-          "describe": "正在整理書本重點",
+          "object": "上商品琳瑯滿目",
+          "describe": "上商品琳瑯滿目",
           "address": [
             "the Ville",
-            "霍布斯咖啡館",
-            "咖啡館",
-            "咖啡館櫃檯後面"
+            "柳樹市場和藥店",
+            "商店",
+            "藥店貨架"
           ],
           "emoji": ""
         },
@@ -432,13 +469,13 @@
       },
       "coord": [
         79,
-        19
+        48
       ]
     },
     "李昇峰": {
       "config_path": "assets/village/agents/李昇峰/agent.json",
       "status": {
-        "poignancy": 37,
+        "poignancy": 40,
         "emotion": {
           "label": "恐懼",
           "intensity": 2,
@@ -791,10 +828,12 @@
       "associate": {
         "memory": {
           "event": [
-            "node_16",
+            "node_18",
+            "node_17",
             "node_15",
             "node_14",
             "node_13",
+            "node_12",
             "node_11",
             "node_10",
             "node_9",
@@ -811,7 +850,7 @@
           ],
           "chat": [],
           "emotion": [
-            "node_12",
+            "node_16",
             "node_5"
           ]
         }
@@ -856,19 +895,19 @@
     "游庭瑄": {
       "config_path": "assets/village/agents/游庭瑄/agent.json",
       "status": {
-        "poignancy": 37,
+        "poignancy": 32,
         "emotion": {
-          "label": "快樂",
+          "label": "驚訝",
           "intensity": 2,
-          "reason": "幫助學生進步感到滿足",
-          "prev_label": null,
+          "reason": "發現新的教學方法",
+          "prev_label": "快樂",
           "history": [
             {
-              "label": "快樂",
-              "intensity": 2
+              "label": "平靜",
+              "intensity": 3
             },
             {
-              "label": "憤怒",
+              "label": "快樂",
               "intensity": 2
             },
             {
@@ -1016,49 +1055,43 @@
             "decompose": [
               {
                 "idx": 0,
-                "describe": "簡短自我介紹並引導學生進入主題",
+                "describe": "為學生準備講義",
                 "start": 600,
-                "duration": 5
+                "duration": 15
               },
               {
                 "idx": 1,
-                "describe": "與學生討論哲學課題的基礎概念",
-                "start": 605,
-                "duration": 10
+                "describe": "檢查課程所需的教材是否齊全",
+                "start": 615,
+                "duration": 5
               },
               {
                 "idx": 2,
-                "describe": "引入案例分析以加深理解",
-                "start": 615,
+                "describe": "與助教討論課程內容",
+                "start": 620,
                 "duration": 10
               },
               {
                 "idx": 3,
-                "describe": "鼓勵學生提出問題並進行互動討論",
-                "start": 625,
+                "describe": "准備一些互動問題以增加學生參與度",
+                "start": 630,
                 "duration": 10
               },
               {
                 "idx": 4,
-                "describe": "與學生一起解決提出的問題",
-                "start": 635,
+                "describe": "準備一些哲學案例分析供學生討論",
+                "start": 640,
                 "duration": 10
               },
               {
                 "idx": 5,
-                "describe": "簡要總結本節課的重點",
-                "start": 645,
-                "duration": 5
-              },
-              {
-                "idx": 6,
-                "describe": "回答學生最後的疑問",
+                "describe": "調整教室佈置以促進更好的學習環境",
                 "start": 650,
                 "duration": 5
               },
               {
-                "idx": 7,
-                "describe": "安排下一次課程的預習內容",
+                "idx": 6,
+                "describe": "準備一些額外的閱讀材料供學生參考",
                 "start": 655,
                 "duration": 5
               }
@@ -1072,43 +1105,43 @@
             "decompose": [
               {
                 "idx": 0,
-                "describe": "執行哲學課程的開場問候",
+                "describe": "回顧上一堂課的重點",
                 "start": 660,
                 "duration": 5
               },
               {
                 "idx": 1,
-                "describe": "簡述今日課程大綱",
+                "describe": "引入新主題「道德哲學」",
                 "start": 665,
-                "duration": 5
-              },
-              {
-                "idx": 2,
-                "describe": "討論上週學生作業的重點",
-                "start": 670,
                 "duration": 10
               },
               {
+                "idx": 2,
+                "describe": "與學生討論「道德相對主義」",
+                "start": 675,
+                "duration": 15
+              },
+              {
                 "idx": 3,
-                "describe": "引導學生進行哲學問題討論",
-                "start": 680,
-                "duration": 20
+                "describe": "引導學生進行小組討論",
+                "start": 690,
+                "duration": 10
               },
               {
                 "idx": 4,
-                "describe": "提供個別指導給有需要的學生",
+                "describe": "聆聽並回應學生的意見",
                 "start": 700,
                 "duration": 10
               },
               {
                 "idx": 5,
-                "describe": "與學生一起總結課程重點",
+                "describe": "總結今天的課程重點",
                 "start": 710,
                 "duration": 5
               },
               {
                 "idx": 6,
-                "describe": "回答學生的問題並提供反饋",
+                "describe": "回答學生的問題",
                 "start": 715,
                 "duration": 5
               }
@@ -1203,75 +1236,55 @@
       "associate": {
         "memory": {
           "event": [
-            "node_16",
-            "node_15",
-            "node_14",
             "node_13",
             "node_12",
             "node_11",
+            "node_10",
             "node_9",
+            "node_8",
             "node_7",
             "node_6",
             "node_5",
             "node_4",
+            "node_2",
             "node_1"
           ],
           "thought": [
             "node_0"
           ],
-          "chat": [
-            "node_3"
-          ],
+          "chat": [],
           "emotion": [
-            "node_10",
-            "node_8",
-            "node_2"
+            "node_14",
+            "node_3"
           ]
         }
       },
-      "chats": [
-        [
-          "盧品蓉",
-          "早安，游庭瑄，今天看起來很忙碌啊，你在準備什麼簡報嗎？"
-        ],
-        [
-          "游庭瑄",
-          "早安，品蓉！是的，我正在準備今天的哲學課程簡報。你今天也是來準備研究資料嗎？看起來天氣不錯，我們昨天還和家人一起出去散步了。"
-        ],
-        [
-          "盧品蓉",
-          "嗯，今天確實挺忙碌的。我正在準備我的畢業論文，主題是莎士比亞戲劇中的語言運用。聽起來很有趣吧？對了，昨天天氣不錯，你有沒有什麼特別的活動？"
-        ],
-        [
-          "游庭瑄",
-          "嗯，昨天的天氣確實很好，我們全家人都很享受那次散步。對了，你有什麼特別喜歡的莎士比亞戲劇嗎？我個人比較喜歡《羅密歐與茱麗葉》，那種悲劇美真是讓人難忘。"
-        ]
-      ],
+      "chats": [],
       "currently": "游庭瑄與丈夫李昇峰和兒子魏祺紘住在一起，她正在教授哲學課程並撰寫研究論文。她還幫助她的兩個孩子做功課。",
       "action": {
         "event": {
           "subject": "游庭瑄",
           "predicate": "此時",
-          "object": "執行哲學課程的開場問候",
-          "describe": "執行哲學課程的開場問候",
+          "object": "回顧上一堂課的重點",
+          "describe": "回顧上一堂課的重點",
           "address": [
             "the Ville",
-            "emo學院",
-            "教室",
-            "教室講台"
+            "李氏家族的房子",
+            "浴室",
+            "浴室洗手池"
           ],
-          "emoji": "執行哲學課程的開場問候"
+          "emoji": "回顧上一堂課的重點"
         },
         "obj_event": {
-          "subject": "教室講台",
+          "subject": "浴室洗手池",
           "predicate": "此時",
-          "object": "正在使用中",
-          "describe": "正在使用中",
+          "object": "正處於乾燥狀態",
+          "describe": "正處於乾燥狀態",
           "address": [
             "the Ville",
-            "emo學院",
-            "教室",
-            "教室講台"
+            "李氏家族的房子",
+            "浴室",
+            "浴室洗手池"
           ],
           "emoji": ""
         },
@@ -1279,14 +1292,14 @@
         "duration": 5
       },
       "coord": [
-        131,
-        57
+        98,
+        65
       ]
     },
     "盧品蓉": {
       "config_path": "assets/village/agents/盧品蓉/agent.json",
       "status": {
-        "poignancy": 44,
+        "poignancy": 55,
         "emotion": {
           "label": "快樂",
           "intensity": 2,
@@ -1294,8 +1307,8 @@
           "prev_label": null,
           "history": [
             {
-              "label": "快樂",
-              "intensity": 1
+              "label": "平靜",
+              "intensity": 3
             },
             {
               "label": "快樂",
@@ -1621,19 +1634,23 @@
       "associate": {
         "memory": {
           "event": [
+            "node_24",
+            "node_23",
             "node_21",
             "node_20",
+            "node_19",
             "node_18",
-            "node_17",
             "node_16",
             "node_15",
+            "node_14",
             "node_13",
-            "node_12",
             "node_11",
             "node_10",
             "node_9",
             "node_8",
             "node_7",
+            "node_5",
+            "node_4",
             "node_3",
             "node_2",
             "node_1"
@@ -1642,32 +1659,27 @@
             "node_0"
           ],
           "chat": [
-            "node_5"
+            "node_6"
           ],
           "emotion": [
-            "node_19",
-            "node_14",
-            "node_6",
-            "node_4"
+            "node_22",
+            "node_17",
+            "node_12"
           ]
         }
       },
       "chats": [
         [
           "盧品蓉",
-          "早安，游庭瑄，今天看起來很忙碌啊，你在準備什麼簡報嗎？"
+          "早安，施宇鴻，今天看起來也很忙碌啊。你正在看什麼筆記？"
         ],
         [
-          "游庭瑄",
-          "早安，品蓉！是的，我正在準備今天的哲學課程簡報。你今天也是來準備研究資料嗎？看起來天氣不錯，我們昨天還和家人一起出去散步了。"
+          "施宇鴻",
+          "早安，盧品蓉，今天確實挺忙碌的。我正在看一些化學考試的筆記，準備得還不錯，但還是有些焦慮。你呢？有什麼新的研究進展嗎？"
         ],
         [
           "盧品蓉",
-          "嗯，今天確實挺忙碌的。我正在準備我的畢業論文，主題是莎士比亞戲劇中的語言運用。聽起來很有趣吧？對了，昨天天氣不錯，你有沒有什麼特別的活動？"
-        ],
-        [
-          "游庭瑄",
-          "嗯，昨天的天氣確實很好，我們全家人都很享受那次散步。對了，你有什麼特別喜歡的莎士比亞戲劇嗎？我個人比較喜歡《羅密歐與茱麗葉》，那種悲劇美真是讓人難忘。"
+          "嗯，我正在整理莎士比亞戲劇中的語言運用的研究資料。這部分真的蠻複雜的，不過也挺有趣的。對了，你有沒有注意到最近天氣變得很暖和？春天快到了吧。"
         ]
       ],
       "currently": "盧品蓉正在為她的畢業論文做研究，主題是莎士比亞戲劇中的語言運用。她也在上課，學習更多關於寫作的知識。",
@@ -1679,22 +1691,22 @@
           "describe": "到達圖書館並找到座位",
           "address": [
             "the Ville",
-            "奥克山學院",
-            "圖書館",
-            "圖書館桌子"
+            "蔡宗陞的公寓",
+            "浴室",
+            "浴室洗手池"
           ],
           "emoji": "到達圖書館並找到座位"
         },
         "obj_event": {
-          "subject": "圖書館桌子",
+          "subject": "浴室洗手池",
           "predicate": "此時",
-          "object": "正等待使用",
-          "describe": "正等待使用",
+          "object": "未使用",
+          "describe": "未使用",
           "address": [
             "the Ville",
-            "奥克山學院",
-            "圖書館",
-            "圖書館桌子"
+            "蔡宗陞的公寓",
+            "浴室",
+            "浴室洗手池"
           ],
           "emoji": ""
         },
@@ -1702,14 +1714,14 @@
         "duration": 5
       },
       "coord": [
-        119,
-        24
+        82,
+        16
       ]
     },
     "莊于萱": {
       "config_path": "assets/village/agents/莊于萱/agent.json",
       "status": {
-        "poignancy": 20,
+        "poignancy": 16,
         "emotion": {
           "label": "平靜",
           "intensity": 3,
@@ -2054,7 +2066,6 @@
       "associate": {
         "memory": {
           "event": [
-            "node_9",
             "node_8",
             "node_7",
             "node_6",
@@ -2080,22 +2091,22 @@
           "describe": "檢查Twitch直播排程和即將進行的遊戲活動",
           "address": [
             "the Ville",
-            "大安公園",
-            "公園",
-            "公園花園"
+            "哈维奥克供應店",
+            "供應店",
+            "供應店櫃檯後面"
           ],
           "emoji": "檢查Twitch直播排程和即將進行的遊戲活動"
         },
         "obj_event": {
-          "subject": "公園花園",
+          "subject": "供應店櫃檯後面",
           "predicate": "此時",
-          "object": "正處於安靜狀態",
-          "describe": "正處於安靜狀態",
+          "object": "正在進行排程檢查",
+          "describe": "正在進行排程檢查",
           "address": [
             "the Ville",
-            "大安公園",
-            "公園",
-            "公園花園"
+            "哈维奥克供應店",
+            "供應店",
+            "供應店櫃檯後面"
           ],
           "emoji": ""
         },
@@ -2103,14 +2114,14 @@
         "duration": 10
       },
       "coord": [
-        28,
-        42
+        67,
+        44
       ]
     },
     "蔡宗陞": {
       "config_path": "assets/village/agents/蔡宗陞/agent.json",
       "status": {
-        "poignancy": 51,
+        "poignancy": 56,
         "emotion": {
           "label": "快樂",
           "intensity": 1,
@@ -2451,7 +2462,10 @@
       "associate": {
         "memory": {
           "event": [
-            "node_23",
+            "node_27",
+            "node_26",
+            "node_25",
+            "node_24",
             "node_22",
             "node_21",
             "node_20",
@@ -2459,15 +2473,16 @@
             "node_17",
             "node_16",
             "node_15",
+            "node_14",
             "node_13",
             "node_12",
             "node_11",
             "node_10",
-            "node_9",
             "node_8",
             "node_7",
-            "node_5",
+            "node_6",
             "node_4",
+            "node_3",
             "node_2",
             "node_1"
           ],
@@ -2476,11 +2491,11 @@
           ],
           "chat": [],
           "emotion": [
-            "node_24",
+            "node_28",
+            "node_23",
             "node_19",
-            "node_14",
-            "node_6",
-            "node_3"
+            "node_9",
+            "node_5"
           ]
         }
       },
@@ -2524,16 +2539,24 @@
     "鄭傑丞": {
       "config_path": "assets/village/agents/鄭傑丞/agent.json",
       "status": {
-        "poignancy": 66,
+        "poignancy": 68,
         "emotion": {
           "label": "快樂",
           "intensity": 2,
-          "reason": "研究工作順利進行",
+          "reason": "研究順利進行",
           "prev_label": null,
           "history": [
             {
-              "label": "平靜",
-              "intensity": 3
+              "label": "快樂",
+              "intensity": 2
+            },
+            {
+              "label": "快樂",
+              "intensity": 2
+            },
+            {
+              "label": "驚訝",
+              "intensity": 2
             },
             {
               "label": "快樂",
@@ -2541,15 +2564,7 @@
             },
             {
               "label": "快樂",
-              "intensity": 1
-            },
-            {
-              "label": "恐懼",
-              "intensity": 1
-            },
-            {
-              "label": "快樂",
-              "intensity": 1
+              "intensity": 2
             }
           ]
         }
@@ -2693,6 +2708,42 @@
                 "describe": "更新個人研究筆記",
                 "start": 655,
                 "duration": 5
+              },
+              {
+                "idx": 5,
+                "describe": "查閱相關文獻資料",
+                "start": 600,
+                "duration": 20
+              },
+              {
+                "idx": 6,
+                "describe": "紀錄重要引用和筆記",
+                "start": 620,
+                "duration": 15
+              },
+              {
+                "idx": 7,
+                "describe": "檢視先前的研究論文草稿",
+                "start": 635,
+                "duration": 10
+              },
+              {
+                "idx": 8,
+                "describe": "{",
+                "start": 645,
+                "duration": 5
+              },
+              {
+                "idx": 9,
+                "describe": "與圖書館員討論研究方向",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 10,
+                "describe": "更新個人研究筆記",
+                "start": 655,
+                "duration": 5
               }
             ]
           },
@@ -2706,31 +2757,43 @@
                 "idx": 0,
                 "describe": "查閱相關文獻資料",
                 "start": 660,
-                "duration": 20
+                "duration": 15
               },
               {
                 "idx": 1,
                 "describe": "紀錄重要引用和筆記",
-                "start": 680,
-                "duration": 15
+                "start": 675,
+                "duration": 10
               },
               {
                 "idx": 2,
-                "describe": "與線上資料庫進行交叉比對",
-                "start": 695,
+                "describe": "整理收集到的數據",
+                "start": 685,
                 "duration": 10
               },
               {
                 "idx": 3,
-                "describe": "暫停休息並整理筆記",
-                "start": 705,
+                "describe": "暫停休息並補充水分",
+                "start": 695,
                 "duration": 5
               },
               {
                 "idx": 4,
-                "describe": "續寫論文草稿的某一部分",
-                "start": 710,
+                "describe": "分析整理好的資料",
+                "start": 700,
                 "duration": 10
+              },
+              {
+                "idx": 5,
+                "describe": "與線上資源進行交叉比對",
+                "start": 710,
+                "duration": 5
+              },
+              {
+                "idx": 6,
+                "describe": "更新研究筆記和大綱",
+                "start": 715,
+                "duration": 5
               }
             ]
           },
@@ -2823,8 +2886,6 @@
       "associate": {
         "memory": {
           "event": [
-            "node_30",
-            "node_29",
             "node_27",
             "node_26",
             "node_25",
@@ -2833,13 +2894,12 @@
             "node_21",
             "node_20",
             "node_19",
+            "node_18",
             "node_17",
-            "node_16",
             "node_15",
             "node_14",
             "node_13",
             "node_12",
-            "node_10",
             "node_9",
             "node_8",
             "node_7",
@@ -2853,16 +2913,34 @@
           "thought": [
             "node_0"
           ],
-          "chat": [],
-          "emotion": [
-            "node_28",
-            "node_23",
-            "node_18",
+          "chat": [
             "node_11"
+          ],
+          "emotion": [
+            "node_23",
+            "node_16",
+            "node_10"
           ]
         }
       },
-      "chats": [],
+      "chats": [
+        [
+          "鄭傑丞",
+          "嘿，施宇鴻，你今天看起來好像在查什麼重點啊？找到有用的信息了嗎？"
+        ],
+        [
+          "施宇鴻",
+          "嘿，鄭傑丞，是啊，我在查一些考試重點。今天天氣不錯，你有沒有注意到？公園裡的花都開始綻放了，春天真的快到了。"
+        ],
+        [
+          "鄭傑丞",
+          "嗯，天氣確實不錯，春天的感覺很舒服。不過我今天主要在整理論文的大綱，有點忙。你考試準備得怎麼樣了？需要幫忙嗎？"
+        ],
+        [
+          "施宇鴻",
+          "還好啦，考試壓力有點大，但總得一步步來。對了，你有沒有想過畢業後要去哪裡？我最近在考慮要不要去讀研究所，不過還沒決定是留在國內還是去國外。"
+        ]
+      ],
       "currently": "鄭傑丞正在撰寫一篇關於低收入社區中產階級化影響的研究論文。",
       "action": {
         "event": {
@@ -2872,37 +2950,37 @@
           "describe": "查閱相關文獻資料",
           "address": [
             "the Ville",
-            "奥克山學院",
-            "圖書館",
-            "書架"
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館櫃檯後面"
           ],
           "emoji": "查閱相關文獻資料"
         },
         "obj_event": {
-          "subject": "書架",
+          "subject": "咖啡館櫃檯後面",
           "predicate": "此時",
-          "object": "正被查閱文獻資料",
-          "describe": "正被查閱文獻資料",
+          "object": "正在整理文獻資料",
+          "describe": "正在整理文獻資料",
           "address": [
             "the Ville",
-            "奥克山學院",
-            "圖書館",
-            "書架"
+            "霍布斯咖啡館",
+            "咖啡館",
+            "咖啡館櫃檯後面"
           ],
           "emoji": ""
         },
         "start": "20240213-11:00:00",
-        "duration": 20
+        "duration": 15
       },
       "coord": [
-        123,
-        27
+        79,
+        19
       ]
     },
     "陳冠佑": {
       "config_path": "assets/village/agents/陳冠佑/agent.json",
       "status": {
-        "poignancy": 43,
+        "poignancy": 37,
         "emotion": {
           "label": "快樂",
           "intensity": 1,
@@ -3237,14 +3315,11 @@
       "associate": {
         "memory": {
           "event": [
-            "node_20",
-            "node_19",
             "node_17",
-            "node_15",
+            "node_16",
             "node_14",
-            "node_13",
             "node_12",
-            "node_10",
+            "node_11",
             "node_9",
             "node_8",
             "node_7",
@@ -3259,10 +3334,10 @@
           ],
           "chat": [],
           "emotion": [
-            "node_21",
             "node_18",
-            "node_16",
-            "node_11",
+            "node_15",
+            "node_13",
+            "node_10",
             "node_1"
           ]
         }
@@ -3307,17 +3382,13 @@
     "魏祺紘": {
       "config_path": "assets/village/agents/魏祺紘/agent.json",
       "status": {
-        "poignancy": 59,
+        "poignancy": 63,
         "emotion": {
-          "label": "快樂",
+          "label": "憤怒",
           "intensity": 1,
-          "reason": "回顧筆記有助學習",
-          "prev_label": "憤怒",
+          "reason": "被打擾進入狀態",
+          "prev_label": null,
           "history": [
-            {
-              "label": "平靜",
-              "intensity": 3
-            },
             {
               "label": "快樂",
               "intensity": 2
@@ -3328,6 +3399,10 @@
             },
             {
               "label": "快樂",
+              "intensity": 1
+            },
+            {
+              "label": "憤怒",
               "intensity": 1
             },
             {
@@ -3475,28 +3550,34 @@
                 "idx": 2,
                 "describe": "與同學討論音樂理論問題",
                 "start": 625,
-                "duration": 5
+                "duration": 10
               },
               {
                 "idx": 3,
-                "describe": "{",
-                "start": 630,
-                "duration": 10
+                "describe": "準備今天的課程提問",
+                "start": 635,
+                "duration": 5
               },
               {
                 "idx": 4,
-                "describe": "準備今天的課程提問並聆聽一段音樂以進入狀態",
+                "describe": "習慣性地聆聽一段音樂以進入狀態",
                 "start": 640,
-                "duration": 10
+                "duration": 5
               },
               {
                 "idx": 5,
-                "describe": "檢查今天的課程材料是否齊全及簡短休息並補充水分",
-                "start": 650,
+                "describe": "檢查今天的課程材料是否齊全",
+                "start": 645,
                 "duration": 5
               },
               {
                 "idx": 6,
+                "describe": "簡短休息並補充水分",
+                "start": 650,
+                "duration": 5
+              },
+              {
+                "idx": 7,
                 "describe": "再次確認筆記和問題清單",
                 "start": 655,
                 "duration": 5
@@ -3541,7 +3622,7 @@
               },
               {
                 "idx": 5,
-                "describe": "上音樂理論課程",
+                "describe": "繼續做筆記和整理資料",
                 "start": 715,
                 "duration": 5
               }
@@ -3636,17 +3717,22 @@
       "associate": {
         "memory": {
           "event": [
+            "node_31",
+            "node_30",
+            "node_28",
+            "node_27",
             "node_26",
             "node_25",
-            "node_24",
             "node_23",
-            "node_21",
+            "node_22",
             "node_20",
+            "node_19",
             "node_17",
             "node_16",
             "node_15",
-            "node_13",
+            "node_14",
             "node_12",
+            "node_11",
             "node_10",
             "node_9",
             "node_8",
@@ -3661,32 +3747,18 @@
           "thought": [
             "node_0"
           ],
-          "chat": [
-            "node_19"
-          ],
+          "chat": [],
           "emotion": [
-            "node_27",
-            "node_22",
+            "node_32",
+            "node_29",
+            "node_24",
+            "node_21",
             "node_18",
-            "node_14",
-            "node_11"
+            "node_13"
           ]
         }
       },
-      "chats": [
-        [
-          "魏祺紘",
-          "嗨，施宇鴻，今天上課有什麼新的重點嗎？我昨晚在準備音樂合成的項目，有點分心了。"
-        ],
-        [
-          "施宇鴻",
-          "嗨，魏祺紘，今天化學課的重點是關於酸鹼平衡，老師強調了很多計算題。你昨晚忙到多晚啊？音樂合成項目進度如何了？"
-        ],
-        [
-          "魏祺紘",
-          "還好啦，大概忙到快 midnight。不過現在進度差不多了，應該可以如期完成。對了，你最近有去公園花園嗎？那邊的花都開了，看起來很漂亮。"
-        ]
-      ],
+      "chats": [],
       "currently": "魏祺紘正在為他的大學班級做音樂合成項目。他也在上課，學習更多的音樂理論。",
       "action": {
         "event": {
@@ -3698,20 +3770,20 @@
             "the Ville",
             "霍布斯咖啡館",
             "咖啡館",
-            "咖啡館顧客座位"
+            "烹飪區"
           ],
           "emoji": "回顧上一堂課的筆記"
         },
         "obj_event": {
-          "subject": "咖啡館顧客座位",
+          "subject": "烹飪區",
           "predicate": "此時",
-          "object": "正在使用中",
-          "describe": "正在使用中",
+          "object": "暫未使用",
+          "describe": "暫未使用",
           "address": [
             "the Ville",
             "霍布斯咖啡館",
             "咖啡館",
-            "咖啡館顧客座位"
+            "烹飪區"
           ],
           "emoji": ""
         },
@@ -3719,8 +3791,8 @@
         "duration": 5
       },
       "coord": [
-        79,
-        23
+        75,
+        19
       ]
     }
   },

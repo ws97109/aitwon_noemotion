@@ -132,6 +132,7 @@ class OllamaSurveyGenerator:
         question_text: str,
         question_type: str,
         options: Optional[List[str]] = None,
+        prev_answers: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         template = self._load_prompt_template(question_type)
         if not template:
@@ -152,6 +153,18 @@ class OllamaSurveyGenerator:
         # 評分題：從問題文字提取範圍
         rating_min, rating_max = self._extract_rating_scale(question_text)
 
+        # 組合先前回答的上下文（只保留最近 5 題避免 prompt 過長）
+        prev_context = ""
+        if prev_answers:
+            recent = prev_answers[-5:]
+            lines = []
+            for pa in recent:
+                ans = pa["answer"]
+                if isinstance(ans, list):
+                    ans = "、".join(str(a) for a in ans)
+                lines.append(f"問：{pa['text']}\n答：{ans}")
+            prev_context = "\n\n".join(lines)
+
         template_vars = {
             "agent_name": agent_name,
             "age": scratch.get("age", "未知"),
@@ -168,10 +181,18 @@ class OllamaSurveyGenerator:
             "options": self._format_options(options) if options and question_type in ("single_choice", "multiple_choice") else "",
             "rating_min": str(rating_min),
             "rating_max": str(rating_max),
+            "prev_answers": prev_context,
         }
 
         try:
-            return template.safe_substitute(template_vars) + LANGUAGE_SUFFIX
+            result = template.safe_substitute(template_vars) + LANGUAGE_SUFFIX
+            # 如果模板沒有 ${prev_answers} 佔位符但有上下文，手動插入
+            if prev_context and "${prev_answers}" not in template.template:
+                result = result.replace(
+                    "=== 問卷問題 ===",
+                    f"=== 你在本問卷中的先前回答 ===\n{prev_context}\n\n=== 問卷問題 ===",
+                )
+            return result
         except Exception as e:
             print(f"❌ 替換 prompt 變數時發生錯誤: {e}")
             return f"模板處理錯誤: {e}"
@@ -200,6 +221,7 @@ class OllamaSurveyGenerator:
         question_text: str,
         question_type: str,
         options: Optional[List[str]] = None,
+        prev_answers: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         agent_data = self._load_agent_data(resident_name)
         if not agent_data:
@@ -222,6 +244,7 @@ class OllamaSurveyGenerator:
             question_text=question_text,
             question_type=question_type,
             options=options,
+            prev_answers=prev_answers,
         )
 
         try:

@@ -155,10 +155,14 @@ class AIResidentSurveyFiller:
         print(f"   📝 問卷: {survey.title}")
         print(f"   🤖 使用 Ollama LLM 生成 {len(survey.questions)} 個回答...")
 
+        # 記錄已回答的題目，作為後續題目的上下文
+        prev_answers: list = []
+
         for i, question in enumerate(survey.questions, 1):
             try:
-                answer = self._generate_answer_via_ollama(question, resident_name)
+                answer = self._generate_answer_via_ollama(question, resident_name, prev_answers)
                 response.add_response(question["id"], answer)
+                prev_answers.append({"text": question["text"], "answer": answer})
                 print(f"      [{i}/{len(survey.questions)}] {question['text'][:30]}... ✓")
             except Exception as e:
                 print(f"      [{i}/{len(survey.questions)}] {question['text'][:30]}... ❌ 錯誤: {e}")
@@ -167,7 +171,8 @@ class AIResidentSurveyFiller:
         response.complete()
         return response
 
-    def _generate_answer_via_ollama(self, question: Dict, resident_name: str) -> Any:
+    def _generate_answer_via_ollama(self, question: Dict, resident_name: str,
+                                    prev_answers: list = None) -> Any:
         question_type = question["type"]
         question_text = question["text"]
         options = question.get("options", [])
@@ -182,6 +187,7 @@ class AIResidentSurveyFiller:
             question_text=question_text,
             question_type=question_type,
             options=options,
+            prev_answers=prev_answers,
         )
 
         # 評分題：提取實際範圍用於驗證
