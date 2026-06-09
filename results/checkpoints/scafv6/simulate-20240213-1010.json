@@ -43,8 +43,8 @@
     }
   },
   "agents": {
-    "施宇鴻": {
-      "config_path": "assets/village/agents/施宇鴻/agent.json",
+    "小明": {
+      "config_path": "assets/village/agents/小明/agent.json",
       "status": {
         "poignancy": 31,
         "emotion": {
@@ -345,10 +345,10 @@
         }
       },
       "chats": [],
-      "currently": "施宇鴻正在為下一場比賽進行訓練，並為考試做準備。他也在尋找提高學習效率的方法。",
+      "currently": "小明正在為下一場比賽進行訓練，並為考試做準備。他也在尋找提高學習效率的方法。",
       "action": {
         "event": {
-          "subject": "施宇鴻",
+          "subject": "小明",
           "predicate": "此時",
           "object": "查閱化學課本中的重要概念",
           "describe": "查閱化學課本中的重要概念",
@@ -381,8 +381,8 @@
         24
       ]
     },
-    "李昇峰": {
-      "config_path": "assets/village/agents/李昇峰/agent.json",
+    "小華": {
+      "config_path": "assets/village/agents/小華/agent.json",
       "status": {
         "poignancy": 20,
         "emotion": {
@@ -713,10 +713,10 @@
         }
       },
       "chats": [],
-      "currently": "李昇峰與妻子游庭瑄和兒子魏祺紘住在一起，在柳樹市場和藥店開了一家藥店。他還參加了線上課程，以了解最新的藥物和治療方法。李昇峰也很好奇誰將參加下個月的地方市長選舉，他向每個人詢問誰將參加選舉。",
+      "currently": "小華與妻子小婷和兒子小傑住在一起，在柳樹市場和藥店開了一家藥店。他還參加了線上課程，以了解最新的藥物和治療方法。小華也很好奇誰將參加下個月的地方市長選舉，他向每個人詢問誰將參加選舉。",
       "action": {
         "event": {
-          "subject": "李昇峰",
+          "subject": "小華",
           "predicate": "此時",
           "object": "與顧客討論他們的症狀和需求",
           "describe": "與顧客討論他們的症狀和需求",
@@ -749,8 +749,8 @@
         51
       ]
     },
-    "游庭瑄": {
-      "config_path": "assets/village/agents/游庭瑄/agent.json",
+    "小婷": {
+      "config_path": "assets/village/agents/小婷/agent.json",
       "status": {
         "poignancy": 17,
         "emotion": {
@@ -880,7 +880,7 @@
               },
               {
                 "idx": 4,
-                "describe": "與丈夫李昇峰簡單討論家庭事務",
+                "describe": "與丈夫小華簡單討論家庭事務",
                 "start": 570,
                 "duration": 5
               },
@@ -1094,10 +1094,10 @@
         }
       },
       "chats": [],
-      "currently": "游庭瑄與丈夫李昇峰和兒子魏祺紘住在一起，她正在教授哲學課程並撰寫研究論文。她還幫助她的兩個孩子做功課。",
+      "currently": "小婷與丈夫小華和兒子小傑住在一起，她正在教授哲學課程並撰寫研究論文。她還幫助她的兩個孩子做功課。",
       "action": {
         "event": {
-          "subject": "游庭瑄",
+          "subject": "小婷",
           "predicate": "此時",
           "object": "引導學生討論柏拉圖的《理想國》",
           "describe": "引導學生討論柏拉圖的《理想國》",
@@ -1130,8 +1130,8 @@
         29
       ]
     },
-    "盧品蓉": {
-      "config_path": "assets/village/agents/盧品蓉/agent.json",
+    "小美": {
+      "config_path": "assets/village/agents/小美/agent.json",
       "status": {
         "poignancy": 35,
         "emotion": {
@@ -1454,10 +1454,10 @@
         }
       },
       "chats": [],
-      "currently": "盧品蓉正在為她的畢業論文做研究，主題是莎士比亞戲劇中的語言運用。她也在上課，學習更多關於寫作的知識。",
+      "currently": "小美正在為她的畢業論文做研究，主題是莎士比亞戲劇中的語言運用。她也在上課，學習更多關於寫作的知識。",
       "action": {
         "event": {
-          "subject": "盧品蓉",
+          "subject": "小美",
           "predicate": "此時",
           "object": "聽取教授關於莎士比亞戲劇的講解",
           "describe": "聽取教授關於莎士比亞戲劇的講解",
@@ -1490,8 +1490,8 @@
         23
       ]
     },
-    "莊于萱": {
-      "config_path": "assets/village/agents/莊于萱/agent.json",
+    "小芳": {
+      "config_path": "assets/village/agents/小芳/agent.json",
       "status": {
         "poignancy": 0,
         "emotion": {
@@ -1782,10 +1782,10 @@
         }
       },
       "chats": [],
-      "currently": "莊于萱正在攻讀物理學位，並在Twitch上直播遊戲以賺取額外收入。她幾乎每天都會去霍布斯咖啡館學習和吃飯。",
+      "currently": "小芳正在攻讀物理學位，並在Twitch上直播遊戲以賺取額外收入。她幾乎每天都會去霍布斯咖啡館學習和吃飯。",
       "action": {
         "event": {
-          "subject": "莊于萱",
+          "subject": "小芳",
           "predicate": "此時",
           "object": "前往浴室刷牙和洗脸",
           "describe": "前往浴室刷牙和洗脸",
@@ -1818,8 +1818,8 @@
         26
       ]
     },
-    "蔡宗陞": {
-      "config_path": "assets/village/agents/蔡宗陞/agent.json",
+    "小宇": {
+      "config_path": "assets/village/agents/小宇/agent.json",
       "status": {
         "poignancy": 21,
         "emotion": {
@@ -2157,10 +2157,10 @@
         }
       },
       "chats": [],
-      "currently": "蔡宗陞計劃於5月05日下午5點在霍布斯咖啡館與他的顧客舉行咖啡館週年派對。他正在收集聚會材料，並告訴大家在5月05日下午5點至7點在霍布斯咖啡館參加聚會。",
+      "currently": "小宇計劃於5月05日下午5點在霍布斯咖啡館與他的顧客舉行咖啡館週年派對。他正在收集聚會材料，並告訴大家在5月05日下午5點至7點在霍布斯咖啡館參加聚會。",
       "action": {
         "event": {
-          "subject": "蔡宗陞",
+          "subject": "小宇",
           "predicate": "此時",
           "object": "服務新到達的顧客",
           "describe": "服務新到達的顧客",
@@ -2193,8 +2193,8 @@
         19
       ]
     },
-    "鄭傑丞": {
-      "config_path": "assets/village/agents/鄭傑丞/agent.json",
+    "小強": {
+      "config_path": "assets/village/agents/小強/agent.json",
       "status": {
         "poignancy": 26,
         "emotion": {
@@ -2509,10 +2509,10 @@
         }
       },
       "chats": [],
-      "currently": "鄭傑丞正在撰寫一篇關於低收入社區中產階級化影響的研究論文。",
+      "currently": "小強正在撰寫一篇關於低收入社區中產階級化影響的研究論文。",
       "action": {
         "event": {
-          "subject": "鄭傑丞",
+          "subject": "小強",
           "predicate": "此時",
           "object": "查閱相關文獻資料",
           "describe": "查閱相關文獻資料",
@@ -2545,8 +2545,8 @@
         44
       ]
     },
-    "陳冠佑": {
-      "config_path": "assets/village/agents/陳冠佑/agent.json",
+    "小龍": {
+      "config_path": "assets/village/agents/小龍/agent.json",
       "status": {
         "poignancy": 20,
         "emotion": {
@@ -2861,10 +2861,10 @@
         }
       },
       "chats": [],
-      "currently": "陳冠佑在鎮上經營著一家很受歡迎的酒吧，這家酒吧已經存在了10年。他還學習了更多關於調酒的知識，並創造了獨特的雞尾酒。",
+      "currently": "小龍在鎮上經營著一家很受歡迎的酒吧，這家酒吧已經存在了10年。他還學習了更多關於調酒的知識，並創造了獨特的雞尾酒。",
       "action": {
         "event": {
-          "subject": "陳冠佑",
+          "subject": "小龍",
           "predicate": "此時",
           "object": "清理吧檯上的酒瓶和工具",
           "describe": "清理吧檯上的酒瓶和工具",
@@ -2897,8 +2897,8 @@
         20
       ]
     },
-    "魏祺紘": {
-      "config_path": "assets/village/agents/魏祺紘/agent.json",
+    "小傑": {
+      "config_path": "assets/village/agents/小傑/agent.json",
       "status": {
         "poignancy": 17,
         "emotion": {
@@ -3217,10 +3217,10 @@
         }
       },
       "chats": [],
-      "currently": "魏祺紘正在為他的大學班級做音樂合成項目。他也在上課，學習更多的音樂理論。",
+      "currently": "小傑正在為他的大學班級做音樂合成項目。他也在上課，學習更多的音樂理論。",
       "action": {
         "event": {
-          "subject": "魏祺紘",
+          "subject": "小傑",
           "predicate": "此時",
           "object": "與同學討論上一堂課的重點",
           "describe": "與同學討論上一堂課的重點",
