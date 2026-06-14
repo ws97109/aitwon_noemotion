@@ -455,9 +455,9 @@ def fig_loss_comp():
     rbox(ax, 11.7, 3.70, 4.0, 0.55, C["rose"],
          "Branch diversity penalty\n(decorrelate features)",
          fs=9, bold=True)
-    rbox(ax, 7.0, 2.85, 12.0, 0.50, C["danger"],
-         "Cross-modal contrast — pull text, audio and vision embeddings together "
-         "for the same sample, push apart for different samples (added in Stage 2)",
+    rbox(ax, 7.0, 2.80, 12.8, 0.80, C["danger"],
+         "Cross-modal contrast (added in Stage 2)  —  pull text, audio and vision\n"
+         "embeddings together for the same sample, push apart for different samples",
          fs=9.0, bold=True)
 
     # Layer 3
