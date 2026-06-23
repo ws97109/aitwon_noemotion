@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 BASE = Path(__file__).parent
 OUTDIR = BASE / "figures"
@@ -95,7 +96,7 @@ def fig_acc7_ranking():
                label="research target = 53%", zorder=2)
 
     ax.set_ylabel("Acc-7 (%)   —   7-class sentiment intensity accuracy")
-    ax.set_ylim(25, 60)
+    ax.set_ylim(0, 60)
     ax.grid(axis="y", color=C["grid"], alpha=0.6, zorder=0)
     ax.set_title("CMU-MOSI — 7-Class Sentiment Accuracy Across Models",
                  pad=12, fontweight="bold", color=C["primary"])
@@ -123,10 +124,10 @@ def fig_multi_metric():
     ax = axes[0, 0]
     bars = ax.bar(nms, a7, color=cols, edgecolor="white", lw=0.8, zorder=3)
     for b, v in zip(bars, a7):
-        ax.text(b.get_x() + b.get_width()/2, v + 0.4, f"{v:.2f}",
+        ax.text(b.get_x() + b.get_width()/2, v + 0.6, f"{v:.2f}",
                 ha="center", va="bottom", fontsize=8.5, fontweight="bold")
     ax.set_ylabel("Acc-7 (%)")
-    ax.set_ylim(40, 56)
+    ax.set_ylim(0, 60)
     ax.set_title("(a)  7-class accuracy — higher is better",
                  fontweight="bold", color=C["primary"])
     ax.grid(axis="y", color=C["grid"], alpha=0.6, zorder=0)
@@ -141,10 +142,10 @@ def fig_multi_metric():
     bars_f = ax.bar(x + bw/2, f, bw, color=C["secondary"], label="F1",
                     edgecolor="white", lw=0.6, zorder=3)
     for b, v in zip(bars_a, a2):
-        ax.text(b.get_x()+b.get_width()/2, v+0.18, f"{v:.1f}",
+        ax.text(b.get_x()+b.get_width()/2, v+1.0, f"{v:.1f}",
                 ha="center", va="bottom", fontsize=7.5)
     for b, v in zip(bars_f, f):
-        ax.text(b.get_x()+b.get_width()/2, v+0.18, f"{v:.1f}",
+        ax.text(b.get_x()+b.get_width()/2, v+1.0, f"{v:.1f}",
                 ha="center", va="bottom", fontsize=7.5)
     # Mark "Ours"
     for i, ours in enumerate(is_ours[order]):
@@ -153,20 +154,30 @@ def fig_multi_metric():
                 b.set_color(C["ours"])
     ax.set_xticks(x); ax.set_xticklabels(nms, rotation=22, ha="right", fontsize=9)
     ax.set_ylabel("Score (%)")
-    ax.set_ylim(78, 90)
+    ax.set_ylim(0, 108)
     ax.set_title("(b)  Binary accuracy and F1 — higher is better",
                  fontweight="bold", color=C["primary"])
     ax.grid(axis="y", color=C["grid"], alpha=0.6, zorder=0)
-    ax.legend(fontsize=9, framealpha=0.95)
+    # Explicit legend handles so the swatches show the true bar colours.
+    # (SACF's bars are recoloured red above, which would otherwise make the
+    #  auto-legend show both Acc-2 and F1 as red.)
+    legend_handles = [
+        mpatches.Patch(color=C["primary"], label="Acc-2"),
+        mpatches.Patch(color=C["secondary"], label="F1"),
+        mpatches.Patch(color=C["ours"], label="SACF (Ours)"),
+    ]
+    ax.legend(handles=legend_handles, fontsize=8.5, framealpha=0.95,
+              loc="upper center", ncol=3, columnspacing=1.4,
+              handletextpad=0.5, borderaxespad=0.3)
 
     # (c) MAE (lower is better)
     ax = axes[1, 0]
     bars = ax.bar(nms, me, color=cols, edgecolor="white", lw=0.8, zorder=3)
     for b, v in zip(bars, me):
-        ax.text(b.get_x() + b.get_width()/2, v + 0.008, f"{v:.3f}",
+        ax.text(b.get_x() + b.get_width()/2, v + 0.012, f"{v:.3f}",
                 ha="center", va="bottom", fontsize=8.5, fontweight="bold")
     ax.set_ylabel("Mean absolute error")
-    ax.set_ylim(0.50, 0.80)
+    ax.set_ylim(0, 0.85)
     ax.set_title("(c)  Mean absolute error — lower is better",
                  fontweight="bold", color=C["primary"])
     ax.grid(axis="y", color=C["grid"], alpha=0.6, zorder=0)
@@ -176,10 +187,10 @@ def fig_multi_metric():
     ax = axes[1, 1]
     bars = ax.bar(nms, co, color=cols, edgecolor="white", lw=0.8, zorder=3)
     for b, v in zip(bars, co):
-        ax.text(b.get_x() + b.get_width()/2, v + 0.005, f"{v:.3f}",
+        ax.text(b.get_x() + b.get_width()/2, v + 0.012, f"{v:.3f}",
                 ha="center", va="bottom", fontsize=8.5, fontweight="bold")
     ax.set_ylabel("Pearson correlation")
-    ax.set_ylim(0.75, 0.90)
+    ax.set_ylim(0, 1.0)
     ax.set_title("(d)  Pearson correlation — higher is better",
                  fontweight="bold", color=C["primary"])
     ax.grid(axis="y", color=C["grid"], alpha=0.6, zorder=0)

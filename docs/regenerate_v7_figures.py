@@ -515,8 +515,8 @@ def fig_train_timeline():
     rbox(ax, 67.2, 3.20, 20, 0.65, C["danger"],
          "Lower learning rate  +  cross-modal\ncontrastive loss added  (20 epochs)",
          fs=8.5, bold=True, tc="white")
-    ax.text(67.2, 2.30,
-            "Per-epoch snapshot weight averaging (16 snapshots)",
+    ax.text(67.2, 2.35,
+            "Per-epoch snapshot weight\naveraging (16 snapshots)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
 
     # Three independent runs panel
@@ -560,11 +560,11 @@ def fig_inference():
             ha="center", fontsize=9.5, color=C["muted"], style="italic")
 
     # Stage A — TTA
-    bg(ax, 0.3, 4.2, 4.2, 1.95, "#DBEAFE", C["primary"])
+    bg(ax, 0.3, 3.85, 4.2, 2.30, "#DBEAFE", C["primary"])
     ax.text(2.4, 5.85, "Step A   Test-time augmentation",
-            ha="center", fontsize=10.5, fontweight="bold", color=C["primary"])
+            ha="center", fontsize=10, fontweight="bold", color=C["primary"])
     for i in range(5):
-        rbox(ax, 1.05 + i * 0.65, 4.95, 0.5, 0.40, C["primary"],
+        rbox(ax, 1.05 + i * 0.65, 5.20, 0.5, 0.40, C["primary"],
              f"pass {i+1}", fs=7.5, bold=True)
     ax.text(2.4, 4.40,
             "Five stochastic forward passes\nfor each test sample,\nthen averaged",
@@ -572,48 +572,54 @@ def fig_inference():
             color=C["primary"])
 
     # Stage B — Three-run ensemble (already inside the weights)
-    bg(ax, 5.0, 4.2, 4.0, 1.95, "#FEF3C7", C["accent"])
+    bg(ax, 5.0, 3.85, 4.0, 2.30, "#FEF3C7", C["accent"])
     ax.text(7.0, 5.85, "Step B   Three-run ensemble",
-            ha="center", fontsize=10.5, fontweight="bold", color=C["accent"])
+            ha="center", fontsize=10, fontweight="bold", color=C["accent"])
     ax.text(7.0, 5.05,
             "Already merged into one\nparameter-averaged checkpoint\nat training time",
             ha="center", fontsize=8.5, color=C["accent"], fontweight="bold")
-    ax.text(7.0, 4.35,
+    ax.text(7.0, 4.20,
             "No extra forward pass\nis needed at inference",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
 
     # Stage C — Reg-Cls fusion
-    bg(ax, 9.7, 4.2, 4.0, 1.95, "#DCFCE7", C["success"])
+    bg(ax, 9.7, 3.85, 4.0, 2.30, "#DCFCE7", C["success"])
     ax.text(11.7, 5.85, "Step C   Probability fusion",
-            ha="center", fontsize=10.5, fontweight="bold", color=C["success"])
-    ax.text(11.7, 5.10,
+            ha="center", fontsize=10, fontweight="bold", color=C["success"])
+    ax.text(11.7, 5.05,
             "Combine classification and\nregression probabilities\nin log-space",
             ha="center", fontsize=8.5, color=C["text"], fontweight="bold")
-    ax.text(11.7, 4.45,
+    ax.text(11.7, 4.20,
             "(fusion hyper-parameters set a priori)",
             ha="center", fontsize=8, color=C["muted"], style="italic")
 
-    arr(ax, 4.5, 5.15, 5.0, 5.15, lw=1.6)
-    arr(ax, 9.0, 5.15, 9.7, 5.15, lw=1.6)
+    arr(ax, 4.5, 5.10, 5.0, 5.10, lw=1.6)
+    arr(ax, 9.0, 5.10, 9.7, 5.10, lw=1.6)
 
     # Bottom flow
     bg(ax, 0.3, 0.4, 13.4, 3.0, "#EDE9FE", C["purple"])
     ax.text(7, 3.20, "Detailed inference flow",
             ha="center", fontsize=10.5, fontweight="bold", color=C["purple"])
     flow = [
-        ("Test sample", C["text"], 1.2, 2.0),
-        ("Load merged\ncheckpoint\n(one model)", C["accent"], 3.4, 2.0),
-        ("Five stochastic\nforward passes\nwith dropout", C["primary"], 5.7, 2.0),
-        ("Average\nthe five outputs", C["secondary"], 8.0, 2.0),
-        ("Fuse classification\nand regression\nprobabilities", C["success"], 10.4, 2.0),
-        ("Argmax\nfinal class", C["danger"], 12.8, 2.0),
+        ("Test sample", C["text"]),
+        ("Load merged\ncheckpoint\n(one model)", C["accent"]),
+        ("Five stochastic\nforward passes\nwith dropout", C["primary"]),
+        ("Average\nthe five outputs", C["secondary"]),
+        ("Fuse classification\nand regression\nprobabilities", C["success"]),
+        ("Argmax\nfinal class", C["danger"]),
     ]
-    for label, col, cx, _ in flow:
-        rbox(ax, cx, 1.95, 2.05, 1.10, col, label, fs=8.5, bold=True)
-    for i in range(len(flow) - 1):
-        cx1 = flow[i][2] + 1.05
-        cx2 = flow[i+1][2] - 1.05
-        arr(ax, cx1, 1.95, cx2, 1.95, lw=1.4, hw=0.15)
+    # Distribute boxes evenly INSIDE the purple container (x: 0.3 → 13.7),
+    # keeping a margin on both ends so no box overflows the rounded edge.
+    BW, half, margin = 1.95, 0.975, 0.30
+    left = 0.3 + margin + half
+    right = 13.7 - margin - half
+    centers = [left + (right - left) * i / (len(flow) - 1)
+               for i in range(len(flow))]
+    for (label, col), cx in zip(flow, centers):
+        rbox(ax, cx, 1.95, BW, 1.10, col, label, fs=8.0, bold=True)
+    for i in range(len(centers) - 1):
+        arr(ax, centers[i] + half + 0.04, 1.95,
+            centers[i + 1] - half - 0.04, 1.95, lw=1.4, hw=0.13)
 
     ax.text(7, 0.85,
             "All fusion hyper-parameters are fixed before evaluation — "
