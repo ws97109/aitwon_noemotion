@@ -52,7 +52,7 @@ corr  = np.array([d[5] for d in _data_with_acc7])
 is_ours = np.array([d[6] for d in _data_with_acc7])
 
 C = dict(
-    ours="#DC2626", primary="#1D4ED8", accent="#F59E0B",
+    ours="#DC2626", ours_f1="#F87171", primary="#1D4ED8", accent="#F59E0B",
     success="#10B981", purple="#8B5CF6", text="#1F2937",
     muted="#6B7280", grid="#E5E7EB", rose="#F43F5E",
     secondary="#0891B2",
@@ -147,11 +147,11 @@ def fig_multi_metric():
     for b, v in zip(bars_f, f):
         ax.text(b.get_x()+b.get_width()/2, v+1.0, f"{v:.1f}",
                 ha="center", va="bottom", fontsize=7.5)
-    # Mark "Ours"
+    # Mark "Ours" — two shades of red so SACF's Acc-2 and F1 stay distinguishable
     for i, ours in enumerate(is_ours[order]):
         if ours:
-            for b in (bars_a[i], bars_f[i]):
-                b.set_color(C["ours"])
+            bars_a[i].set_color(C["ours"])      # Acc-2 → darker red
+            bars_f[i].set_color(C["ours_f1"])   # F1    → lighter red
     ax.set_xticks(x); ax.set_xticklabels(nms, rotation=22, ha="right", fontsize=9)
     ax.set_ylabel("Score (%)")
     ax.set_ylim(0, 108)
@@ -164,11 +164,12 @@ def fig_multi_metric():
     legend_handles = [
         mpatches.Patch(color=C["primary"], label="Acc-2"),
         mpatches.Patch(color=C["secondary"], label="F1"),
-        mpatches.Patch(color=C["ours"], label="SACF (Ours)"),
+        mpatches.Patch(color=C["ours"], label="SACF Acc-2"),
+        mpatches.Patch(color=C["ours_f1"], label="SACF F1"),
     ]
-    ax.legend(handles=legend_handles, fontsize=8.5, framealpha=0.95,
-              loc="upper center", ncol=3, columnspacing=1.4,
-              handletextpad=0.5, borderaxespad=0.3)
+    ax.legend(handles=legend_handles, fontsize=8.0, framealpha=0.95,
+              loc="upper center", ncol=4, columnspacing=1.0,
+              handletextpad=0.4, borderaxespad=0.3)
 
     # (c) MAE (lower is better)
     ax = axes[1, 0]

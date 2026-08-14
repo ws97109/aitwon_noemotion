@@ -21,7 +21,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch
 
 BASE = Path(__file__).parent
@@ -89,8 +88,8 @@ def bg(ax, x0, y0, w, h, fc, ec, lw=1.2, alpha=0.18):
 # FIG 1 — Overall architecture (conceptual)
 # ════════════════════════════════════════════════════════════════════════════
 def fig_arch():
-    fig, ax = plt.subplots(figsize=(14.0, 13.8))
-    ax.set_xlim(0, 14); ax.set_ylim(0, 15.8); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(14.0, 9.25))
+    ax.set_xlim(0, 14); ax.set_ylim(5.2, 15.8); ax.axis("off")
 
     ax.text(7, 15.30, "Hierarchical SACF — Multi-Branch Single Model",
             ha="center", va="center", fontsize=14, fontweight="bold",
@@ -166,38 +165,6 @@ def fig_arch():
         cx = 2.0 + i * 3.0
         arr(ax, cx, 6.55, 7.0, 6.48, color=branch_colors[i], lw=0.8, hw=0.10)
 
-    # Row 5: Inference
-    bg(ax, 0.4, 2.85, 13.2, 2.2, "#DCFCE7", C["success"])
-    ax.text(0.7, 4.90,
-            "(iv)  Zero-Leakage Inference",
-            ha="left", va="center", fontsize=11,
-            color=C["success"], fontweight="bold")
-    rbox(ax, 3.0, 4.15, 3.0, 0.7, C["primary"],
-         "Test-time augmentation\n(five stochastic passes)", fs=8.5, bold=True)
-    rbox(ax, 7.0, 4.15, 3.0, 0.7, C["accent"],
-         "Three-run weights\nalready merged in checkpoint", fs=8.5, bold=True)
-    rbox(ax, 11.0, 4.15, 3.0, 0.7, C["success"],
-         "Classification + Regression\nprobability fusion",
-         fs=8.5, bold=True)
-    arr(ax, 7.0, 5.30, 7.0, 4.80)
-    arr(ax, 4.70, 4.15, 5.30, 4.15, lw=1.4, hw=0.10)
-    arr(ax, 8.70, 4.15, 9.30, 4.15, lw=1.4, hw=0.10)
-    arr(ax, 7.0, 3.55, 7.0, 2.95)
-
-    rbox(ax, 7.0, 2.45, 5.6, 0.75, C["danger"],
-         f"Final prediction              Acc-7 = {ACC7_FUSED:.2f}%",
-         fs=11, bold=True)
-
-    handles = [
-        mpatches.Patch(color=C["primary"], label="Text"),
-        mpatches.Patch(color=C["accent"], label="Audio"),
-        mpatches.Patch(color=C["success"], label="Vision"),
-        mpatches.Patch(color=C["rose"], label="Aggregation"),
-        mpatches.Patch(color=C["purple"], label="Parallel Branches"),
-    ]
-    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, 0.07),
-              ncol=5, fontsize=9, frameon=False)
-
     save(fig, "v7_fig_arch")
 
 
@@ -222,8 +189,8 @@ def fig_pea():
             ha="center", fontsize=8, color=C["muted"], style="italic")
     tokens = ["[CLS]", "good", "movie", "!", "[PAD]"]
     for ti, tok in enumerate(tokens):
-        ty = 4.55 - ti * 0.36
-        rbox(ax, 1.8, ty, 2.4, 0.30, C["primary"],
+        ty = 4.55 - ti * 0.33
+        rbox(ax, 1.8, ty, 2.4, 0.27, C["primary"],
              f"Token {ti}   ({tok})", fs=8.5, bold=True)
 
     # Step 2 — Gate MLP
@@ -246,8 +213,8 @@ def fig_pea():
             ha="center", fontsize=8, color=C["muted"], style="italic")
     pol_vals = [0.10, 0.92, 0.30, 0.50, 0.00]
     for ti, (tok, pol) in enumerate(zip(tokens, pol_vals)):
-        ty = 4.55 - ti * 0.36
-        rbox(ax, 8.65, ty, 2.0, 0.30, C["rose"],
+        ty = 4.55 - ti * 0.33
+        rbox(ax, 8.65, ty, 2.0, 0.27, C["rose"],
              f"Token {ti}:  {pol:.2f}", fs=8.5, bold=True)
     arr(ax, 7.10, 4.30, 7.55, 4.30, lw=1.4)
 
@@ -421,23 +388,23 @@ def fig_loss_comp():
     bg(ax, 0.4, 5.0, 13.2, 2.2, "#DBEAFE", C["primary"])
     ax.text(7, 6.95, "Layer 1 — Per-branch Task Losses",
             ha="center", fontsize=11, fontweight="bold", color=C["primary"])
-    rbox(ax, 2.0, 6.30, 3.2, 0.55, C["primary"],
+    rbox(ax, 2.35, 6.30, 3.2, 0.55, C["primary"],
          "Soft-Ordinal\nCross-Entropy", fs=9, bold=True)
-    rbox(ax, 5.7, 6.30, 3.2, 0.55, C["secondary"],
+    rbox(ax, 5.85, 6.30, 3.2, 0.55, C["secondary"],
          "Ordinal Earth-Mover's\nDistance", fs=9, bold=True)
-    rbox(ax, 9.3, 6.30, 2.6, 0.55, C["accent"],
+    rbox(ax, 9.05, 6.30, 2.6, 0.55, C["accent"],
          "Binary Polarity\nCross-Entropy", fs=9, bold=True)
-    rbox(ax, 12.3, 6.30, 2.6, 0.55, C["danger"],
+    rbox(ax, 11.95, 6.30, 2.6, 0.55, C["danger"],
          "Smooth-L1\nRegression", fs=9, bold=True)
-    ax.text(2.0, 5.75, "(soft labels for class distance)",
+    ax.text(2.35, 5.75, "(soft labels for class distance)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
-    ax.text(5.7, 5.75, "(penalizes distant misclassifications)",
+    ax.text(5.85, 5.75, "(penalizes distant misclassifications)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
-    ax.text(9.3, 5.75, "(positive vs. negative)",
+    ax.text(9.05, 5.75, "(positive vs. negative)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
-    ax.text(12.3, 5.75, "(continuous strength)",
+    ax.text(11.95, 5.75, "(continuous strength)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
-    rbox(ax, 7, 5.30, 13.0, 0.42, C["text"],
+    rbox(ax, 7, 5.30, 12.5, 0.42, C["text"],
          "Per-branch loss  =  weighted combination of the four above",
          fs=10, bold=True)
 
@@ -446,16 +413,16 @@ def fig_loss_comp():
     ax.text(7, 4.45,
             "Layer 2 — Cross-Branch Aggregation, Diversity and Cross-modal Contrast (Stage 2 only)",
             ha="center", fontsize=10.5, fontweight="bold", color=C["rose"])
-    rbox(ax, 2.3, 3.70, 4.0, 0.55, C["rose"],
+    rbox(ax, 2.75, 3.70, 3.9, 0.55, C["rose"],
          "Mean-output loss\n(on average of 4 branches)",
          fs=9, bold=True)
-    rbox(ax, 7.0, 3.70, 4.0, 0.55, C["rose"],
+    rbox(ax, 7.0, 3.70, 3.9, 0.55, C["rose"],
          "Per-branch loss\n(average over branches)",
          fs=9, bold=True)
-    rbox(ax, 11.7, 3.70, 4.0, 0.55, C["rose"],
+    rbox(ax, 11.25, 3.70, 3.9, 0.55, C["rose"],
          "Branch diversity penalty\n(decorrelate features)",
          fs=9, bold=True)
-    rbox(ax, 7.0, 2.80, 12.8, 0.80, C["danger"],
+    rbox(ax, 7.0, 2.88, 12.5, 0.80, C["danger"],
          "Cross-modal contrast (added in Stage 2)  —  pull text, audio and vision\n"
          "embeddings together for the same sample, push apart for different samples",
          fs=9.0, bold=True)
@@ -469,7 +436,7 @@ def fig_loss_comp():
          "R-Drop consistency — two stochastic forward passes "
          "should agree on the output distribution",
          fs=9.5, bold=True)
-    rbox(ax, 7.0, 0.60, 12.8, 0.55, C["text"],
+    rbox(ax, 7.0, 0.60, 12.5, 0.55, C["text"],
          "Total loss  =  weighted sum of all the above",
          fs=10.5, bold=True)
 
@@ -509,18 +476,18 @@ def fig_train_timeline():
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
 
     # Stage 2 box on the right
-    bg(ax, 56, 1.9, 22.5, 2.3, "#FEE2E2", C["danger"], alpha=0.55)
-    ax.text(67.2, 3.95, "Stage 2   —   Contrastive fine-tune",
+    bg(ax, 56, 1.9, 22.0, 2.3, "#FEE2E2", C["danger"], alpha=0.55)
+    ax.text(67.0, 3.95, "Stage 2   —   Contrastive fine-tune",
             ha="center", fontsize=10, fontweight="bold", color=C["danger"])
-    rbox(ax, 67.2, 3.20, 20, 0.65, C["danger"],
+    rbox(ax, 67.0, 3.20, 20, 0.65, C["danger"],
          "Lower learning rate  +  cross-modal\ncontrastive loss added  (20 epochs)",
          fs=8.5, bold=True, tc="white")
-    ax.text(67.2, 2.35,
+    ax.text(67.0, 2.35,
             "Per-epoch snapshot weight\naveraging (16 snapshots)",
             ha="center", fontsize=8.5, color=C["muted"], style="italic")
 
     # Three independent runs panel
-    bg(ax, 0.5, -2.5, 78, 3.2, "#EDE9FE", C["purple"], alpha=0.30)
+    bg(ax, 0.5, -2.6, 78, 3.3, "#EDE9FE", C["purple"], alpha=0.30)
     ax.text(40, 0.40, "Three Independent Runs   →   Parameter-Space Average",
             ha="center", fontsize=10.5, fontweight="bold", color=C["purple"])
     runs = [
