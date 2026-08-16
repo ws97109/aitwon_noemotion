@@ -17,13 +17,16 @@
 pip install flask requests python-dotenv pandas numpy openpyxl llama-index chromadb python-dateutil
 ```
 
-### API密鑰配置
+### LLM 設定（本系統使用 Ollama 本地推論，不需要雲端 API 密鑰）
 ```bash
 # 複製環境變數檔案
 cp .env.example .env
 
-# 編輯 .env 檔案，設定API密鑰
-OPENAI_API_KEY=your_openai_api_key_here
+# .env 中實際會被讀取的設定（問卷系統用）
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=qwen2.5:7b   # 必須已 ollama pull
+
+# 模擬系統的 LLM 設定在 data/config.json（base_url 與 model 需與本機 Ollama 一致）
 ```
 
 ### 啟動指令
